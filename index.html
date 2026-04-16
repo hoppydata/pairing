@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>40K Team Pairing — Terminus</title>
+  <style>
+    /* ── Design tokens ──────────────────────────────────────── */
+    :root {
+      --bg:         #0d0d0f;
+      --surface:    #16161a;
+      --surface2:   #1e1e24;
+      --border:     #2a2a35;
+      --gold:       #c9a84c;
+      --gold-dim:   #8a6e2f;
+      --gold-bg:    #1e1a0e;
+      --text:       #e8e4d9;
+      --muted:      #7a7870;
+      --blue:       #5b9cf6;
+      --red:        oklch(55% 0.20 20);
+      --green:      oklch(62% 0.18 145);
+      --amber:      oklch(72% 0.16 60);
+      --radius:     8px;
+      --radius-lg:  14px;
+      --dur:        220ms;
+      --ease:       cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      padding-bottom: 4rem;
+    }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    header h1 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      flex: 1;
+    }
+    #step-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .step-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background var(--dur);
+    }
+    .step-dot.done   { background: var(--gold-dim); }
+    .step-dot.active { background: var(--gold); }
+
+    /* ── Layout ─────────────────────────────────────────────── */
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 1.75rem 1.25rem 0;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── Cards ──────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Section headings ───────────────────────────────────── */
+    .screen-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .screen-sub   { font-size: 0.83rem; color: var(--muted); margin-bottom: 1.4rem; line-height: 1.5; }
+
+    /* ── Info box ───────────────────────────────────────────── */
+    .info-box {
+      background: var(--gold-bg);
+      border: 1px solid var(--gold-dim);
+      border-radius: var(--radius);
+      padding: 0.7rem 1rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+    .info-box strong { color: var(--gold); }
+
+    /* ── Form ───────────────────────────────────────────────── */
+    .field { margin-bottom: 0.8rem; }
+    .field label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    input[type="text"], input[type="password"], input[type="number"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.88rem;
+      padding: 0.5rem 0.7rem;
+      outline: none;
+      transition: border-color var(--dur);
+    }
+    input:focus { border-color: var(--gold-dim); }
+
+    /* ── Buttons ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.3rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity var(--dur), transform var(--dur);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+    .btn-primary { background: var(--gold); color: #0d0d0f; }
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover:not(:disabled) { border-color: var(--gold-dim); color: var(--gold); }
+    .btn-full { width: 100%; }
+    .btn-row { display: flex; gap: 0.7rem; margin-top: 1.1rem; flex-wrap: wrap; }
+
+    /* ── Matrix table ───────────────────────────────────────── */
+    .matrix-wrap { overflow-x: auto; }
+    table.matrix {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.8rem;
+    }
+    table.matrix th, table.matrix td {
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.55rem;
+      text-align: center;
+      white-space: nowrap;
+    }
+    table.matrix th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+    }
+    table.matrix th.row-hdr { text-align: left; color: var(--text); }
+    table.matrix td input {
+      width: 3.2rem;
+      padding: 0.2rem 0.3rem;
+      text-align: center;
+      font-size: 0.8rem;
+    }
+    .sc-hi  { color: var(--green);  font-weight: 700; }
+    .sc-mid { color: var(--amber);  font-weight: 700; }
+    .sc-lo  { color: var(--red);    font-weight: 700; }
+
+    /* ── Faction picker ─────────────────────────────────────── */
+    .faction-grid { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .faction-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background var(--dur), border-color var(--dur), color var(--dur);
+      user-select: none;
+      white-space: nowrap;
+    }
+    .faction-chip:hover { border-color: var(--gold-dim); color: var(--gold); }
+    .faction-chip.sel {
+      background: var(--gold-bg);
+      border-color: var(--gold);
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .faction-chip.off { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+    /* ── Two-column panels ──────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    @media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+
+    .team-panel {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem;
+      position: relative;
+    }
+    .team-panel h3 {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+    .label-a { color: var(--blue); }
+    .label-b { color: #e06c75; }
+
+    /* ── Secret overlay ─────────────────────────────────────── */
+    .secret-overlay {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      z-index: 10;
+      transition: opacity var(--dur);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .secret-overlay .lock-icon { font-size: 1.5rem; }
+    .team-panel.revealed .secret-overlay { display: none; }
+
+    /* ── Player chips ───────────────────────────────────────── */
+    .chip-list { display: flex; flex-direction: column; gap: 0.4rem; }
+    .p-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.45rem 0.7rem;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: border-color var(--dur), background var(--dur);
+      user-select: none;
+    }
+    .p-chip:hover  { border-color: var(--gold-dim); }
+    .p-chip.sel    { border-color: var(--gold); background: var(--gold-bg); }
+    .p-chip.used   { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+    .chip-score    { font-size: 0.8rem; font-weight: 700; }
+    .chip-hint     { font-size: 0.68rem; color: var(--muted); margin-left: 0.25rem; }
+
+    /* ── Suggestion panel ───────────────────────────────────── */
+    .suggest-wrap {
+      margin-bottom: 0.85rem;
+    }
+    .suggest-title {
+      font-size: 0.68rem;
+      color: var(--muted);
+      padding: 0.35rem 0 0.25rem;
+      letter-spacing: 0.03em;
+    }
+
+    .suggest-body {
+      display: block;
+      margin-top: 0.25rem;
+      background: #111115;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .suggest-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+    .suggest-table th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .suggest-table th:not(:first-child) { text-align: center; }
+    .suggest-table td {
+      padding: 0.3rem 0.6rem;
+      border-bottom: 1px solid #1a1a22;
+    }
+    .suggest-table tr:last-child td { border-bottom: none; }
+    .suggest-table td:not(:first-child) { text-align: center; }
+    .suggest-table tr.best td {
+      background: var(--gold-bg);
+      border-top: 1px solid var(--gold-dim);
+      border-bottom: 1px solid var(--gold-dim);
+    }
+    .suggest-table tr.best td:first-child { border-left: 3px solid var(--gold); }
+    .suggest-table .rank { color: var(--muted); font-size: 0.7rem; }
+    .star { color: var(--gold); font-size: 0.85rem; font-weight: 700; margin-left: 0.3rem; }
+
+    /* ── Pairing result line ────────────────────────────────── */
+    .pairing-line {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.6rem 0.7rem;
+      background: var(--surface2);
+      border-radius: var(--radius);
+      margin-bottom: 0.45rem;
+      font-size: 0.86rem;
+    }
+    .game-num {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--gold);
+      min-width: 2.4rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .vs { color: var(--muted); margin: 0 0.2rem; }
+    .table-tag {
+      margin-left: auto;
+      font-size: 0.7rem;
+      color: var(--muted);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.12rem 0.4rem;
+    }
+
+    /* ── Upload zone ────────────────────────────────────────── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      transition: border-color var(--dur);
+    }
+    .upload-zone:hover { border-color: var(--gold-dim); }
+    .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .upload-zone .u-icon { font-size: 1.6rem; margin-bottom: 0.35rem; }
+    .upload-zone p { font-size: 0.8rem; color: var(--muted); }
+
+    /* ── Toast ──────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.6rem 1.1rem;
+      font-size: 0.83rem;
+      transition: transform 0.3s var(--ease);
+      z-index: 999;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.err  { border-color: var(--red);   color: var(--red);   }
+    #toast.ok   { border-color: var(--green);  color: var(--green); }
+
+    /* ── Misc ───────────────────────────────────────────────── */
+    hr.div { border: none; border-top: 1px solid var(--border); margin: 1.1rem 0; }
+    .lock-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: #0d1f10;
+      border: 1px solid var(--green);
+      border-radius: 4px;
+      padding: 0.12rem 0.4rem;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+    }
+    .sel-count { font-size: 0.73rem; color: var(--muted); margin-top: 0.5rem; }
+
+    /* ── Overview bar ───────────────────────────────────────── */
+    #overview-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.4rem 1.25rem;
+      position: sticky;
+      top: 46px;
+      z-index: 90;
+      overflow-x: auto;
+    }
+    #overview-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .ov-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #ov-slots { display: flex; gap: 0.4rem; flex-wrap: nowrap; }
+    .ov-slot {
+      display: flex;
+      align-items: center;
+      gap: 0.28rem;
+      padding: 0.22rem 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      font-size: 0.7rem;
+      white-space: nowrap;
+      color: var(--muted);
+    }
+    .ov-slot.filled { color: var(--text); }
+    .ov-slot.filled.sc-hi  { border-left: 3px solid var(--green); }
+    .ov-slot.filled.sc-mid { border-left: 3px solid var(--amber); }
+    .ov-slot.filled.sc-lo  { border-left: 3px solid var(--red);   }
+    .ov-slot-num { font-size: 0.58rem; color: var(--gold); font-weight: 700; letter-spacing: 0.05em; flex-shrink: 0; }
+    .ov-slot-score { font-size: 0.66rem; font-weight: 700; margin-left: 0.15rem; }
+    .ov-slot-vs { color: var(--muted); font-size: 0.6rem; }
+    @media (max-width: 520px) {
+      #overview-bar { padding: 0.35rem 0.75rem; }
+      .ov-slot { font-size: 0.63rem; padding: 0.18rem 0.38rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>40K ⚔ Team Pairing</h1>
+  <div id="step-indicator"></div>
+</header>
+
+<div id="overview-bar" style="display:none">
+  <div id="overview-inner">
+    <div class="ov-label">GAMES</div>
+    <div id="ov-slots"></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ══ SCREEN 0 — Setup ══ -->
+  <div class="screen active" id="screen-setup">
+    <div class="screen-title">Match Setup</div>
+    <div class="screen-sub">Enter team names, then pick the 5 opponent factions to build the match matrix.</div>
+
+    <div class="card">
+      <div class="card-title">Teams</div>
+      <div class="field-row">
+        <div class="field"><label>Our Team</label><input type="text" id="ta-name" value="Terminus" /></div>
+        <div class="field"><label>Opponent</label><input type="text" id="tb-name" value="Opponent" /></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Our Players</div>
+      <div id="player-inputs"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Opponent Factions — pick exactly 5</div>
+      <div id="faction-picker" class="faction-grid"></div>
+      <p id="faction-count" style="margin-top:0.7rem;font-size:0.76rem;color:var(--muted)">Selected: 0 / 5</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Match Matrix <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— * = meta fallback</span></div>
+      <div class="matrix-wrap">
+        <table class="matrix" id="matrix-tbl">
+          <thead><tr id="matrix-hdr"><th class="row-hdr">Player ↓ / Faction →</th></tr></thead>
+          <tbody id="matrix-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Override via Photo <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— optional, uses Claude OCR</span></div>
+      <div class="field"><label>Claude API Key</label><input type="password" id="api-key" placeholder="sk-ant-…" /></div>
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="photo-upload" accept="image/*" />
+        <div class="u-icon">📷</div>
+        <p><strong style="color:var(--text)">Upload team matrix photo</strong></p>
+        <p style="font-size:0.73rem">Overwrites built-in scores with OCR values.</p>
+        <p id="upload-status" style="margin-top:0.4rem;color:var(--gold);display:none"></p>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-full" id="btn-start">Begin Pairing →</button>
+  </div>
+
+
+  <!-- ══ SCREEN 1 — S1 Defender ══ -->
+  <div class="screen" id="screen-s1d">
+    <div class="screen-title">Stage 1 — Defender Reveal</div>
+    <div class="screen-sub">Each captain secretly chooses their defender, then both are revealed simultaneously.</div>
+    <div class="two-col">
+      <div class="team-panel" id="pan-s1d-a">
+        <div class="secret-overlay" id="ov-s1d-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-a" id="lbl-s1d-a">Team A</h3>
+        <div id="sug-s1d-a"></div>
+        <div class="chip-list" id="list-s1d-a"></div>
+      </div>
+      <div class="team-panel" id="pan-s1d-b">
+        <div class="secret-overlay" id="ov-s1d-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-b" id="lbl-s1d-b">Team B</h3>
+        <div id="sug-s1d-b"></div>
+        <div class="chip-list" id="list-s1d-b"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-lock-s1d-a">Lock Team A</button>
+      <button class="btn btn-primary" id="btn-lock-s1d-b">Lock Team B</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btn-rev-s1d" disabled>Reveal Both →</button>
+    </div>
+  </div>
+
+
+  <!-- ══ SCREEN 2 — S1 Attackers ══ -->
+  <div class="screen" id="screen-s1a">
+    <div class="screen-title">Stage 1 — Attacker Selection</div>
+    <div class="screen-sub">Each team secretly picks 2 attackers to send against the opposing defender.</div>
+    <div class="info-box" id="info-s1a"></div>
+    <div class="two-col">
+      <div class="team-panel" id="pan-s1a-a">
+        <div class="secret-overlay" id="ov-s1a-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-a" id="lbl-s1a-a">Team A — pick 2 attackers</h3>
+        <div id="sug-s1a-a"></div>
+        <div class="chip-list" id="list-s1a-a"></div>
+        <div class="sel-count" id="cnt-s1a-a">Selected: 0 / 2</div>
+      </div>
+      <div class="team-panel" id="pan-s1a-b">
+        <div class="secret-overlay" id="ov-s1a-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-b" id="lbl-s1a-b">Team B — pick 2 attackers</h3>
+        <div id="sug-s1a-b"></div>
+        <div class="chip-list" id="list-s1a-b"></div>
+        <div class="sel-count" id="cnt-s1a-b">Selected: 0 / 2</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-lock-s1a-a">Lock Team A</button>
+      <button class="btn btn-primary" id="btn-lock-s1a-b">Lock Team B</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btn-rev-s1a" disabled>Reveal Both →</button>
+    </div>
+  </div>
+
+
+  <!-- ══ SCREEN 3 — S1 Refusal ══ -->
+  <div class="screen" id="screen-s1r">
+    <div class="screen-title">Stage 1 — Refusal</div>
+    <div class="screen-sub">Each team secretly refuses one of the opponent's attackers. Refused player returns to their pool.</div>
+    <div class="info-box" id="info-s1r"></div>
+    <div class="two-col">
+      <div class="team-panel" id="pan-s1r-a">
+        <div class="secret-overlay" id="ov-s1r-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-a" id="lbl-s1r-a">Team A — refuse one of Team B's attackers</h3>
+        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Choose who to <strong style="color:var(--red)">send back</strong>:</p>
+        <div id="sug-s1r-a"></div>
+        <div class="chip-list" id="list-s1r-a"></div>
+      </div>
+      <div class="team-panel" id="pan-s1r-b">
+        <div class="secret-overlay" id="ov-s1r-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-b" id="lbl-s1r-b">Team B — refuse one of Team A's attackers</h3>
+        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Choose who to <strong style="color:var(--red)">send back</strong>:</p>
+        <div id="sug-s1r-b"></div>
+        <div class="chip-list" id="list-s1r-b"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-lock-s1r-a">Lock Team A</button>
+      <button class="btn btn-primary" id="btn-lock-s1r-b">Lock Team B</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btn-rev-s1r" disabled>Reveal & Lock Pairings →</button>
+    </div>
+  </div>
+
+
+  <!-- ══ SCREEN 4 — S1 Tables ══ -->
+  <div class="screen" id="screen-s1t">
+    <div class="screen-title">Stage 1 — Table Pick</div>
+    <div class="screen-sub">Games 1 &amp; 2 are locked. Defenders choose their tables.</div>
+    <div class="card" id="s1t-pairings"></div>
+    <div class="info-box">
+      <strong>Table Choice Order:</strong> Team A defender picks first → Team B defender picks second → Token passes to <strong>Team B</strong>.
+    </div>
+    <div class="card">
+      <div class="card-title">Table Assignments</div>
+      <div class="field-row">
+        <div class="field"><label id="s1t-lbl1">Game 1 (Team A defender picks)</label><input type="text" id="s1t-tbl1" placeholder="e.g. Table 3" /></div>
+        <div class="field"><label id="s1t-lbl2">Game 2 (Team B defender picks)</label><input type="text" id="s1t-tbl2" placeholder="e.g. Table 7" /></div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-s1t-next">Proceed to Stage 2 →</button>
+  </div>
+
+
+  <!-- ══ SCREEN 5 — S2 Defender ══ -->
+  <div class="screen" id="screen-s2d">
+    <div class="screen-title">Stage 2 — Defender Reveal</div>
+    <div class="screen-sub">Token now with Team B. Each team secretly picks their second defender.</div>
+    <div class="info-box"><strong>Token:</strong> Team B holds the Table Choice Token for Stage 2.</div>
+    <div class="two-col">
+      <div class="team-panel" id="pan-s2d-a">
+        <div class="secret-overlay" id="ov-s2d-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-a" id="lbl-s2d-a">Team A — remaining pool</h3>
+        <div id="sug-s2d-a"></div>
+        <div class="chip-list" id="list-s2d-a"></div>
+      </div>
+      <div class="team-panel" id="pan-s2d-b">
+        <div class="secret-overlay" id="ov-s2d-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-b" id="lbl-s2d-b">Team B — remaining pool</h3>
+        <div id="sug-s2d-b"></div>
+        <div class="chip-list" id="list-s2d-b"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-lock-s2d-a">Lock Team A</button>
+      <button class="btn btn-primary" id="btn-lock-s2d-b">Lock Team B</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btn-rev-s2d" disabled>Reveal Both →</button>
+    </div>
+  </div>
+
+
+  <!-- ══ SCREEN 6 — S2 Attackers ══ -->
+  <div class="screen" id="screen-s2a">
+    <div class="screen-title">Stage 2 — Attacker Selection</div>
+    <div class="screen-sub">Each team sends both remaining players as attackers.</div>
+    <div class="info-box" id="info-s2a"></div>
+    <div class="two-col">
+      <div class="team-panel" id="pan-s2a-a">
+        <div class="secret-overlay" id="ov-s2a-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-a" id="lbl-s2a-a">Team A — 2 attackers</h3>
+        <div id="sug-s2a-a"></div>
+        <div class="chip-list" id="list-s2a-a"></div>
+        <div class="sel-count" id="cnt-s2a-a">Selected: 0 / 2</div>
+      </div>
+      <div class="team-panel" id="pan-s2a-b">
+        <div class="secret-overlay" id="ov-s2a-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-b" id="lbl-s2a-b">Team B — 2 attackers</h3>
+        <div id="sug-s2a-b"></div>
+        <div class="chip-list" id="list-s2a-b"></div>
+        <div class="sel-count" id="cnt-s2a-b">Selected: 0 / 2</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-lock-s2a-a">Lock Team A</button>
+      <button class="btn btn-primary" id="btn-lock-s2a-b">Lock Team B</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btn-rev-s2a" disabled>Reveal Both →</button>
+    </div>
+  </div>
+
+
+  <!-- ══ SCREEN 7 — S2 Refusal + Tables ══ -->
+  <div class="screen" id="screen-s2r">
+    <div class="screen-title">Stage 2 — Refusal &amp; Final Tables</div>
+    <div class="screen-sub">Refused attackers auto-pair as Game 5. Then defenders pick tables.</div>
+    <div class="info-box" id="info-s2r"></div>
+    <div class="two-col">
+      <div class="team-panel" id="pan-s2r-a">
+        <div class="secret-overlay" id="ov-s2r-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-a" id="lbl-s2r-a">Team A — refuse one of Team B's attackers</h3>
+        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Refused attacker becomes <strong style="color:var(--gold)">Game 5</strong>:</p>
+        <div id="sug-s2r-a"></div>
+        <div class="chip-list" id="list-s2r-a"></div>
+      </div>
+      <div class="team-panel" id="pan-s2r-b">
+        <div class="secret-overlay" id="ov-s2r-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
+        <h3 class="label-b" id="lbl-s2r-b">Team B — refuse one of Team A's attackers</h3>
+        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Refused attacker becomes <strong style="color:var(--gold)">Game 5</strong>:</p>
+        <div id="sug-s2r-b"></div>
+        <div class="chip-list" id="list-s2r-b"></div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-lock-s2r-a">Lock Team A</button>
+      <button class="btn btn-primary" id="btn-lock-s2r-b">Lock Team B</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-outline" id="btn-rev-s2r" disabled>Reveal &amp; Finalize Game 5 →</button>
+    </div>
+    <div id="s2t-section" style="display:none;margin-top:1.5rem">
+      <div class="card" id="s2t-pairings"></div>
+      <div class="info-box">
+        <strong>Table Choice Order:</strong> Team B defender picks first (Token holder) → Team A defender → Game 5 gets last remaining table.
+      </div>
+      <div class="card">
+        <div class="card-title">Table Assignments</div>
+        <div class="field-row">
+          <div class="field"><label id="s2t-lbl3">Game 3 (Team B defender — Token)</label><input type="text" id="s2t-tbl3" placeholder="e.g. Table 1" /></div>
+          <div class="field"><label id="s2t-lbl4">Game 4 (Team A defender)</label><input type="text" id="s2t-tbl4" placeholder="e.g. Table 2" /></div>
+        </div>
+        <div class="field" style="margin-top:0.5rem">
+          <label>Game 5 — last remaining table</label>
+          <input type="text" id="s2t-tbl5" placeholder="e.g. Table 5" />
+        </div>
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-s2t-finish">View Final Pairings →</button>
+    </div>
+  </div>
+
+
+  <!-- ══ SCREEN 8 — Results ══ -->
+  <div class="screen" id="screen-results">
+    <div class="screen-title">Final Pairings</div>
+    <div class="screen-sub">All 5 games determined. Good luck!</div>
+    <div class="card" id="results-games"></div>
+    <div class="card">
+      <div class="card-title">Table Choice Summary</div>
+      <div style="font-size:0.82rem;color:var(--muted);line-height:1.9" id="results-tables"></div>
+    </div>
+    <button class="btn btn-outline btn-full" id="btn-restart" style="margin-top:0.5rem">New Match ↺</button>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════════════════ */
+
+const TEAM_DATA = {
+  teamName: "Terminus",
+  players: ["Daniel", "Paddy", "David", "Berni", "Norge"],
+  playerFactions: {
+    "Daniel": "Dark Angels",
+    "Paddy":  "Daemons",
+    "David":  "Imperial Knights",
+    "Berni":  "Guard",
+    "Norge":  "Custodes"
+  },
+  factions: [
+    "Necrons","Tau","Custodes","SM (UM)","Guard","Sisters",
+    "Grey Knights","Blood Angels","Space Wolves","Ad Mech","Orks",
+    "Votann","Nids","Aeldari","Drukhari","GSC","Tsons",
+    "Death Guard","CSM","World Eaters","Daemons","Chaos Knights","Imperial Knights","Dark Angels"
+  ],
+  matrix: {
+    "Daniel": { "Necrons":10,"Tau":12,"Custodes":12,"SM (UM)":12,"Guard":8,"Sisters":12,"Grey Knights":12,"Blood Angels":10,"Space Wolves":10,"Ad Mech":12,"Orks":12,"Votann":12,"Nids":10,"Aeldari":12,"Drukhari":6,"GSC":6,"Tsons":8,"Death Guard":10,"CSM":8,"World Eaters":12,"Daemons":8,"Chaos Knights":8,"Imperial Knights":8 },
+    "Paddy":  { "Necrons":10,"Tau":10,"Custodes":12,"SM (UM)":12,"Guard":5,"Sisters":12,"Grey Knights":13,"Blood Angels":12,"Space Wolves":8,"Ad Mech":10,"Orks":13,"Votann":13,"Nids":18,"Aeldari":8,"Drukhari":10,"GSC":13,"Tsons":14,"Death Guard":12,"CSM":10,"World Eaters":10,"Daemons":10 },
+    "David":  { "Necrons":20,"Tau":10,"Custodes":5,"SM (UM)":5,"Guard":8,"Sisters":16,"Grey Knights":18,"Blood Angels":10,"Space Wolves":10,"Ad Mech":4,"Orks":16,"Votann":10,"Nids":16,"Aeldari":4,"Drukhari":20,"GSC":5,"Tsons":1,"Death Guard":10,"CSM":5,"World Eaters":2,"Daemons":8,"Chaos Knights":10,"Imperial Knights":10 },
+    "Berni":  { "Necrons":10,"Tau":15,"Custodes":10,"SM (UM)":9,"Guard":10,"Sisters":16,"Grey Knights":18,"Blood Angels":16,"Space Wolves":16,"Ad Mech":10,"Orks":0,"Votann":0,"Nids":10,"Aeldari":20,"Drukhari":16,"GSC":5,"Tsons":8,"Death Guard":10,"CSM":6,"World Eaters":15,"Daemons":7,"Chaos Knights":5,"Imperial Knights":10 },
+    "Norge":  { "Tau":8,"Sisters":8,"Tsons":8,"Nids":11,"GSC":8,"Daemons":11 }
+  }
+};
+
+// Global meta fallback — row = our faction, col = opponent faction
+const META = {
+  "Custodes": {
+    "Necrons":11,"Tau":11,"Custodes":15,"SM (UM)":8,"Guard":6,"Sisters":8,
+    "Grey Knights":13,"Blood Angels":10,"Space Wolves":8,"Ad Mech":12,"Orks":9,
+    "Votann":7,"Nids":12,"Aeldari":8,"Drukhari":10,"GSC":10,"Tsons":10,
+    "Death Guard":10,"CSM":11,"World Eaters":10,"Daemons":12,"Chaos Knights":10,
+    "Imperial Knights":8,"Dark Angels":10
+  },
+  "Guard": {
+    "Necrons":9,"Tau":7,"Custodes":10,"SM (UM)":11,"Guard":11,"Sisters":10,
+    "Grey Knights":12,"Blood Angels":12,"Space Wolves":10,"Ad Mech":10,"Orks":10,
+    "Votann":7,"Nids":10,"Aeldari":10,"Drukhari":10,"GSC":10,"Tsons":10,
+    "Death Guard":11,"CSM":10,"World Eaters":10,"Daemons":10,"Chaos Knights":10,
+    "Imperial Knights":9,"Dark Angels":10
+  },
+  "Daemons": {
+    "Necrons":13,"Tau":9,"Custodes":7,"SM (UM)":11,"Guard":8,"Sisters":10,
+    "Grey Knights":11,"Blood Angels":9,"Space Wolves":11,"Ad Mech":12,"Orks":9,
+    "Votann":8,"Nids":10,"Aeldari":11,"Drukhari":12,"GSC":15,"Tsons":10,
+    "Death Guard":10,"CSM":10,"World Eaters":11,"Daemons":9,"Chaos Knights":11,
+    "Imperial Knights":8,"Dark Angels":10
+  },
+  "Dark Angels": {
+    "Necrons":8,"Tau":11,"Custodes":9,"SM (UM)":12,"Guard":8,"Sisters":10,
+    "Grey Knights":17,"Blood Angels":11,"Space Wolves":9,"Ad Mech":11,"Orks":11,
+    "Votann":8,"Nids":10,"Aeldari":11,"Drukhari":10,"GSC":7,"Tsons":10,
+    "Death Guard":3,"CSM":10,"World Eaters":12,"Daemons":9,"Chaos Knights":10,
+    "Imperial Knights":10,"Dark Angels":10
+  },
+  "Imperial Knights": {
+    "Necrons":10,"Tau":13,"Custodes":9,"SM (UM)":9,"Guard":11,"Sisters":7,
+    "Grey Knights":9,"Blood Angels":10,"Space Wolves":8,"Ad Mech":11,"Orks":9,
+    "Votann":9,"Nids":10,"Aeldari":7,"Drukhari":11,"GSC":11,"Tsons":10,
+    "Death Guard":11,"CSM":10,"World Eaters":7,"Daemons":11,"Chaos Knights":7,
+    "Imperial Knights":5,"Dark Angels":10
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+
+const S = {
+  teamA: 'Team A',
+  teamB: 'Team B',
+  players: [...TEAM_DATA.players],   // names indexed 0-4
+  factions: [],                       // 5 selected opponent faction names
+  matrix: [],                         // [5][5] scores, null = no personal data
+
+  poolA: [],  // remaining player indices (our side)
+  poolB: [],  // remaining faction indices (opponent)
+
+  s1: { defA:null, defB:null, atkA:[], atkB:[], refA:null, refB:null,
+        game1:null, game2:null, tbl1:'', tbl2:'' },
+  s2: { defA:null, defB:null, atkA:[], atkB:[], refA:null, refB:null,
+        game3:null, game4:null, game5:null, tbl3:'', tbl4:'', tbl5:'' },
+};
+
+const SCREENS = [
+  'screen-setup','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
+  'screen-s2d','screen-s2a','screen-s2r','screen-results'
+];
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+
+function showScreen(id) {
+  SCREENS.forEach(s => $(s).classList.toggle('active', s === id));
+  const idx = SCREENS.indexOf(id);
+  const ind = $('step-indicator');
+  ind.innerHTML = '';
+  if (idx === 0) { ind.textContent = 'Setup'; return; }
+  for (let i = 1; i < SCREENS.length; i++) {
+    const d = document.createElement('div');
+    d.className = 'step-dot' + (i < idx ? ' done' : i === idx ? ' active' : '');
+    ind.appendChild(d);
+  }
+  const lbl = document.createElement('span');
+  lbl.style.marginLeft = '0.35rem';
+  lbl.textContent = `${idx} / ${SCREENS.length - 1}`;
+  ind.appendChild(lbl);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toast(msg, type = '') {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = ''; }, 2800);
+}
+
+function scClass(v) {
+  if (v >= 14) return 'sc-hi';
+  if (v >= 9)  return 'sc-mid';
+  return 'sc-lo';
+}
+
+/* Returns { score, isMeta } — personal first, meta fallback second */
+function getScore(pIdx, fIdx) {
+  const personal = S.matrix[pIdx]?.[fIdx];
+  if (personal !== null && personal !== undefined) return { score: personal, isMeta: false };
+  const ourFaction = TEAM_DATA.playerFactions[S.players[pIdx]] ?? null;
+  const oppFaction = S.factions[fIdx];
+  const meta = ourFaction ? (META[ourFaction]?.[oppFaction] ?? null) : null;
+  return { score: meta, isMeta: meta !== null };
+}
+
+function scoreNum(pIdx, fIdx) { return getScore(pIdx, fIdx).score; }
+
+/* Returns our META score for player pIdx vs opponent faction fIdx */
+function getMetaScore(pIdx, fIdx) {
+  const ourFaction = TEAM_DATA.playerFactions[S.players[pIdx]] ?? null;
+  const oppFaction = S.factions[fIdx];
+  return ourFaction ? (META[ourFaction]?.[oppFaction] ?? null) : null;
+}
+
+/*
+ * Opponent's expected score when their faction fIdx faces our player pIdx.
+ * Approximated by inverting our META: if META[ourFaction][oppFaction] = X (our result),
+ * opponent's result ≈ 20 - X (zero-sum around 10).
+ */
+function oppMetaScore(fIdx, pIdx) {
+  const oppFaction = S.factions[fIdx];
+  const ourFaction = TEAM_DATA.playerFactions[S.players[pIdx]] ?? null;
+  if (!ourFaction) return 10;
+  const ourScore = META[ourFaction]?.[oppFaction] ?? 10;
+  return 20 - ourScore;
+}
+
+function scoreLabel(pIdx, fIdx) {
+  const { score, isMeta } = getScore(pIdx, fIdx);
+  if (score === null) return '?';
+  return isMeta ? score + '*' : String(score);
+}
+
+/* Rebuild S.matrix from TEAM_DATA for current S.factions */
+function rebuildMatrix() {
+  S.matrix = S.players.map(p =>
+    S.factions.map(f => {
+      const v = TEAM_DATA.matrix[p]?.[f];
+      return v !== undefined ? v : null;
+    })
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SUGGESTIONS / PROBABILITY
+═══════════════════════════════════════════════════════════ */
+
+/* Rank a list of player indices by avg and min score across a set of faction indices */
+function rankPlayers(playerIdxs, factionIdxs) {
+  return playerIdxs.map(pi => {
+    const scores = factionIdxs.map(fi => scoreNum(pi, fi) ?? 10);
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const min = Math.min(...scores);
+    return { idx: pi, name: S.players[pi], avg, min };
+  }).sort((a, b) => b.avg - a.avg || b.min - a.min);
+}
+
+/* Rank a list of faction indices by how dangerous they are to us
+   (lower avg score from our side = more dangerous opponent defender) */
+function rankFactions(factionIdxs, playerIdxs) {
+  return factionIdxs.map(fi => {
+    const scores = playerIdxs.map(pi => scoreNum(pi, fi) ?? 10);
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const min = Math.min(...scores);
+    return { idx: fi, name: S.factions[fi], avg, min };
+  }).sort((a, b) => a.avg - b.avg || a.min - b.min); // ascending = most dangerous first
+}
+
+/* Rank faction attackers vs a specific player defender (opponent sending attackers against us)
+   Higher score for opponent = worse for us, so sort descending by score */
+function rankFactionAttackers(factionIdxs, ourDefender) {
+  return factionIdxs.map(fi => {
+    const sc = scoreNum(ourDefender, fi) ?? 10;
+    return { idx: fi, name: S.factions[fi], score: sc };
+  }).sort((a, b) => b.score - a.score); // higher score = better for opponent
+}
+
+/* Rank factions from the opponent's own perspective (using meta-inverted scores).
+   Higher avg = opponent prefers this faction as defender. */
+function rankFactionsOpponentPerspective(factionIdxs, playerIdxs) {
+  return factionIdxs.map(fi => {
+    const scores = playerIdxs.map(pi => oppMetaScore(fi, pi));
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    const min = Math.min(...scores);
+    return { idx: fi, name: S.factions[fi], avg, min };
+  }).sort((a, b) => b.avg - a.avg || b.min - a.min);
+}
+
+/* Rank player attackers vs an opponent faction defender */
+function rankPlayerAttackers(playerIdxs, oppDefender) {
+  return playerIdxs.map(pi => {
+    const sc = scoreNum(pi, oppDefender) ?? 10;
+    return { idx: pi, name: S.players[pi], score: sc };
+  }).sort((a, b) => b.score - a.score);
+}
+
+/*
+ * Build a collapsible suggestion panel HTML string.
+ * rows: [{name, col1, col2, col1Class, col2Class, isBest}]
+ * hdr1, hdr2: column headers (strings)
+ * title: panel title
+ */
+function buildSuggestHTML(uid, title, rows, hdr1, hdr2, hdr3) {
+  const hasCol3 = hdr3 != null;
+  const rowsHtml = rows.map((r, i) =>
+    `<tr class="${r.isBest ? 'best' : ''}">
+      <td><span class="rank">${i + 1}.</span> ${r.name}${r.isBest ? '<span class="star">★</span>' : ''}</td>
+      <td class="${r.cls1 || ''}">${r.col1 ?? ''}</td>
+      ${hdr2 != null ? `<td class="${r.cls2 || ''}">${r.col2 ?? ''}</td>` : ''}
+      ${hasCol3 ? `<td class="${r.cls3 || ''}">${r.col3 ?? '—'}</td>` : ''}
+    </tr>`
+  ).join('');
+  const hdrCols = [
+    `<th>Pick</th>`,
+    `<th>${hdr1}</th>`,
+    hdr2 != null ? `<th>${hdr2}</th>` : '',
+    hasCol3 ? `<th>${hdr3}</th>` : '',
+  ].join('');
+  return `<div class="suggest-wrap">
+    <div class="suggest-title">${title}</div>
+    <div class="suggest-body">
+      <table class="suggest-table">
+        <thead><tr>${hdrCols}</tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+
+/* Build defender suggestion for our team (player ranking) */
+function defenderSuggestOurs(containerEl, playerPool, factionPool) {
+  const ranked = rankPlayers(playerPool, factionPool);
+  const rows = ranked.map((r, i) => {
+    // avg of meta scores across factionPool
+    const metaScores = factionPool.map(fi => getMetaScore(r.idx, fi) ?? 10);
+    const metaAvg = metaScores.reduce((a, b) => a + b, 0) / metaScores.length;
+    return {
+      name: r.name,
+      col1: r.avg.toFixed(1),
+      col2: r.min,
+      col3: metaAvg.toFixed(1),
+      cls1: scClass(r.avg),
+      cls2: scClass(r.min),
+      cls3: scClass(metaAvg),
+      isBest: i === 0
+    };
+  });
+  const uid = 'da-' + containerEl.id;
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Suggested defender (our side)', rows, 'Avg (pers)', 'Min', 'Meta avg');
+}
+
+/* Build defender suggestion for opponent side — ranked from their own meta perspective */
+function defenderSuggestOpponent(containerEl, factionPool, playerPool) {
+  const ranked = rankFactionsOpponentPerspective(factionPool, playerPool);
+  const rows = ranked.map((r, i) => ({
+    name: r.name,
+    col1: r.avg.toFixed(1),
+    col2: r.min,
+    cls1: scClass(r.avg), // their score — higher = better for them
+    cls2: scClass(r.min),
+    isBest: i === 0
+  }));
+  const uid = 'db-' + containerEl.id;
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Likely opponent defender (meta — their POV)', rows, 'Opp avg (meta)', 'Opp min', null);
+}
+
+/* Attacker suggestions: our players vs specific opponent defender */
+function attackerSuggestOurs(containerEl, playerPool, oppDefIdx) {
+  const ranked = rankPlayerAttackers(playerPool, oppDefIdx);
+  const rows = ranked.map((r, i) => {
+    const metaSc = getMetaScore(r.idx, oppDefIdx);
+    return {
+      name: r.name,
+      col1: r.score,
+      col2: metaSc !== null ? metaSc : '—',
+      cls1: scClass(r.score),
+      cls2: metaSc !== null ? scClass(metaSc) : '',
+      isBest: i === 0
+    };
+  });
+  const uid = 'aa-' + containerEl.id;
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Best attackers vs their defender', rows, 'Score (pers)', 'Meta', null);
+}
+
+/* Attacker suggestions: opponent factions vs specific our defender — ranked by their meta score */
+function attackerSuggestOpponent(containerEl, factionPool, ourDefIdx) {
+  const ranked = factionPool.map(fi => ({
+    idx: fi, name: S.factions[fi], score: oppMetaScore(fi, ourDefIdx)
+  })).sort((a, b) => b.score - a.score);
+  const rows = ranked.map((r, i) => ({
+    name: r.name,
+    col1: r.score,
+    col2: null,
+    cls1: scClass(r.score), // their score — higher = better for them
+    isBest: i === 0
+  }));
+  const uid = 'ab-' + containerEl.id;
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends (meta — their POV)', rows, 'Opp score (meta)', null, null);
+}
+
+/* Refusal suggestions — show which of opponent's attackers to refuse.
+   Ranked by opponent's meta score: we refuse whoever is best for THEM. */
+function refusalSuggestOurs(containerEl, factionPool, ourDefIdx) {
+  const ranked = factionPool.map(fi => ({
+    idx: fi, name: S.factions[fi], score: oppMetaScore(fi, ourDefIdx)
+  })).sort((a, b) => b.score - a.score);
+  const rows = ranked.map((r, i) => ({
+    name: r.name + (i === 0 ? ' ← refuse' : ' ← keep'),
+    col1: r.score,
+    col2: null,
+    cls1: scClass(r.score), // their score — red when high means danger for us
+    isBest: i === 0
+  }));
+  const uid = 'ra-' + containerEl.id;
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Refuse their best attacker (meta — their POV)', rows, 'Opp score (meta)', null, null);
+}
+
+/* Predict which of our attackers the opponent will refuse.
+   They refuse the one that scores best for US (worst for them) — i.e. highest our score.
+   We show both our personal score and the meta score so the diff is visible. */
+function refusalSuggestOpponent(containerEl, playerPool, oppDefIdx) {
+  const ranked = rankPlayerAttackers(playerPool, oppDefIdx); // sorted by our score desc
+  const rows = ranked.map((r, i) => {
+    const metaSc = getMetaScore(r.idx, oppDefIdx);
+    return {
+      name: r.name + (i === 0 ? ' ← likely refused' : ''),
+      col1: r.score,
+      col2: metaSc !== null ? metaSc : '—',
+      cls1: scClass(r.score),
+      cls2: metaSc !== null ? scClass(metaSc) : '',
+      isBest: false
+    };
+  });
+  const uid = 'rb-' + containerEl.id;
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely refuses our best attacker', rows, 'Our score (pers)', 'Meta', null);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHIP BUILDERS
+═══════════════════════════════════════════════════════════ */
+
+/* Build player chips (our side) */
+function buildPlayerChips(container, pool, selSet, maxSel, scoreFactionIdx, onchange, onAutoLock) {
+  container.innerHTML = '';
+  pool.forEach(pi => {
+    const chip = document.createElement('div');
+    chip.className = 'p-chip' + (selSet.has(pi) ? ' sel' : '');
+    chip.dataset.idx = pi;
+    let scoreHtml = '';
+    if (scoreFactionIdx !== null && scoreFactionIdx !== undefined) {
+      const { score, isMeta } = getScore(pi, scoreFactionIdx);
+      const sc = score ?? '?';
+      const cls = score !== null ? scClass(score) : '';
+      scoreHtml = `<span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">meta</span>' : ''}</span>`;
+    }
+    chip.innerHTML = `<span>${S.players[pi]}</span>${scoreHtml}`;
+    chip.addEventListener('click', () => {
+      if (selSet.has(pi)) {
+        selSet.delete(pi);
+        chip.classList.remove('sel');
+      } else {
+        if (selSet.size >= maxSel) { toast(`Max ${maxSel} selection(s)`, 'err'); return; }
+        selSet.add(pi);
+        chip.classList.add('sel');
+      }
+      onchange();
+      if (onAutoLock && selSet.size === maxSel) onAutoLock();
+    });
+    container.appendChild(chip);
+  });
+}
+
+/* Build faction chips (opponent side) */
+function buildFactionChips(container, pool, selSet, maxSel, scorePlayerIdx, onchange, onAutoLock) {
+  container.innerHTML = '';
+  pool.forEach(fi => {
+    const chip = document.createElement('div');
+    chip.className = 'p-chip' + (selSet.has(fi) ? ' sel' : '');
+    chip.dataset.idx = fi;
+    let scoreHtml = '';
+    if (scorePlayerIdx !== null && scorePlayerIdx !== undefined) {
+      const { score, isMeta } = getScore(scorePlayerIdx, fi);
+      const sc = score ?? '?';
+      const cls = score !== null ? scClass(score) : '';
+      scoreHtml = `<span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">meta</span>' : ''}</span>`;
+    }
+    chip.innerHTML = `<span>${S.factions[fi]}</span>${scoreHtml}`;
+    chip.addEventListener('click', () => {
+      if (selSet.has(fi)) {
+        selSet.delete(fi);
+        chip.classList.remove('sel');
+      } else {
+        if (selSet.size >= maxSel) { toast(`Max ${maxSel} selection(s)`, 'err'); return; }
+        selSet.add(fi);
+        chip.classList.add('sel');
+      }
+      onchange();
+      if (onAutoLock && selSet.size === maxSel) onAutoLock();
+    });
+    container.appendChild(chip);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REVEAL OVERLAY
+═══════════════════════════════════════════════════════════ */
+
+function wireOverlay(overlayId, panelId) {
+  const ov = $(overlayId);
+  if (ov) ov.addEventListener('click', () => $(panelId).classList.add('revealed'));
+}
+
+function lockPanel(panelId) {
+  const pan = $(panelId);
+  pan.classList.add('revealed');
+  pan.querySelectorAll('.p-chip').forEach(c => { c.style.pointerEvents = 'none'; });
+}
+
+function resetPanel(panelId) {
+  $(panelId).classList.remove('revealed');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SETUP SCREEN
+═══════════════════════════════════════════════════════════ */
+
+let selectedFactions = new Set();
+
+function initSetup() {
+  S.players = [...TEAM_DATA.players];
+  S.teamA   = TEAM_DATA.teamName;
+  $('ta-name').value = S.teamA;
+  buildPlayerInputs();
+  buildFactionPicker();
+  buildMatrixTable();
+}
+
+function buildPlayerInputs() {
+  const wrap = $('player-inputs');
+  wrap.innerHTML = '';
+  S.players.forEach((p, i) => {
+    wrap.insertAdjacentHTML('beforeend',
+      `<div class="field"><label>Player ${i+1}</label><input type="text" id="pin${i}" value="${p}" /></div>`);
+  });
+}
+
+function buildFactionPicker() {
+  const grid  = $('faction-picker');
+  const count = $('faction-count');
+  grid.innerHTML = '';
+  TEAM_DATA.factions.forEach(f => {
+    const chip = document.createElement('div');
+    chip.className = 'faction-chip' + (selectedFactions.has(f) ? ' sel' : '');
+    chip.textContent = f;
+    chip.addEventListener('click', () => {
+      if (selectedFactions.has(f)) {
+        selectedFactions.delete(f);
+        chip.classList.remove('sel');
+      } else {
+        if (selectedFactions.size >= 5) { toast('Select exactly 5 factions', 'err'); return; }
+        selectedFactions.add(f);
+        chip.classList.add('sel');
+      }
+      const full = selectedFactions.size >= 5;
+      grid.querySelectorAll('.faction-chip').forEach(c => {
+        c.classList.toggle('off', full && !selectedFactions.has(c.textContent));
+      });
+      count.textContent = `Selected: ${selectedFactions.size} / 5`;
+      buildMatrixTable();
+    });
+    grid.appendChild(chip);
+  });
+}
+
+function buildMatrixTable() {
+  const active = selectedFactions.size > 0
+    ? TEAM_DATA.factions.filter(f => selectedFactions.has(f))
+    : TEAM_DATA.factions.slice(0, 5);
+
+  S.factions = active;
+  rebuildMatrix();
+
+  const hdr  = $('matrix-hdr');
+  const body = $('matrix-body');
+
+  hdr.innerHTML = '<th class="row-hdr">Player ↓ / Faction →</th>';
+  active.forEach(f => {
+    const th = document.createElement('th');
+    th.textContent = f;
+    hdr.appendChild(th);
+  });
+
+  body.innerHTML = '';
+  S.players.forEach((p, pi) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<th class="row-hdr">${p}</th>`;
+    active.forEach((_, fi) => {
+      const td = document.createElement('td');
+      const personal = S.matrix[pi][fi];
+      const { score: fb, isMeta } = getScore(pi, fi);
+      const displayVal = personal !== null ? personal : '';
+      const ph = isMeta ? `~${fb}` : '?';
+      const scNum = personal !== null ? personal : (fb ?? null);
+      const scCls = scNum !== null ? scClass(scNum) : '';
+      td.innerHTML = `<input type="number" min="0" max="20" value="${displayVal}"
+        placeholder="${ph}" class="${scCls}"
+        style="${personal === null ? 'color:var(--muted);font-style:italic' : ''}"
+        data-pi="${pi}" data-fi="${fi}" />`;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  body.querySelectorAll('input[type=number]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const pi = +inp.dataset.pi, fi = +inp.dataset.fi;
+      const raw = inp.value.trim();
+      S.matrix[pi][fi] = raw === '' ? null : Math.max(0, Math.min(20, parseInt(raw) || 0));
+    });
+  });
+}
+
+function readSetup() {
+  S.teamA = $('ta-name').value.trim() || TEAM_DATA.teamName;
+  S.teamB = $('tb-name').value.trim() || 'Opponent';
+  for (let i = 0; i < 5; i++) {
+    S.players[i] = ($(`pin${i}`)?.value.trim()) || TEAM_DATA.players[i];
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   OCR OVERRIDE
+═══════════════════════════════════════════════════════════ */
+
+$('photo-upload').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const apiKey = $('api-key').value.trim();
+  if (!apiKey) { toast('Enter Claude API key first', 'err'); return; }
+  readSetup();
+  const status = $('upload-status');
+  status.style.display = 'block';
+  status.textContent = '⏳ Calling Claude…';
+  try {
+    const b64 = await fileToB64(file);
+    const prompt = `You are helping extract a 40K team pairing matrix.
+Players (rows): ${S.players.join(', ')}.
+Opponent factions (cols): ${S.factions.join(', ')}.
+Each cell is 0–20. Return ONLY JSON:
+{"matrix":[[r0c0,r0c1,r0c2,r0c3,r0c4],[r1c0,r1c1,r1c2,r1c3,r1c4],[r2c0,r2c1,r2c2,r2c3,r2c4],[r3c0,r3c1,r3c2,r3c3,r3c4],[r4c0,r4c1,r4c2,r4c3,r4c4]]}`;
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 512,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: b64 } },
+          { type: 'text', text: prompt },
+        ]}],
+      }),
+    });
+    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error?.message || `HTTP ${resp.status}`); }
+    const data = await resp.json();
+    const raw = data.content?.[0]?.text || '';
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('No JSON in response');
+    const parsed = JSON.parse(m[0]);
+    if (!Array.isArray(parsed.matrix) || parsed.matrix.length !== 5) throw new Error('Bad matrix shape');
+    parsed.matrix.forEach((row, pi) => {
+      row.forEach((v, fi) => {
+        S.matrix[pi][fi] = (v === null || v === '') ? null : Math.max(0, Math.min(20, parseInt(v) || 0));
+      });
+    });
+    buildMatrixTable();
+    status.textContent = '✓ Matrix loaded from photo — please verify. Empty cells fall back to meta.';
+    toast('Matrix loaded from photo', 'ok');
+  } catch (err) {
+    status.textContent = `✗ ${err.message}`;
+    toast('OCR failed: ' + err.message, 'err');
+  }
+});
+
+function fileToB64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   START BUTTON
+═══════════════════════════════════════════════════════════ */
+
+$('btn-start').addEventListener('click', () => {
+  readSetup();
+  if (selectedFactions.size !== 5) { toast('Select exactly 5 opponent factions', 'err'); return; }
+  if (new Set(S.players).size < 5) { toast('Player names must be unique', 'err'); return; }
+
+  S.poolA = [0,1,2,3,4];
+  S.poolB = [0,1,2,3,4];
+  Object.assign(S.s1, { defA:null,defB:null,atkA:[],atkB:[],refA:null,refB:null,game1:null,game2:null,tbl1:'',tbl2:'' });
+  Object.assign(S.s2, { defA:null,defB:null,atkA:[],atkB:[],refA:null,refB:null,game3:null,game4:null,game5:null,tbl3:'',tbl4:'',tbl5:'' });
+
+  enterS1Defender();
+  showOverviewBar(true);
+  refreshOverviewBar();
+});
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 1 — S1 DEFENDER
+═══════════════════════════════════════════════════════════ */
+
+const s1d = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+
+function enterS1Defender() {
+  showScreen('screen-s1d');
+  s1d.selA.clear(); s1d.selB.clear();
+  s1d.locA = false; s1d.locB = false;
+  $('lbl-s1d-a').textContent = S.teamA;
+  $('lbl-s1d-b').textContent = S.teamB;
+  resetPanel('pan-s1d-a'); resetPanel('pan-s1d-b');
+  $('btn-lock-s1d-a').disabled = false;
+  $('btn-lock-s1d-b').disabled = false;
+  $('btn-rev-s1d').disabled = true;
+
+  defenderSuggestOurs($('sug-s1d-a'), S.poolA, [0,1,2,3,4]);
+  defenderSuggestOpponent($('sug-s1d-b'), S.poolB, S.poolA);
+
+  buildPlayerChips($('list-s1d-a'), S.poolA, s1d.selA, 1, null, () => {}, () => {
+    if (!s1d.locA) {
+      s1d.locA = true; lockPanel('pan-s1d-a');
+      $('btn-lock-s1d-a').disabled = true;
+      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
+    }
+  });
+  buildFactionChips($('list-s1d-b'), S.poolB, s1d.selB, 1, null, () => {}, () => {
+    if (!s1d.locB) {
+      s1d.locB = true; lockPanel('pan-s1d-b');
+      $('btn-lock-s1d-b').disabled = true;
+      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
+    }
+  });
+  wireOverlay('ov-s1d-a', 'pan-s1d-a');
+  wireOverlay('ov-s1d-b', 'pan-s1d-b');
+
+  $('btn-lock-s1d-a').onclick = () => {
+    if (s1d.selA.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
+    if (!s1d.locA) {
+      s1d.locA = true; lockPanel('pan-s1d-a');
+      $('btn-lock-s1d-a').disabled = true;
+      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
+    }
+  };
+  $('btn-lock-s1d-b').onclick = () => {
+    if (s1d.selB.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
+    if (!s1d.locB) {
+      s1d.locB = true; lockPanel('pan-s1d-b');
+      $('btn-lock-s1d-b').disabled = true;
+      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
+    }
+  };
+  $('btn-rev-s1d').onclick = () => {
+    S.s1.defA = [...s1d.selA][0];
+    S.s1.defB = [...s1d.selB][0];
+    S.poolA = S.poolA.filter(i => i !== S.s1.defA);
+    S.poolB = S.poolB.filter(i => i !== S.s1.defB);
+    enterS1Attackers();
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 2 — S1 ATTACKERS
+═══════════════════════════════════════════════════════════ */
+
+const s1a = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+
+function enterS1Attackers() {
+  showScreen('screen-s1a');
+  s1a.selA.clear(); s1a.selB.clear();
+  s1a.locA = false; s1a.locB = false;
+  $('lbl-s1a-a').textContent = S.teamA + ' — pick 2 attackers';
+  $('lbl-s1a-b').textContent = S.teamB + ' — pick 2 attackers';
+  resetPanel('pan-s1a-a'); resetPanel('pan-s1a-b');
+  $('btn-lock-s1a-a').disabled = true;
+  $('btn-lock-s1a-b').disabled = true;
+  $('btn-rev-s1a').disabled = true;
+
+  $('info-s1a').innerHTML =
+    `<strong>Defenders locked:</strong> ${S.teamA}: <strong>${S.players[S.s1.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s1.defB]}</strong>`;
+
+  attackerSuggestOurs($('sug-s1a-a'), S.poolA, S.s1.defB);
+  attackerSuggestOpponent($('sug-s1a-b'), S.poolB, S.s1.defA);
+
+  buildPlayerChips($('list-s1a-a'), S.poolA, s1a.selA, 2, S.s1.defB, () => {
+    $('cnt-s1a-a').textContent = `Selected: ${s1a.selA.size} / 2`;
+    $('btn-lock-s1a-a').disabled = s1a.selA.size !== 2;
+  });
+  buildFactionChips($('list-s1a-b'), S.poolB, s1a.selB, 2, S.s1.defA, () => {
+    $('cnt-s1a-b').textContent = `Selected: ${s1a.selB.size} / 2`;
+    $('btn-lock-s1a-b').disabled = s1a.selB.size !== 2;
+  });
+  wireOverlay('ov-s1a-a', 'pan-s1a-a');
+  wireOverlay('ov-s1a-b', 'pan-s1a-b');
+
+  $('btn-lock-s1a-a').onclick = () => {
+    if (s1a.selA.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
+    s1a.locA = true; lockPanel('pan-s1a-a');
+    $('btn-lock-s1a-a').disabled = true;
+    $('btn-rev-s1a').disabled = !(s1a.locA && s1a.locB);
+  };
+  $('btn-lock-s1a-b').onclick = () => {
+    if (s1a.selB.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
+    s1a.locB = true; lockPanel('pan-s1a-b');
+    $('btn-lock-s1a-b').disabled = true;
+    $('btn-rev-s1a').disabled = !(s1a.locA && s1a.locB);
+  };
+  $('btn-rev-s1a').onclick = () => {
+    S.s1.atkA = [...s1a.selA];
+    S.s1.atkB = [...s1a.selB];
+    enterS1Refusal();
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 3 — S1 REFUSAL
+═══════════════════════════════════════════════════════════ */
+
+const s1r = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+
+function enterS1Refusal() {
+  showScreen('screen-s1r');
+  s1r.selA.clear(); s1r.selB.clear();
+  s1r.locA = false; s1r.locB = false;
+  $('lbl-s1r-a').textContent = S.teamA + ` — refuse one of ${S.teamB}'s attackers`;
+  $('lbl-s1r-b').textContent = S.teamB + ` — refuse one of ${S.teamA}'s attackers`;
+  resetPanel('pan-s1r-a'); resetPanel('pan-s1r-b');
+  $('btn-lock-s1r-a').disabled = false;
+  $('btn-lock-s1r-b').disabled = false;
+  $('btn-rev-s1r').disabled = true;
+
+  $('info-s1r').innerHTML =
+    `<strong>Defenders:</strong> ${S.teamA}: <strong>${S.players[S.s1.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s1.defB]}</strong>`;
+
+  refusalSuggestOurs($('sug-s1r-a'), S.s1.atkB, S.s1.defA);
+  refusalSuggestOpponent($('sug-s1r-b'), S.s1.atkA, S.s1.defB);
+
+  // Team A refuses one of Team B's attackers (faction indices)
+  buildFactionChips($('list-s1r-a'), S.s1.atkB, s1r.selA, 1, S.s1.defA, () => {}, () => {
+    if (!s1r.locA) {
+      s1r.locA = true; lockPanel('pan-s1r-a');
+      $('btn-lock-s1r-a').disabled = true;
+      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
+    }
+  });
+  // Team B refuses one of Team A's attackers (player indices)
+  buildPlayerChips($('list-s1r-b'), S.s1.atkA, s1r.selB, 1, S.s1.defB, () => {}, () => {
+    if (!s1r.locB) {
+      s1r.locB = true; lockPanel('pan-s1r-b');
+      $('btn-lock-s1r-b').disabled = true;
+      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
+    }
+  });
+  wireOverlay('ov-s1r-a', 'pan-s1r-a');
+  wireOverlay('ov-s1r-b', 'pan-s1r-b');
+
+  $('btn-lock-s1r-a').onclick = () => {
+    if (s1r.selA.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
+    if (!s1r.locA) {
+      s1r.locA = true; lockPanel('pan-s1r-a');
+      $('btn-lock-s1r-a').disabled = true;
+      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
+    }
+  };
+  $('btn-lock-s1r-b').onclick = () => {
+    if (s1r.selB.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
+    if (!s1r.locB) {
+      s1r.locB = true; lockPanel('pan-s1r-b');
+      $('btn-lock-s1r-b').disabled = true;
+      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
+    }
+  };
+  $('btn-rev-s1r').onclick = finishS1Refusal;
+}
+
+function finishS1Refusal() {
+  S.s1.refA = [...s1r.selA][0]; // faction idx refused by Team A → returns to poolB
+  S.s1.refB = [...s1r.selB][0]; // player idx refused by Team B → returns to poolA
+
+  const acceptedB = S.s1.atkB.find(fi => fi !== S.s1.refA);
+  const acceptedA = S.s1.atkA.find(pi => pi !== S.s1.refB);
+
+  S.s1.game1 = { ourPlayer: S.s1.defA, theirFaction: acceptedB };
+  S.s1.game2 = { ourPlayer: acceptedA, theirFaction: S.s1.defB };
+
+  S.poolA = S.poolA.filter(i => i !== acceptedA);
+  S.poolB = S.poolB.filter(i => i !== acceptedB);
+  if (!S.poolA.includes(S.s1.refB)) S.poolA.push(S.s1.refB);
+  if (!S.poolB.includes(S.s1.refA)) S.poolB.push(S.s1.refA);
+
+  refreshOverviewBar();
+  enterS1Tables();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 4 — S1 TABLES
+═══════════════════════════════════════════════════════════ */
+
+function enterS1Tables() {
+  showScreen('screen-s1t');
+  const el = $('s1t-pairings');
+  el.innerHTML = '<div class="card-title">Stage 1 Pairings</div>';
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 1', S.players[S.s1.game1.ourPlayer], S.factions[S.s1.game1.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 2', S.players[S.s1.game2.ourPlayer], S.factions[S.s1.game2.theirFaction], ''));
+  $('s1t-lbl1').textContent = `Game 1 table (${S.teamA} defender ${S.players[S.s1.defA]} picks)`;
+  $('s1t-lbl2').textContent = `Game 2 table (${S.teamB} defender ${S.factions[S.s1.defB]} picks)`;
+  $('s1t-tbl1').value = '';
+  $('s1t-tbl2').value = '';
+
+  $('btn-s1t-next').onclick = () => {
+    S.s1.tbl1 = $('s1t-tbl1').value.trim() || '—';
+    S.s1.tbl2 = $('s1t-tbl2').value.trim() || '—';
+    S.s1.game1.table = S.s1.tbl1;
+    S.s1.game2.table = S.s1.tbl2;
+    enterS2Defender();
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 5 — S2 DEFENDER
+═══════════════════════════════════════════════════════════ */
+
+const s2d = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+
+function enterS2Defender() {
+  showScreen('screen-s2d');
+  s2d.selA.clear(); s2d.selB.clear();
+  s2d.locA = false; s2d.locB = false;
+  $('lbl-s2d-a').textContent = S.teamA + ' — remaining pool';
+  $('lbl-s2d-b').textContent = S.teamB + ' — remaining pool';
+  resetPanel('pan-s2d-a'); resetPanel('pan-s2d-b');
+  $('btn-lock-s2d-a').disabled = false;
+  $('btn-lock-s2d-b').disabled = false;
+  $('btn-rev-s2d').disabled = true;
+
+  defenderSuggestOurs($('sug-s2d-a'), S.poolA, [0,1,2,3,4]);
+  defenderSuggestOpponent($('sug-s2d-b'), S.poolB, S.poolA);
+
+  buildPlayerChips($('list-s2d-a'), S.poolA, s2d.selA, 1, null, () => {}, () => {
+    if (!s2d.locA) {
+      s2d.locA = true; lockPanel('pan-s2d-a');
+      $('btn-lock-s2d-a').disabled = true;
+      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
+    }
+  });
+  buildFactionChips($('list-s2d-b'), S.poolB, s2d.selB, 1, null, () => {}, () => {
+    if (!s2d.locB) {
+      s2d.locB = true; lockPanel('pan-s2d-b');
+      $('btn-lock-s2d-b').disabled = true;
+      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
+    }
+  });
+  wireOverlay('ov-s2d-a', 'pan-s2d-a');
+  wireOverlay('ov-s2d-b', 'pan-s2d-b');
+
+  $('btn-lock-s2d-a').onclick = () => {
+    if (s2d.selA.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
+    if (!s2d.locA) {
+      s2d.locA = true; lockPanel('pan-s2d-a');
+      $('btn-lock-s2d-a').disabled = true;
+      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
+    }
+  };
+  $('btn-lock-s2d-b').onclick = () => {
+    if (s2d.selB.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
+    if (!s2d.locB) {
+      s2d.locB = true; lockPanel('pan-s2d-b');
+      $('btn-lock-s2d-b').disabled = true;
+      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
+    }
+  };
+  $('btn-rev-s2d').onclick = () => {
+    S.s2.defA = [...s2d.selA][0];
+    S.s2.defB = [...s2d.selB][0];
+    S.poolA = S.poolA.filter(i => i !== S.s2.defA);
+    S.poolB = S.poolB.filter(i => i !== S.s2.defB);
+    enterS2Attackers();
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 6 — S2 ATTACKERS
+═══════════════════════════════════════════════════════════ */
+
+const s2a = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+
+function enterS2Attackers() {
+  showScreen('screen-s2a');
+  s2a.selA.clear(); s2a.selB.clear();
+  s2a.locA = false; s2a.locB = false;
+  $('lbl-s2a-a').textContent = S.teamA + ' — 2 remaining attackers';
+  $('lbl-s2a-b').textContent = S.teamB + ' — 2 remaining attackers';
+  resetPanel('pan-s2a-a'); resetPanel('pan-s2a-b');
+  $('btn-lock-s2a-a').disabled = true;
+  $('btn-lock-s2a-b').disabled = true;
+  $('btn-rev-s2a').disabled = true;
+
+  $('info-s2a').innerHTML =
+    `<strong>Defenders locked:</strong> ${S.teamA}: <strong>${S.players[S.s2.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s2.defB]}</strong>`;
+
+  attackerSuggestOurs($('sug-s2a-a'), S.poolA, S.s2.defB);
+  attackerSuggestOpponent($('sug-s2a-b'), S.poolB, S.s2.defA);
+
+  // S2A: only 2 players remain in each pool — pre-select and auto-lock after overlay tap
+  S.poolA.forEach(i => s2a.selA.add(i));
+  S.poolB.forEach(i => s2a.selB.add(i));
+
+  buildPlayerChips($('list-s2a-a'), S.poolA, s2a.selA, 2, S.s2.defB, () => {
+    $('cnt-s2a-a').textContent = `Selected: ${s2a.selA.size} / 2`;
+    $('btn-lock-s2a-a').disabled = s2a.selA.size !== 2;
+  });
+  buildFactionChips($('list-s2a-b'), S.poolB, s2a.selB, 2, S.s2.defA, () => {
+    $('cnt-s2a-b').textContent = `Selected: ${s2a.selB.size} / 2`;
+    $('btn-lock-s2a-b').disabled = s2a.selB.size !== 2;
+  });
+  $('cnt-s2a-a').textContent = `Selected: ${s2a.selA.size} / 2`;
+  $('cnt-s2a-b').textContent = `Selected: ${s2a.selB.size} / 2`;
+  $('btn-lock-s2a-a').disabled = false;
+  $('btn-lock-s2a-b').disabled = false;
+  wireOverlay('ov-s2a-a', 'pan-s2a-a');
+  wireOverlay('ov-s2a-b', 'pan-s2a-b');
+
+  $('btn-lock-s2a-a').onclick = () => {
+    if (s2a.selA.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
+    if (!s2a.locA) {
+      s2a.locA = true; lockPanel('pan-s2a-a');
+      $('btn-lock-s2a-a').disabled = true;
+      $('btn-rev-s2a').disabled = !(s2a.locA && s2a.locB);
+    }
+  };
+  $('btn-lock-s2a-b').onclick = () => {
+    if (s2a.selB.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
+    if (!s2a.locB) {
+      s2a.locB = true; lockPanel('pan-s2a-b');
+      $('btn-lock-s2a-b').disabled = true;
+      $('btn-rev-s2a').disabled = !(s2a.locA && s2a.locB);
+    }
+  };
+  $('btn-rev-s2a').onclick = () => {
+    S.s2.atkA = [...s2a.selA];
+    S.s2.atkB = [...s2a.selB];
+    enterS2Refusal();
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 7 — S2 REFUSAL + TABLES
+═══════════════════════════════════════════════════════════ */
+
+const s2r = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+
+function enterS2Refusal() {
+  showScreen('screen-s2r');
+  s2r.selA.clear(); s2r.selB.clear();
+  s2r.locA = false; s2r.locB = false;
+  $('lbl-s2r-a').textContent = S.teamA + ` — refuse one of ${S.teamB}'s attackers`;
+  $('lbl-s2r-b').textContent = S.teamB + ` — refuse one of ${S.teamA}'s attackers`;
+  resetPanel('pan-s2r-a'); resetPanel('pan-s2r-b');
+  $('btn-lock-s2r-a').disabled = false;
+  $('btn-lock-s2r-b').disabled = false;
+  $('btn-rev-s2r').disabled = true;
+  $('s2t-section').style.display = 'none';
+
+  $('info-s2r').innerHTML =
+    `<strong>Defenders:</strong> ${S.teamA}: <strong>${S.players[S.s2.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s2.defB]}</strong>`;
+
+  refusalSuggestOurs($('sug-s2r-a'), S.s2.atkB, S.s2.defA);
+  refusalSuggestOpponent($('sug-s2r-b'), S.s2.atkA, S.s2.defB);
+
+  buildFactionChips($('list-s2r-a'), S.s2.atkB, s2r.selA, 1, S.s2.defA, () => {}, () => {
+    if (!s2r.locA) {
+      s2r.locA = true; lockPanel('pan-s2r-a');
+      $('btn-lock-s2r-a').disabled = true;
+      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
+    }
+  });
+  buildPlayerChips($('list-s2r-b'), S.s2.atkA, s2r.selB, 1, S.s2.defB, () => {}, () => {
+    if (!s2r.locB) {
+      s2r.locB = true; lockPanel('pan-s2r-b');
+      $('btn-lock-s2r-b').disabled = true;
+      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
+    }
+  });
+  wireOverlay('ov-s2r-a', 'pan-s2r-a');
+  wireOverlay('ov-s2r-b', 'pan-s2r-b');
+
+  $('btn-lock-s2r-a').onclick = () => {
+    if (s2r.selA.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
+    if (!s2r.locA) {
+      s2r.locA = true; lockPanel('pan-s2r-a');
+      $('btn-lock-s2r-a').disabled = true;
+      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
+    }
+  };
+  $('btn-lock-s2r-b').onclick = () => {
+    if (s2r.selB.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
+    if (!s2r.locB) {
+      s2r.locB = true; lockPanel('pan-s2r-b');
+      $('btn-lock-s2r-b').disabled = true;
+      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
+    }
+  };
+  $('btn-rev-s2r').onclick = finishS2Refusal;
+}
+
+function finishS2Refusal() {
+  S.s2.refA = [...s2r.selA][0];
+  S.s2.refB = [...s2r.selB][0];
+
+  const acceptedB = S.s2.atkB.find(fi => fi !== S.s2.refA);
+  const acceptedA = S.s2.atkA.find(pi => pi !== S.s2.refB);
+
+  S.s2.game3 = { ourPlayer: S.s2.defA,  theirFaction: acceptedB };
+  S.s2.game4 = { ourPlayer: acceptedA,   theirFaction: S.s2.defB };
+  S.s2.game5 = { ourPlayer: S.s2.refB,   theirFaction: S.s2.refA };
+
+  const el = $('s2t-pairings');
+  el.innerHTML = '<div class="card-title">Stage 2 Pairings</div>';
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 3', S.players[S.s2.game3.ourPlayer], S.factions[S.s2.game3.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 4', S.players[S.s2.game4.ourPlayer], S.factions[S.s2.game4.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 5 ★', S.players[S.s2.game5.ourPlayer], S.factions[S.s2.game5.theirFaction], ''));
+
+  $('s2t-lbl3').textContent = `Game 3 table (${S.teamB} defender ${S.factions[S.s2.defB]} — Token)`;
+  $('s2t-lbl4').textContent = `Game 4 table (${S.teamA} defender ${S.players[S.s2.defA]})`;
+  $('s2t-tbl3').value = '';
+  $('s2t-tbl4').value = '';
+  $('s2t-tbl5').value = '';
+  refreshOverviewBar();
+  $('s2t-section').style.display = 'block';
+
+  $('btn-s2t-finish').onclick = () => {
+    S.s2.tbl3 = $('s2t-tbl3').value.trim() || '—';
+    S.s2.tbl4 = $('s2t-tbl4').value.trim() || '—';
+    S.s2.tbl5 = $('s2t-tbl5').value.trim() || '—';
+    S.s2.game3.table = S.s2.tbl3;
+    S.s2.game4.table = S.s2.tbl4;
+    S.s2.game5.table = S.s2.tbl5;
+    enterResults();
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 8 — RESULTS
+═══════════════════════════════════════════════════════════ */
+
+function enterResults() {
+  showScreen('screen-results');
+  refreshOverviewBar();
+
+  const gEl = $('results-games');
+  gEl.innerHTML = '<div class="card-title">All 5 Games</div>';
+  [
+    ['Game 1', S.s1.game1],
+    ['Game 2', S.s1.game2],
+    ['Game 3', S.s2.game3],
+    ['Game 4', S.s2.game4],
+    ['Game 5', S.s2.game5],
+  ].forEach(([label, g]) => {
+    gEl.insertAdjacentHTML('beforeend',
+      pairingLine(label, S.players[g.ourPlayer], S.factions[g.theirFaction], g.table || '—'));
+  });
+
+  $('results-tables').innerHTML = [
+    `Pick 1: <span style="color:var(--text)">${S.teamA} defender (${S.players[S.s1.defA]}) → ${S.s1.tbl1}</span>`,
+    `Pick 2: <span style="color:var(--text)">${S.teamB} defender (${S.factions[S.s1.defB]}) → ${S.s1.tbl2}</span>`,
+    `Pick 3: <span style="color:var(--text)">${S.teamB} defender (${S.factions[S.s2.defB]}) → ${S.s2.tbl3}</span>`,
+    `Pick 4: <span style="color:var(--text)">${S.teamA} defender (${S.players[S.s2.defA]}) → ${S.s2.tbl4}</span>`,
+    `Pick 5: <span style="color:var(--text)">Game 5 (refused) → ${S.s2.tbl5}</span>`,
+  ].join('<br />');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════ */
+
+function pairingLine(label, playerName, factionName, table) {
+  const tag = table ? `<span class="table-tag">Table: ${table}</span>` : '';
+  return `<div class="pairing-line">
+    <span class="game-num">${label}</span>
+    <span>${playerName}</span>
+    <span class="vs">vs</span>
+    <span>${factionName}</span>
+    ${tag}
+  </div>`;
+}
+
+function refreshOverviewBar() {
+  const slots = $('ov-slots');
+  if (!slots) return;
+  const games = [
+    { label: 'G1', game: S.s1.game1 },
+    { label: 'G2', game: S.s1.game2 },
+    { label: 'G3', game: S.s2.game3 },
+    { label: 'G4', game: S.s2.game4 },
+    { label: 'G5', game: S.s2.game5 },
+  ];
+  slots.innerHTML = games.map(({ label, game }) => {
+    if (!game) {
+      return `<div class="ov-slot"><span class="ov-slot-num">${label}</span><span>—</span></div>`;
+    }
+    const { score } = getScore(game.ourPlayer, game.theirFaction);
+    const cls = score !== null ? scClass(score) : '';
+    const scoreSpan = score !== null ? `<span class="ov-slot-score ${cls}">${score}</span>` : '';
+    return `<div class="ov-slot filled ${cls}" title="${S.players[game.ourPlayer]} vs ${S.factions[game.theirFaction]}">
+      <span class="ov-slot-num">${label}</span>
+      <span>${S.players[game.ourPlayer]}</span>
+      <span class="ov-slot-vs">vs</span>
+      <span>${S.factions[game.theirFaction]}</span>
+      ${scoreSpan}
+    </div>`;
+  }).join('');
+}
+
+function showOverviewBar(visible) {
+  const bar = $('overview-bar');
+  if (bar) bar.style.display = visible ? 'block' : 'none';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESTART
+═══════════════════════════════════════════════════════════ */
+
+$('btn-restart').addEventListener('click', () => {
+  showOverviewBar(false);
+  showScreen('screen-setup');
+});
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+
+initSetup();
+showScreen('screen-setup');
+
+// Rebuild matrix when player names change
+$('player-inputs').addEventListener('focusout', e => {
+  if (e.target.matches('input[type="text"]')) {
+    readSetup();
+    buildMatrixTable();
+  }
+});
+
+</script>
+</body>
+</html>

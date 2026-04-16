@@ -1,0 +1,50 @@
+{
+  "teamName": "Terminus",
+  "players": ["Daniel", "Paddy", "David", "Berni", "Norge"],
+  "playerFactions": {
+    "Daniel": "Dark Angels",
+    "Paddy":  "Daemons",
+    "David":  "Imperial Knights",
+    "Berni":  "Guard",
+    "Norge":  "Custodes"
+  },
+  "factions": [
+    "Necrons", "Tau", "Custodes", "SM (UM)", "Guard", "Sisters",
+    "Grey Knights", "Blood Angels", "Space Wolves", "Ad Mech", "Orks",
+    "Votann", "Nids", "Aeldari", "Drukhari", "GSC", "Tsons",
+    "Death Guard", "CSM", "World Eaters", "Daemons", "Chaos Knights", "Imperial Knights", "Dark Angels"
+  ],
+  "matrix": {
+    "Daniel": {
+      "Necrons": 10, "Tau": 12, "Custodes": 12, "SM (UM)": 12, "Guard": 8,
+      "Sisters": 12, "Grey Knights": 12, "Blood Angels": 10, "Space Wolves": 10,
+      "Ad Mech": 12, "Orks": 12, "Votann": 12, "Nids": 10, "Aeldari": 12,
+      "Drukhari": 6, "GSC": 6, "Tsons": 8, "Death Guard": 10, "CSM": 8,
+      "World Eaters": 12, "Daemons": 8, "Chaos Knights": 8, "Imperial Knights": 8
+    },
+    "Paddy": {
+      "Necrons": 10, "Tau": 10, "Custodes": 12, "SM (UM)": 12, "Guard": 5,
+      "Sisters": 12, "Grey Knights": 13, "Blood Angels": 12, "Space Wolves": 8,
+      "Ad Mech": 10, "Orks": 13, "Votann": 13, "Nids": 18, "Aeldari": 8,
+      "Drukhari": 10, "GSC": 13, "Tsons": 14, "Death Guard": 12, "CSM": 10,
+      "World Eaters": 10, "Daemons": 10
+    },
+    "David": {
+      "Necrons": 20, "Tau": 10, "Custodes": 5, "SM (UM)": 5, "Guard": 8,
+      "Sisters": 16, "Grey Knights": 18, "Blood Angels": 10, "Space Wolves": 10,
+      "Ad Mech": 4, "Orks": 16, "Votann": 10, "Nids": 16, "Aeldari": 4,
+      "Drukhari": 20, "GSC": 5, "Tsons": 1, "Death Guard": 10, "CSM": 5,
+      "World Eaters": 2, "Daemons": 8, "Chaos Knights": 10, "Imperial Knights": 10
+    },
+    "Berni": {
+      "Necrons": 10, "Tau": 15, "Custodes": 10, "SM (UM)": 9, "Guard": 10,
+      "Sisters": 16, "Grey Knights": 18, "Blood Angels": 16, "Space Wolves": 16,
+      "Ad Mech": 10, "Orks": 0, "Votann": 0, "Nids": 10, "Aeldari": 20,
+      "Drukhari": 16, "GSC": 5, "Tsons": 8, "Death Guard": 10, "CSM": 6,
+      "World Eaters": 15, "Daemons": 7, "Chaos Knights": 5, "Imperial Knights": 10
+    },
+    "Norge": {
+      "Tau": 8, "Sisters": 8, "Tsons": 8, "Nids": 11, "GSC": 8, "Daemons": 11
+    }
+  }
+}
