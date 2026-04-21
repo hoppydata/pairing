@@ -103,3 +103,58 @@ A **pin** is when you give an opponent's defender no good options — handing th
 
 **Even-player team:**
 - The pin target can be "hidden" as the forgotten card, meaning you need a **third** card in the scrum to guarantee the pin.
+
+---
+
+## Advanced Preparation Tactics
+
+### Process-of-Elimination Defender Selection
+
+A concrete procedure for choosing your defender, rather than picking by instinct:
+
+1. List every army you expect the opponent to field.
+2. For each of those armies, write down your **two best counters** from your own roster.
+3. The army on your roster that appears **least often** as a counter is your defender candidate.
+
+This works because a defender only needs to pick a good table — they don't need to beat anyone. An army that rarely counters anything is better placed as a protected defender than as an attacker chasing matches it can't win.
+
+> **Example:** If your roster has five armies and one of them never appears as a top-two counter to any expected opponent, that army is your default defender. Park it on its best table and free up your counters to attack.
+
+---
+
+### Two-Counter Coverage Check
+
+Because a defender faces **two attackers** and must refuse one, you need redundancy in your counters. Before finalising your roster or entering a round, verify:
+
+> For every army you expect to face, do you have **two** armies with a meaningful advantage (roughly 13+)?
+
+If you only have one counter to a dangerous faction, you are one refusal away from being forced into a bad matchup. Identifying this gap before the event gives you time to adjust — either by choosing a different army from your pool or by accepting the risk consciously.
+
+If a dominant faction exists that nobody on your roster beats cleanly, consider armies that can **passively score secondaries** rather than win on primary — see below.
+
+---
+
+### Passive Scoring Deployment
+
+When a faction in the meta is simply too strong for your roster to beat cleanly, the question shifts from *"who can win this?"* to *"who can hold secondaries and minimise the margin?"*
+
+Not every game needs to be a win. A 50–60 loss from a passive-scoring army is far better than a 20–80 loss from an army that has no plan against the matchup. Identify in advance which of your armies can operate this way — typically durable or mobile armies that score independently of the opponent — and treat them as damage-limitation tools in unfavourable pairings.
+
+---
+
+### Terrain as a Matchup Modifier
+
+Matchup scores assume average terrain conditions. Some factions are much more terrain-sensitive than others — notably shooting-heavy armies whose power scales dramatically with open firing lanes.
+
+When you know you are facing a gunline faction, your **table pick matters as much as your army pick**. A terrain-dense board can shift an otherwise unfavourable matchup toward playable. Factor this into your table choice decisions, especially if you have a defender who benefits from close terrain or who needs to reduce the opponent's range advantage.
+
+---
+
+### Post-Round Matrix Recalibration
+
+Your matrix scores are estimates, not facts. After each game, briefly check whether the actual result matched expectations:
+
+- If a score was rated 14 but the game was 60–60, adjust it down.
+- If a score was rated 8 but the player won convincingly, adjust it up.
+
+Update the scores before discussing pairings for the next round. Decisions made on stale estimates compound across a tournament — a wrong 14 that you keep treating as a strong counter can distort your entire pairing logic round after round.

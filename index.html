@@ -212,13 +212,14 @@
     }
     .faction-chip.off { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
-    /* ── Two-column panels ──────────────────────────────────── */
-    .two-col {
+    /* ── Captain-first layout ───────────────────────────────── */
+    .captain-layout {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 2fr 1fr;
       gap: 1rem;
+      align-items: start;
     }
-    @media (max-width: 520px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .captain-layout { grid-template-columns: 1fr; } }
 
     .team-panel {
       background: var(--surface2);
@@ -237,25 +238,65 @@
     .label-a { color: var(--blue); }
     .label-b { color: #e06c75; }
 
-    /* ── Secret overlay ─────────────────────────────────────── */
-    .secret-overlay {
-      position: absolute;
-      inset: 0;
-      background: var(--surface2);
+    /* ── Opponent recorder panel ────────────────────────────── */
+    .opp-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
+      padding: 1rem;
+    }
+    .opp-panel-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      justify-content: center;
       gap: 0.4rem;
-      cursor: pointer;
-      z-index: 10;
-      transition: opacity var(--dur);
-      font-size: 0.82rem;
+    }
+    .opp-panel-label::before {
+      content: '';
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #e06c75;
+      flex-shrink: 0;
+    }
+
+    /* ── Strategy callout ───────────────────────────────────── */
+    .strategy-callout {
+      border-radius: var(--radius);
+      padding: 0.65rem 0.9rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.8rem;
+      line-height: 1.55;
+      border-left: 3px solid transparent;
+    }
+    .strategy-callout.pin {
+      background: var(--gold-bg);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+    .strategy-callout.pin strong { color: var(--gold); }
+    .strategy-callout.trash {
+      background: #1a1010;
+      border-color: var(--red);
+      color: #cc7070;
+    }
+    .strategy-callout.trash strong { color: var(--red); }
+    .strategy-callout.avoid {
+      background: #181408;
+      border-color: var(--amber);
+      color: #b89060;
+    }
+    .strategy-callout.avoid strong { color: var(--amber); }
+    .strategy-callout.none {
+      background: var(--surface2);
+      border-color: var(--border);
       color: var(--muted);
     }
-    .secret-overlay .lock-icon { font-size: 1.5rem; }
-    .team-panel.revealed .secret-overlay { display: none; }
 
     /* ── Player chips ───────────────────────────────────────── */
     .chip-list { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -417,7 +458,7 @@
     #overview-bar {
       background: var(--surface);
       border-bottom: 1px solid var(--border);
-      padding: 0.4rem 1.25rem;
+      padding: 0.4rem 1.25rem 0;
       position: sticky;
       top: 46px;
       z-index: 90;
@@ -429,6 +470,7 @@
       display: flex;
       align-items: center;
       gap: 0.6rem;
+      padding-bottom: 0.4rem;
     }
     .ov-label {
       font-size: 0.6rem;
@@ -459,9 +501,137 @@
     .ov-slot-score { font-size: 0.66rem; font-weight: 700; margin-left: 0.15rem; }
     .ov-slot-vs { color: var(--muted); font-size: 0.6rem; }
     @media (max-width: 520px) {
-      #overview-bar { padding: 0.35rem 0.75rem; }
+      #overview-bar { padding: 0.35rem 0.75rem 0; }
       .ov-slot { font-size: 0.63rem; padding: 0.18rem 0.38rem; }
     }
+
+    /* ── Advantage meter ────────────────────────────────────── */
+    #advantage-row {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0.3rem 0 0.45rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .adv-team-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: 3.8rem;
+    }
+    .adv-team-label.us  { color: var(--blue); text-align: right; }
+    .adv-team-label.opp { color: #e06c75; text-align: left; }
+    .adv-track {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--surface2);
+      overflow: hidden;
+      position: relative;
+    }
+    .adv-fill-us {
+      position: absolute;
+      top: 0; right: 50%;
+      height: 100%;
+      background: var(--blue);
+      transition: width 0.4s var(--ease);
+      border-radius: 3px 0 0 3px;
+    }
+    .adv-fill-opp {
+      position: absolute;
+      top: 0; left: 50%;
+      height: 100%;
+      background: #e06c75;
+      transition: width 0.4s var(--ease);
+      border-radius: 0 3px 3px 0;
+    }
+    .adv-score-us  { font-size: 0.62rem; font-weight: 700; color: var(--blue);  white-space: nowrap; }
+    .adv-score-opp { font-size: 0.62rem; font-weight: 700; color: #e06c75; white-space: nowrap; }
+
+    /* ── Score summary card ─────────────────────────────────── */
+    .score-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.7rem;
+      margin-bottom: 1.1rem;
+    }
+    .score-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.8rem 1rem;
+      text-align: center;
+    }
+    .score-block.us   { border-top: 3px solid var(--blue); }
+    .score-block.opp  { border-top: 3px solid #e06c75; }
+    .score-block-label { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+    .score-block-num   { font-size: 1.7rem; font-weight: 800; line-height: 1; }
+    .score-block-sub   { font-size: 0.65rem; color: var(--muted); margin-top: 0.25rem; }
+    .score-block.us  .score-block-num { color: var(--blue); }
+    .score-block.opp .score-block-num { color: #e06c75; }
+
+    /* ── Game breakdown table ───────────────────────────────── */
+    .game-breakdown {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    .game-breakdown th {
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 0.67rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.6rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .game-breakdown th:last-child { text-align: right; }
+    .game-breakdown td {
+      padding: 0.38rem 0.6rem;
+      border-bottom: 1px solid #1a1a22;
+      vertical-align: middle;
+    }
+    .game-breakdown tr:last-child td { border-bottom: none; }
+    .game-breakdown td:last-child { text-align: right; }
+    .gb-vs { color: var(--muted); margin: 0 0.25rem; }
+    .gb-delta-good { color: var(--green); font-weight: 700; font-size: 0.75rem; }
+    .gb-delta-mid  { color: var(--amber); font-weight: 700; font-size: 0.75rem; }
+    .gb-delta-bad  { color: var(--red);   font-weight: 700; font-size: 0.75rem; }
+
+    /* ── Decision log ───────────────────────────────────────── */
+    .decision-log {
+      margin-top: 0.6rem;
+      font-size: 0.74rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .dl-entry { display: flex; align-items: baseline; gap: 0.4rem; }
+    .dl-step  { color: var(--gold); font-weight: 700; flex-shrink: 0; font-size: 0.65rem; letter-spacing: 0.05em; }
+    .dl-good  { color: var(--green); }
+    .dl-mid   { color: var(--amber); }
+    .dl-bad   { color: var(--red); }
+
+    /* ── Opp score legend tooltip ───────────────────────────── */
+    .score-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.65rem;
+      color: var(--muted);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.15rem 0.45rem;
+      margin-bottom: 0.5rem;
+    }
+    .score-legend .dot-us  { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+    .score-legend .dot-opp { width: 7px; height: 7px; border-radius: 50%; background: #e06c75; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -475,6 +645,16 @@
   <div id="overview-inner">
     <div class="ov-label">GAMES</div>
     <div id="ov-slots"></div>
+  </div>
+  <div id="advantage-row" style="display:none">
+    <span class="adv-team-label us" id="adv-lbl-us">Us</span>
+    <span class="adv-score-us" id="adv-sc-us">50</span>
+    <div class="adv-track">
+      <div class="adv-fill-us" id="adv-fill-us" style="width:0"></div>
+      <div class="adv-fill-opp" id="adv-fill-opp" style="width:0"></div>
+    </div>
+    <span class="adv-score-opp" id="adv-sc-opp">50</span>
+    <span class="adv-team-label opp" id="adv-lbl-opp">Opp</span>
   </div>
 </div>
 
@@ -532,59 +712,49 @@
 
   <!-- ══ SCREEN 1 — S1 Defender ══ -->
   <div class="screen" id="screen-s1d">
-    <div class="screen-title">Stage 1 — Defender Reveal</div>
-    <div class="screen-sub">Each captain secretly chooses their defender, then both are revealed simultaneously.</div>
-    <div class="two-col">
+    <div class="screen-title">Stage 1 — Choose Your Defender</div>
+    <div class="screen-sub">Pick your defender, then record who the opponent chose after the real-life reveal.</div>
+    <div id="strategy-s1d"></div>
+    <div class="captain-layout">
       <div class="team-panel" id="pan-s1d-a">
-        <div class="secret-overlay" id="ov-s1d-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-a" id="lbl-s1d-a">Team A</h3>
+        <h3 class="label-a" id="lbl-s1d-a">Our Defender</h3>
         <div id="sug-s1d-a"></div>
         <div class="chip-list" id="list-s1d-a"></div>
       </div>
-      <div class="team-panel" id="pan-s1d-b">
-        <div class="secret-overlay" id="ov-s1d-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-b" id="lbl-s1d-b">Team B</h3>
+      <div class="opp-panel" id="pan-s1d-b">
+        <div class="opp-panel-label" id="lbl-s1d-b">Record opponent's choice</div>
         <div id="sug-s1d-b"></div>
         <div class="chip-list" id="list-s1d-b"></div>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-lock-s1d-a">Lock Team A</button>
-      <button class="btn btn-primary" id="btn-lock-s1d-b">Lock Team B</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="btn-rev-s1d" disabled>Reveal Both →</button>
+      <button class="btn btn-primary btn-full" id="btn-rev-s1d" disabled>Proceed to Attacker Selection →</button>
     </div>
   </div>
 
 
   <!-- ══ SCREEN 2 — S1 Attackers ══ -->
   <div class="screen" id="screen-s1a">
-    <div class="screen-title">Stage 1 — Attacker Selection</div>
-    <div class="screen-sub">Each team secretly picks 2 attackers to send against the opposing defender.</div>
+    <div class="screen-title">Stage 1 — Send Your Attackers</div>
+    <div class="screen-sub">Pick 2 attackers to send against their defender. Then record both attackers the opponent sends.</div>
     <div class="info-box" id="info-s1a"></div>
-    <div class="two-col">
+    <div id="strategy-s1a"></div>
+    <div class="captain-layout">
       <div class="team-panel" id="pan-s1a-a">
-        <div class="secret-overlay" id="ov-s1a-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-a" id="lbl-s1a-a">Team A — pick 2 attackers</h3>
+        <h3 class="label-a" id="lbl-s1a-a">Our Attackers — pick 2</h3>
         <div id="sug-s1a-a"></div>
         <div class="chip-list" id="list-s1a-a"></div>
         <div class="sel-count" id="cnt-s1a-a">Selected: 0 / 2</div>
       </div>
-      <div class="team-panel" id="pan-s1a-b">
-        <div class="secret-overlay" id="ov-s1a-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-b" id="lbl-s1a-b">Team B — pick 2 attackers</h3>
+      <div class="opp-panel" id="pan-s1a-b">
+        <div class="opp-panel-label" id="lbl-s1a-b">Opponent sends (pick 2)</div>
         <div id="sug-s1a-b"></div>
         <div class="chip-list" id="list-s1a-b"></div>
         <div class="sel-count" id="cnt-s1a-b">Selected: 0 / 2</div>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-lock-s1a-a">Lock Team A</button>
-      <button class="btn btn-primary" id="btn-lock-s1a-b">Lock Team B</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="btn-rev-s1a" disabled>Reveal Both →</button>
+      <button class="btn btn-primary btn-full" id="btn-rev-s1a" disabled>Proceed to Refusal →</button>
     </div>
   </div>
 
@@ -592,30 +762,25 @@
   <!-- ══ SCREEN 3 — S1 Refusal ══ -->
   <div class="screen" id="screen-s1r">
     <div class="screen-title">Stage 1 — Refusal</div>
-    <div class="screen-sub">Each team secretly refuses one of the opponent's attackers. Refused player returns to their pool.</div>
+    <div class="screen-sub">Choose which opponent attacker to refuse (send back). Then record who they refused from your pair.</div>
     <div class="info-box" id="info-s1r"></div>
-    <div class="two-col">
+    <div id="strategy-s1r"></div>
+    <div class="captain-layout">
       <div class="team-panel" id="pan-s1r-a">
-        <div class="secret-overlay" id="ov-s1r-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-a" id="lbl-s1r-a">Team A — refuse one of Team B's attackers</h3>
+        <h3 class="label-a" id="lbl-s1r-a">We refuse — send back one of theirs</h3>
         <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Choose who to <strong style="color:var(--red)">send back</strong>:</p>
         <div id="sug-s1r-a"></div>
         <div class="chip-list" id="list-s1r-a"></div>
       </div>
-      <div class="team-panel" id="pan-s1r-b">
-        <div class="secret-overlay" id="ov-s1r-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-b" id="lbl-s1r-b">Team B — refuse one of Team A's attackers</h3>
-        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Choose who to <strong style="color:var(--red)">send back</strong>:</p>
+      <div class="opp-panel" id="pan-s1r-b">
+        <div class="opp-panel-label" id="lbl-s1r-b">They refused — record who they sent back</div>
+        <p style="font-size:0.73rem;color:var(--muted);margin-bottom:0.5rem">After real-life reveal:</p>
         <div id="sug-s1r-b"></div>
         <div class="chip-list" id="list-s1r-b"></div>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-lock-s1r-a">Lock Team A</button>
-      <button class="btn btn-primary" id="btn-lock-s1r-b">Lock Team B</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="btn-rev-s1r" disabled>Reveal & Lock Pairings →</button>
+      <button class="btn btn-primary btn-full" id="btn-rev-s1r" disabled>Lock Pairings →</button>
     </div>
   </div>
 
@@ -641,91 +806,76 @@
 
   <!-- ══ SCREEN 5 — S2 Defender ══ -->
   <div class="screen" id="screen-s2d">
-    <div class="screen-title">Stage 2 — Defender Reveal</div>
-    <div class="screen-sub">Token now with Team B. Each team secretly picks their second defender.</div>
-    <div class="info-box"><strong>Token:</strong> Team B holds the Table Choice Token for Stage 2.</div>
-    <div class="two-col">
+    <div class="screen-title">Stage 2 — Choose Your Defender</div>
+    <div class="screen-sub">Token now with opponent. Pick your defender, then record theirs after the real-life reveal.</div>
+    <div class="info-box"><strong>Token:</strong> Opponent holds the Table Choice Token for Stage 2 — they pick table first.</div>
+    <div id="strategy-s2d"></div>
+    <div class="captain-layout">
       <div class="team-panel" id="pan-s2d-a">
-        <div class="secret-overlay" id="ov-s2d-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-a" id="lbl-s2d-a">Team A — remaining pool</h3>
+        <h3 class="label-a" id="lbl-s2d-a">Our Defender</h3>
         <div id="sug-s2d-a"></div>
         <div class="chip-list" id="list-s2d-a"></div>
       </div>
-      <div class="team-panel" id="pan-s2d-b">
-        <div class="secret-overlay" id="ov-s2d-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-b" id="lbl-s2d-b">Team B — remaining pool</h3>
+      <div class="opp-panel" id="pan-s2d-b">
+        <div class="opp-panel-label" id="lbl-s2d-b">Record opponent's choice</div>
         <div id="sug-s2d-b"></div>
         <div class="chip-list" id="list-s2d-b"></div>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-lock-s2d-a">Lock Team A</button>
-      <button class="btn btn-primary" id="btn-lock-s2d-b">Lock Team B</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="btn-rev-s2d" disabled>Reveal Both →</button>
+      <button class="btn btn-primary btn-full" id="btn-rev-s2d" disabled>Proceed to Attacker Selection →</button>
     </div>
   </div>
 
 
   <!-- ══ SCREEN 6 — S2 Attackers ══ -->
   <div class="screen" id="screen-s2a">
-    <div class="screen-title">Stage 2 — Attacker Selection</div>
-    <div class="screen-sub">Each team sends both remaining players as attackers.</div>
+    <div class="screen-title">Stage 2 — Both Teams Send Attackers</div>
+    <div class="screen-sub">Both remaining players attack automatically. Confirm our pair, then record the opponent's pair.</div>
     <div class="info-box" id="info-s2a"></div>
-    <div class="two-col">
+    <div id="strategy-s2a"></div>
+    <div class="captain-layout">
       <div class="team-panel" id="pan-s2a-a">
-        <div class="secret-overlay" id="ov-s2a-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-a" id="lbl-s2a-a">Team A — 2 attackers</h3>
+        <h3 class="label-a" id="lbl-s2a-a">Our Attackers (both remaining)</h3>
         <div id="sug-s2a-a"></div>
         <div class="chip-list" id="list-s2a-a"></div>
         <div class="sel-count" id="cnt-s2a-a">Selected: 0 / 2</div>
       </div>
-      <div class="team-panel" id="pan-s2a-b">
-        <div class="secret-overlay" id="ov-s2a-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-b" id="lbl-s2a-b">Team B — 2 attackers</h3>
+      <div class="opp-panel" id="pan-s2a-b">
+        <div class="opp-panel-label" id="lbl-s2a-b">Opponent sends (both remaining)</div>
         <div id="sug-s2a-b"></div>
         <div class="chip-list" id="list-s2a-b"></div>
         <div class="sel-count" id="cnt-s2a-b">Selected: 0 / 2</div>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-lock-s2a-a">Lock Team A</button>
-      <button class="btn btn-primary" id="btn-lock-s2a-b">Lock Team B</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="btn-rev-s2a" disabled>Reveal Both →</button>
+      <button class="btn btn-primary btn-full" id="btn-rev-s2a" disabled>Proceed to Refusal →</button>
     </div>
   </div>
 
 
   <!-- ══ SCREEN 7 — S2 Refusal + Tables ══ -->
   <div class="screen" id="screen-s2r">
-    <div class="screen-title">Stage 2 — Refusal &amp; Final Tables</div>
-    <div class="screen-sub">Refused attackers auto-pair as Game 5. Then defenders pick tables.</div>
+    <div class="screen-title">Stage 2 — Refusal &amp; Game 5</div>
+    <div class="screen-sub">Refuse one of their attackers — that refused pair becomes Game 5. Record who they refused.</div>
     <div class="info-box" id="info-s2r"></div>
-    <div class="two-col">
+    <div id="strategy-s2r"></div>
+    <div class="captain-layout">
       <div class="team-panel" id="pan-s2r-a">
-        <div class="secret-overlay" id="ov-s2r-a"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-a" id="lbl-s2r-a">Team A — refuse one of Team B's attackers</h3>
+        <h3 class="label-a" id="lbl-s2r-a">We refuse — send back one of theirs</h3>
         <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Refused attacker becomes <strong style="color:var(--gold)">Game 5</strong>:</p>
         <div id="sug-s2r-a"></div>
         <div class="chip-list" id="list-s2r-a"></div>
       </div>
-      <div class="team-panel" id="pan-s2r-b">
-        <div class="secret-overlay" id="ov-s2r-b"><div class="lock-icon">🔒</div><div>Tap to reveal your side</div></div>
-        <h3 class="label-b" id="lbl-s2r-b">Team B — refuse one of Team A's attackers</h3>
-        <p style="font-size:0.76rem;color:var(--muted);margin-bottom:0.6rem">Refused attacker becomes <strong style="color:var(--gold)">Game 5</strong>:</p>
+      <div class="opp-panel" id="pan-s2r-b">
+        <div class="opp-panel-label" id="lbl-s2r-b">They refused — record who they sent back</div>
+        <p style="font-size:0.73rem;color:var(--muted);margin-bottom:0.5rem">After real-life reveal:</p>
         <div id="sug-s2r-b"></div>
         <div class="chip-list" id="list-s2r-b"></div>
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" id="btn-lock-s2r-a">Lock Team A</button>
-      <button class="btn btn-primary" id="btn-lock-s2r-b">Lock Team B</button>
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-outline" id="btn-rev-s2r" disabled>Reveal &amp; Finalize Game 5 →</button>
+      <button class="btn btn-primary btn-full" id="btn-rev-s2r" disabled>Finalize Game 5 →</button>
     </div>
     <div id="s2t-section" style="display:none;margin-top:1.5rem">
       <div class="card" id="s2t-pairings"></div>
@@ -752,7 +902,19 @@
   <div class="screen" id="screen-results">
     <div class="screen-title">Final Pairings</div>
     <div class="screen-sub">All 5 games determined. Good luck!</div>
+
+    <!-- Score summary blocks -->
+    <div class="score-summary" id="results-score-summary"></div>
+
+    <!-- Game breakdown -->
     <div class="card" id="results-games"></div>
+
+    <!-- Decision log -->
+    <div class="card" id="results-decision-log" style="display:none">
+      <div class="card-title">Pairing History</div>
+      <div class="decision-log" id="results-log-inner"></div>
+    </div>
+
     <div class="card">
       <div class="card-title">Table Choice Summary</div>
       <div style="font-size:0.82rem;color:var(--muted);line-height:1.9" id="results-tables"></div>
@@ -936,6 +1098,69 @@ function scoreLabel(pIdx, fIdx) {
   return isMeta ? score + '*' : String(score);
 }
 
+/* ═══════════════════════════════════════════════════════════
+   DECISION LOG
+═══════════════════════════════════════════════════════════ */
+const DECISION_LOG = [];
+
+function logGame(stepLabel, ourPlayer, theirFaction, poolSizeBefore) {
+  const sc = scoreNum(ourPlayer, theirFaction) ?? 10;
+  DECISION_LOG.push({ step: stepLabel, ourPlayer, theirFaction, score: sc, poolSize: poolSizeBefore });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EXPECTED SCORE + ADVANTAGE METER
+═══════════════════════════════════════════════════════════ */
+
+/*
+ * Sum up scores for all locked games, project remaining at 10 (neutral).
+ * Returns { usTotal, oppTotal, locked }
+ * Scale: our 0–20, opp = 20 − our (zero-sum).
+ * 5 games × 10 neutral = 50 each when no games locked.
+ */
+function computeExpected() {
+  const games = [S.s1.game1, S.s1.game2, S.s2.game3, S.s2.game4, S.s2.game5];
+  let usLocked = 0, oppLocked = 0, locked = 0;
+  games.forEach(g => {
+    if (!g) return;
+    const sc = scoreNum(g.ourPlayer, g.theirFaction) ?? 10;
+    usLocked += sc;
+    oppLocked += (20 - sc);
+    locked++;
+  });
+  const remaining = 5 - locked;
+  return {
+    usTotal:  usLocked  + remaining * 10,
+    oppTotal: oppLocked + remaining * 10,
+    usLocked,
+    oppLocked,
+    locked,
+  };
+}
+
+function refreshAdvantageMeter() {
+  const row = $('advantage-row');
+  if (!row) return;
+  const { usTotal, oppTotal, locked } = computeExpected();
+
+  // Only show once pairing has started (at least 1 game locked)
+  if (locked === 0) { row.style.display = 'none'; return; }
+  row.style.display = 'flex';
+
+  $('adv-lbl-us').textContent  = S.teamA || 'Us';
+  $('adv-lbl-opp').textContent = S.teamB || 'Opp';
+  $('adv-sc-us').textContent   = usTotal;
+  $('adv-sc-opp').textContent  = oppTotal;
+
+  // Each side gets up to 50% of the bar from centre.
+  // If scores are equal both sides show 0 width (pure centre line effect).
+  const total = usTotal + oppTotal || 100;
+  const usPct  = Math.min(50, ((usTotal  / total) * 100) - 50) ;
+  const oppPct = Math.min(50, ((oppTotal / total) * 100) - 50) ;
+  $('adv-fill-us').style.width  = Math.max(0, usPct)  + '%';
+  $('adv-fill-opp').style.width = Math.max(0, oppPct) + '%';
+}
+
 /* Rebuild S.matrix from TEAM_DATA for current S.factions */
 function rebuildMatrix() {
   S.matrix = S.players.map(p =>
@@ -1052,7 +1277,7 @@ function defenderSuggestOurs(containerEl, playerPool, factionPool) {
     };
   });
   const uid = 'da-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Suggested defender (our side)', rows, 'Avg (pers)', 'Min', 'Meta avg');
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Suggested defender — <span style="color:var(--muted);font-weight:400">scores = our expected result vs remaining factions</span>', rows, 'Avg (pers)', 'Min', 'Meta avg');
 }
 
 /* Build defender suggestion for opponent side — ranked from their own meta perspective */
@@ -1067,7 +1292,7 @@ function defenderSuggestOpponent(containerEl, factionPool, playerPool) {
     isBest: i === 0
   }));
   const uid = 'db-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Likely opponent defender (meta — their POV)', rows, 'Opp avg (meta)', 'Opp min', null);
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Likely opponent defender — <span style="color:var(--muted);font-weight:400">numbers below = our score vs them (higher = better for us)</span>', rows, 'Our avg vs them', 'Our min', null);
 }
 
 /* Attacker suggestions: our players vs specific opponent defender */
@@ -1101,7 +1326,7 @@ function attackerSuggestOpponent(containerEl, factionPool, ourDefIdx) {
     isBest: i === 0
   }));
   const uid = 'ab-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends (meta — their POV)', rows, 'Opp score (meta)', null, null);
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends — <span style="color:var(--muted);font-weight:400">our score if accepted (higher = better for us)</span>', rows, 'Our score (meta)', null, null);
 }
 
 /* Refusal suggestions — show which of opponent's attackers to refuse.
@@ -1118,7 +1343,7 @@ function refusalSuggestOurs(containerEl, factionPool, ourDefIdx) {
     isBest: i === 0
   }));
   const uid = 'ra-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Refuse their best attacker (meta — their POV)', rows, 'Opp score (meta)', null, null);
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Refuse their best attacker — <span style="color:var(--muted);font-weight:400">our score if we keep them (lower = worse for us)</span>', rows, 'Our score if kept', null, null);
 }
 
 /* Predict which of our attackers the opponent will refuse.
@@ -1139,6 +1364,79 @@ function refusalSuggestOpponent(containerEl, playerPool, oppDefIdx) {
   });
   const uid = 'rb-' + containerEl.id;
   containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely refuses our best attacker', rows, 'Our score (pers)', 'Meta', null);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STRATEGY CALLOUT
+═══════════════════════════════════════════════════════════ */
+
+/*
+ * Analyse current pool state and return the highest-priority strategic flag.
+ * Priority: trash > avoid-red > pin > none
+ */
+function computeStrategy(poolA, poolB) {
+  const RED_THRESHOLD  = 5;
+  const PIN_THRESHOLD  = 14;
+
+  // --- Take out the trash: ≥2 of our players are ≤RED vs the same opp faction ---
+  for (const fi of poolB) {
+    const redPlayers = poolA.filter(pi => {
+      const sc = scoreNum(pi, fi);
+      return sc !== null && sc <= RED_THRESHOLD;
+    });
+    if (redPlayers.length >= 2) {
+      return {
+        type: 'trash',
+        title: 'Take Out the Trash',
+        body: `${redPlayers.map(pi => S.players[pi]).join(' & ')} are both red into <strong>${S.factions[fi]}</strong>. ` +
+              `At least one must be eliminated before facing them, or you risk a bad end-game matrix.`
+      };
+    }
+  }
+
+  // --- Avoid red: any single player has ≤RED vs a remaining faction ---
+  for (const pi of poolA) {
+    for (const fi of poolB) {
+      const sc = scoreNum(pi, fi);
+      if (sc !== null && sc <= RED_THRESHOLD) {
+        const isOdd = poolA.length % 2 !== 0;
+        const advice = isOdd
+          ? `${S.players[pi]} must <strong>defend</strong> to guarantee avoiding <strong>${S.factions[fi]}</strong>.`
+          : `${S.players[pi]} can defend or stay for the scrum — but never attack into <strong>${S.factions[fi]}</strong>.`;
+        return {
+          type: 'avoid',
+          title: 'Avoid Red Flag',
+          body: `<strong>${S.players[pi]}</strong> scores ${sc} vs <strong>${S.factions[fi]}</strong>. ${advice}`
+        };
+      }
+    }
+  }
+
+  // --- Pin: ≥2 of our players score ≥PIN vs the same opp faction ---
+  for (const fi of poolB) {
+    const pinPlayers = poolA.filter(pi => {
+      const sc = scoreNum(pi, fi);
+      return sc !== null && sc >= PIN_THRESHOLD;
+    });
+    if (pinPlayers.length >= 2) {
+      return {
+        type: 'pin',
+        title: 'Pin Opportunity',
+        body: `<strong>${pinPlayers.map(pi => S.players[pi]).join(' & ')}</strong> both ` +
+              `crush <strong>${S.factions[fi]}</strong>. Save them as the last two attackers to force a pin.`
+      };
+    }
+  }
+
+  return { type: 'none', title: 'No Urgent Flags', body: 'Pool looks balanced — no critical moves required right now.' };
+}
+
+function renderStrategyCallout(containerEl, poolA, poolB) {
+  if (!containerEl) return;
+  const { type, title, body } = computeStrategy(poolA, poolB);
+  const icons = { trash: '⚠', avoid: '🚨', pin: '📌', none: '✓' };
+  containerEl.innerHTML =
+    `<div class="strategy-callout ${type}"><strong>${icons[type]} ${title}:</strong> ${body}</div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1208,22 +1506,19 @@ function buildFactionChips(container, pool, selSet, maxSel, scorePlayerIdx, onch
 }
 
 /* ═══════════════════════════════════════════════════════════
-   REVEAL OVERLAY
+   PANEL HELPERS (no overlays in captain mode)
 ═══════════════════════════════════════════════════════════ */
 
-function wireOverlay(overlayId, panelId) {
-  const ov = $(overlayId);
-  if (ov) ov.addEventListener('click', () => $(panelId).classList.add('revealed'));
-}
-
-function lockPanel(panelId) {
+function freezePanel(panelId) {
   const pan = $(panelId);
-  pan.classList.add('revealed');
+  if (!pan) return;
   pan.querySelectorAll('.p-chip').forEach(c => { c.style.pointerEvents = 'none'; });
 }
 
-function resetPanel(panelId) {
-  $(panelId).classList.remove('revealed');
+function unfreezePanel(panelId) {
+  const pan = $(panelId);
+  if (!pan) return;
+  pan.querySelectorAll('.p-chip').forEach(c => { c.style.pointerEvents = ''; });
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1414,6 +1709,7 @@ $('btn-start').addEventListener('click', () => {
   S.poolB = [0,1,2,3,4];
   Object.assign(S.s1, { defA:null,defB:null,atkA:[],atkB:[],refA:null,refB:null,game1:null,game2:null,tbl1:'',tbl2:'' });
   Object.assign(S.s2, { defA:null,defB:null,atkA:[],atkB:[],refA:null,refB:null,game3:null,game4:null,game5:null,tbl3:'',tbl4:'',tbl5:'' });
+  DECISION_LOG.length = 0;
 
   enterS1Defender();
   showOverviewBar(true);
@@ -1424,55 +1720,26 @@ $('btn-start').addEventListener('click', () => {
    SCREEN 1 — S1 DEFENDER
 ═══════════════════════════════════════════════════════════ */
 
-const s1d = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+const s1d = { selA: new Set(), selB: new Set() };
+
+function s1dRefresh() {
+  $('btn-rev-s1d').disabled = !(s1d.selA.size === 1 && s1d.selB.size === 1);
+}
 
 function enterS1Defender() {
   showScreen('screen-s1d');
   s1d.selA.clear(); s1d.selB.clear();
-  s1d.locA = false; s1d.locB = false;
-  $('lbl-s1d-a').textContent = S.teamA;
-  $('lbl-s1d-b').textContent = S.teamB;
-  resetPanel('pan-s1d-a'); resetPanel('pan-s1d-b');
-  $('btn-lock-s1d-a').disabled = false;
-  $('btn-lock-s1d-b').disabled = false;
+  $('lbl-s1d-a').textContent = 'Our Defender';
+  $('lbl-s1d-b').textContent = 'Record opponent\'s choice';
   $('btn-rev-s1d').disabled = true;
 
+  renderStrategyCallout($('strategy-s1d'), S.poolA, S.poolB);
   defenderSuggestOurs($('sug-s1d-a'), S.poolA, [0,1,2,3,4]);
   defenderSuggestOpponent($('sug-s1d-b'), S.poolB, S.poolA);
 
-  buildPlayerChips($('list-s1d-a'), S.poolA, s1d.selA, 1, null, () => {}, () => {
-    if (!s1d.locA) {
-      s1d.locA = true; lockPanel('pan-s1d-a');
-      $('btn-lock-s1d-a').disabled = true;
-      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
-    }
-  });
-  buildFactionChips($('list-s1d-b'), S.poolB, s1d.selB, 1, null, () => {}, () => {
-    if (!s1d.locB) {
-      s1d.locB = true; lockPanel('pan-s1d-b');
-      $('btn-lock-s1d-b').disabled = true;
-      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
-    }
-  });
-  wireOverlay('ov-s1d-a', 'pan-s1d-a');
-  wireOverlay('ov-s1d-b', 'pan-s1d-b');
+  buildPlayerChips($('list-s1d-a'), S.poolA, s1d.selA, 1, null, s1dRefresh);
+  buildFactionChips($('list-s1d-b'), S.poolB, s1d.selB, 1, null, s1dRefresh);
 
-  $('btn-lock-s1d-a').onclick = () => {
-    if (s1d.selA.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
-    if (!s1d.locA) {
-      s1d.locA = true; lockPanel('pan-s1d-a');
-      $('btn-lock-s1d-a').disabled = true;
-      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
-    }
-  };
-  $('btn-lock-s1d-b').onclick = () => {
-    if (s1d.selB.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
-    if (!s1d.locB) {
-      s1d.locB = true; lockPanel('pan-s1d-b');
-      $('btn-lock-s1d-b').disabled = true;
-      $('btn-rev-s1d').disabled = !(s1d.locA && s1d.locB);
-    }
-  };
   $('btn-rev-s1d').onclick = () => {
     S.s1.defA = [...s1d.selA][0];
     S.s1.defB = [...s1d.selB][0];
@@ -1486,48 +1753,30 @@ function enterS1Defender() {
    SCREEN 2 — S1 ATTACKERS
 ═══════════════════════════════════════════════════════════ */
 
-const s1a = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+const s1a = { selA: new Set(), selB: new Set() };
+
+function s1aRefresh() {
+  $('cnt-s1a-a').textContent = `Selected: ${s1a.selA.size} / 2`;
+  $('cnt-s1a-b').textContent = `Selected: ${s1a.selB.size} / 2`;
+  $('btn-rev-s1a').disabled = !(s1a.selA.size === 2 && s1a.selB.size === 2);
+}
 
 function enterS1Attackers() {
   showScreen('screen-s1a');
   s1a.selA.clear(); s1a.selB.clear();
-  s1a.locA = false; s1a.locB = false;
-  $('lbl-s1a-a').textContent = S.teamA + ' — pick 2 attackers';
-  $('lbl-s1a-b').textContent = S.teamB + ' — pick 2 attackers';
-  resetPanel('pan-s1a-a'); resetPanel('pan-s1a-b');
-  $('btn-lock-s1a-a').disabled = true;
-  $('btn-lock-s1a-b').disabled = true;
   $('btn-rev-s1a').disabled = true;
 
   $('info-s1a').innerHTML =
     `<strong>Defenders locked:</strong> ${S.teamA}: <strong>${S.players[S.s1.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s1.defB]}</strong>`;
 
+  renderStrategyCallout($('strategy-s1a'), S.poolA, S.poolB);
   attackerSuggestOurs($('sug-s1a-a'), S.poolA, S.s1.defB);
   attackerSuggestOpponent($('sug-s1a-b'), S.poolB, S.s1.defA);
 
-  buildPlayerChips($('list-s1a-a'), S.poolA, s1a.selA, 2, S.s1.defB, () => {
-    $('cnt-s1a-a').textContent = `Selected: ${s1a.selA.size} / 2`;
-    $('btn-lock-s1a-a').disabled = s1a.selA.size !== 2;
-  });
-  buildFactionChips($('list-s1a-b'), S.poolB, s1a.selB, 2, S.s1.defA, () => {
-    $('cnt-s1a-b').textContent = `Selected: ${s1a.selB.size} / 2`;
-    $('btn-lock-s1a-b').disabled = s1a.selB.size !== 2;
-  });
-  wireOverlay('ov-s1a-a', 'pan-s1a-a');
-  wireOverlay('ov-s1a-b', 'pan-s1a-b');
+  buildPlayerChips($('list-s1a-a'), S.poolA, s1a.selA, 2, S.s1.defB, s1aRefresh);
+  buildFactionChips($('list-s1a-b'), S.poolB, s1a.selB, 2, S.s1.defA, s1aRefresh);
+  s1aRefresh();
 
-  $('btn-lock-s1a-a').onclick = () => {
-    if (s1a.selA.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
-    s1a.locA = true; lockPanel('pan-s1a-a');
-    $('btn-lock-s1a-a').disabled = true;
-    $('btn-rev-s1a').disabled = !(s1a.locA && s1a.locB);
-  };
-  $('btn-lock-s1a-b').onclick = () => {
-    if (s1a.selB.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
-    s1a.locB = true; lockPanel('pan-s1a-b');
-    $('btn-lock-s1a-b').disabled = true;
-    $('btn-rev-s1a').disabled = !(s1a.locA && s1a.locB);
-  };
   $('btn-rev-s1a').onclick = () => {
     S.s1.atkA = [...s1a.selA];
     S.s1.atkB = [...s1a.selB];
@@ -1539,17 +1788,15 @@ function enterS1Attackers() {
    SCREEN 3 — S1 REFUSAL
 ═══════════════════════════════════════════════════════════ */
 
-const s1r = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+const s1r = { selA: new Set(), selB: new Set() };
+
+function s1rRefresh() {
+  $('btn-rev-s1r').disabled = !(s1r.selA.size === 1 && s1r.selB.size === 1);
+}
 
 function enterS1Refusal() {
   showScreen('screen-s1r');
   s1r.selA.clear(); s1r.selB.clear();
-  s1r.locA = false; s1r.locB = false;
-  $('lbl-s1r-a').textContent = S.teamA + ` — refuse one of ${S.teamB}'s attackers`;
-  $('lbl-s1r-b').textContent = S.teamB + ` — refuse one of ${S.teamA}'s attackers`;
-  resetPanel('pan-s1r-a'); resetPanel('pan-s1r-b');
-  $('btn-lock-s1r-a').disabled = false;
-  $('btn-lock-s1r-b').disabled = false;
   $('btn-rev-s1r').disabled = true;
 
   $('info-s1r').innerHTML =
@@ -1558,41 +1805,11 @@ function enterS1Refusal() {
   refusalSuggestOurs($('sug-s1r-a'), S.s1.atkB, S.s1.defA);
   refusalSuggestOpponent($('sug-s1r-b'), S.s1.atkA, S.s1.defB);
 
-  // Team A refuses one of Team B's attackers (faction indices)
-  buildFactionChips($('list-s1r-a'), S.s1.atkB, s1r.selA, 1, S.s1.defA, () => {}, () => {
-    if (!s1r.locA) {
-      s1r.locA = true; lockPanel('pan-s1r-a');
-      $('btn-lock-s1r-a').disabled = true;
-      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
-    }
-  });
-  // Team B refuses one of Team A's attackers (player indices)
-  buildPlayerChips($('list-s1r-b'), S.s1.atkA, s1r.selB, 1, S.s1.defB, () => {}, () => {
-    if (!s1r.locB) {
-      s1r.locB = true; lockPanel('pan-s1r-b');
-      $('btn-lock-s1r-b').disabled = true;
-      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
-    }
-  });
-  wireOverlay('ov-s1r-a', 'pan-s1r-a');
-  wireOverlay('ov-s1r-b', 'pan-s1r-b');
+  // We refuse one of their attackers (faction indices)
+  buildFactionChips($('list-s1r-a'), S.s1.atkB, s1r.selA, 1, S.s1.defA, s1rRefresh);
+  // They refused one of our attackers (player indices) — we record after real reveal
+  buildPlayerChips($('list-s1r-b'), S.s1.atkA, s1r.selB, 1, S.s1.defB, s1rRefresh);
 
-  $('btn-lock-s1r-a').onclick = () => {
-    if (s1r.selA.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
-    if (!s1r.locA) {
-      s1r.locA = true; lockPanel('pan-s1r-a');
-      $('btn-lock-s1r-a').disabled = true;
-      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
-    }
-  };
-  $('btn-lock-s1r-b').onclick = () => {
-    if (s1r.selB.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
-    if (!s1r.locB) {
-      s1r.locB = true; lockPanel('pan-s1r-b');
-      $('btn-lock-s1r-b').disabled = true;
-      $('btn-rev-s1r').disabled = !(s1r.locA && s1r.locB);
-    }
-  };
   $('btn-rev-s1r').onclick = finishS1Refusal;
 }
 
@@ -1605,6 +1822,8 @@ function finishS1Refusal() {
 
   S.s1.game1 = { ourPlayer: S.s1.defA, theirFaction: acceptedB };
   S.s1.game2 = { ourPlayer: acceptedA, theirFaction: S.s1.defB };
+  logGame('Game 1', S.s1.defA, acceptedB, 5);
+  logGame('Game 2', acceptedA, S.s1.defB, 5);
 
   S.poolA = S.poolA.filter(i => i !== acceptedA);
   S.poolB = S.poolB.filter(i => i !== acceptedB);
@@ -1643,55 +1862,24 @@ function enterS1Tables() {
    SCREEN 5 — S2 DEFENDER
 ═══════════════════════════════════════════════════════════ */
 
-const s2d = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+const s2d = { selA: new Set(), selB: new Set() };
+
+function s2dRefresh() {
+  $('btn-rev-s2d').disabled = !(s2d.selA.size === 1 && s2d.selB.size === 1);
+}
 
 function enterS2Defender() {
   showScreen('screen-s2d');
   s2d.selA.clear(); s2d.selB.clear();
-  s2d.locA = false; s2d.locB = false;
-  $('lbl-s2d-a').textContent = S.teamA + ' — remaining pool';
-  $('lbl-s2d-b').textContent = S.teamB + ' — remaining pool';
-  resetPanel('pan-s2d-a'); resetPanel('pan-s2d-b');
-  $('btn-lock-s2d-a').disabled = false;
-  $('btn-lock-s2d-b').disabled = false;
   $('btn-rev-s2d').disabled = true;
 
+  renderStrategyCallout($('strategy-s2d'), S.poolA, S.poolB);
   defenderSuggestOurs($('sug-s2d-a'), S.poolA, [0,1,2,3,4]);
   defenderSuggestOpponent($('sug-s2d-b'), S.poolB, S.poolA);
 
-  buildPlayerChips($('list-s2d-a'), S.poolA, s2d.selA, 1, null, () => {}, () => {
-    if (!s2d.locA) {
-      s2d.locA = true; lockPanel('pan-s2d-a');
-      $('btn-lock-s2d-a').disabled = true;
-      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
-    }
-  });
-  buildFactionChips($('list-s2d-b'), S.poolB, s2d.selB, 1, null, () => {}, () => {
-    if (!s2d.locB) {
-      s2d.locB = true; lockPanel('pan-s2d-b');
-      $('btn-lock-s2d-b').disabled = true;
-      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
-    }
-  });
-  wireOverlay('ov-s2d-a', 'pan-s2d-a');
-  wireOverlay('ov-s2d-b', 'pan-s2d-b');
+  buildPlayerChips($('list-s2d-a'), S.poolA, s2d.selA, 1, null, s2dRefresh);
+  buildFactionChips($('list-s2d-b'), S.poolB, s2d.selB, 1, null, s2dRefresh);
 
-  $('btn-lock-s2d-a').onclick = () => {
-    if (s2d.selA.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
-    if (!s2d.locA) {
-      s2d.locA = true; lockPanel('pan-s2d-a');
-      $('btn-lock-s2d-a').disabled = true;
-      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
-    }
-  };
-  $('btn-lock-s2d-b').onclick = () => {
-    if (s2d.selB.size !== 1) { toast('Pick exactly 1 defender', 'err'); return; }
-    if (!s2d.locB) {
-      s2d.locB = true; lockPanel('pan-s2d-b');
-      $('btn-lock-s2d-b').disabled = true;
-      $('btn-rev-s2d').disabled = !(s2d.locA && s2d.locB);
-    }
-  };
   $('btn-rev-s2d').onclick = () => {
     S.s2.defA = [...s2d.selA][0];
     S.s2.defB = [...s2d.selB][0];
@@ -1705,60 +1893,34 @@ function enterS2Defender() {
    SCREEN 6 — S2 ATTACKERS
 ═══════════════════════════════════════════════════════════ */
 
-const s2a = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+const s2a = { selA: new Set(), selB: new Set() };
+
+function s2aRefresh() {
+  $('cnt-s2a-a').textContent = `Selected: ${s2a.selA.size} / 2`;
+  $('cnt-s2a-b').textContent = `Selected: ${s2a.selB.size} / 2`;
+  $('btn-rev-s2a').disabled = !(s2a.selA.size === 2 && s2a.selB.size === 2);
+}
 
 function enterS2Attackers() {
   showScreen('screen-s2a');
   s2a.selA.clear(); s2a.selB.clear();
-  s2a.locA = false; s2a.locB = false;
-  $('lbl-s2a-a').textContent = S.teamA + ' — 2 remaining attackers';
-  $('lbl-s2a-b').textContent = S.teamB + ' — 2 remaining attackers';
-  resetPanel('pan-s2a-a'); resetPanel('pan-s2a-b');
-  $('btn-lock-s2a-a').disabled = true;
-  $('btn-lock-s2a-b').disabled = true;
   $('btn-rev-s2a').disabled = true;
 
   $('info-s2a').innerHTML =
     `<strong>Defenders locked:</strong> ${S.teamA}: <strong>${S.players[S.s2.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s2.defB]}</strong>`;
 
+  renderStrategyCallout($('strategy-s2a'), S.poolA, S.poolB);
   attackerSuggestOurs($('sug-s2a-a'), S.poolA, S.s2.defB);
   attackerSuggestOpponent($('sug-s2a-b'), S.poolB, S.s2.defA);
 
-  // S2A: only 2 players remain in each pool — pre-select and auto-lock after overlay tap
+  // Both remaining players attack — pre-select all
   S.poolA.forEach(i => s2a.selA.add(i));
   S.poolB.forEach(i => s2a.selB.add(i));
 
-  buildPlayerChips($('list-s2a-a'), S.poolA, s2a.selA, 2, S.s2.defB, () => {
-    $('cnt-s2a-a').textContent = `Selected: ${s2a.selA.size} / 2`;
-    $('btn-lock-s2a-a').disabled = s2a.selA.size !== 2;
-  });
-  buildFactionChips($('list-s2a-b'), S.poolB, s2a.selB, 2, S.s2.defA, () => {
-    $('cnt-s2a-b').textContent = `Selected: ${s2a.selB.size} / 2`;
-    $('btn-lock-s2a-b').disabled = s2a.selB.size !== 2;
-  });
-  $('cnt-s2a-a').textContent = `Selected: ${s2a.selA.size} / 2`;
-  $('cnt-s2a-b').textContent = `Selected: ${s2a.selB.size} / 2`;
-  $('btn-lock-s2a-a').disabled = false;
-  $('btn-lock-s2a-b').disabled = false;
-  wireOverlay('ov-s2a-a', 'pan-s2a-a');
-  wireOverlay('ov-s2a-b', 'pan-s2a-b');
+  buildPlayerChips($('list-s2a-a'), S.poolA, s2a.selA, 2, S.s2.defB, s2aRefresh);
+  buildFactionChips($('list-s2a-b'), S.poolB, s2a.selB, 2, S.s2.defA, s2aRefresh);
+  s2aRefresh();
 
-  $('btn-lock-s2a-a').onclick = () => {
-    if (s2a.selA.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
-    if (!s2a.locA) {
-      s2a.locA = true; lockPanel('pan-s2a-a');
-      $('btn-lock-s2a-a').disabled = true;
-      $('btn-rev-s2a').disabled = !(s2a.locA && s2a.locB);
-    }
-  };
-  $('btn-lock-s2a-b').onclick = () => {
-    if (s2a.selB.size !== 2) { toast('Pick exactly 2 attackers', 'err'); return; }
-    if (!s2a.locB) {
-      s2a.locB = true; lockPanel('pan-s2a-b');
-      $('btn-lock-s2a-b').disabled = true;
-      $('btn-rev-s2a').disabled = !(s2a.locA && s2a.locB);
-    }
-  };
   $('btn-rev-s2a').onclick = () => {
     S.s2.atkA = [...s2a.selA];
     S.s2.atkB = [...s2a.selB];
@@ -1770,17 +1932,15 @@ function enterS2Attackers() {
    SCREEN 7 — S2 REFUSAL + TABLES
 ═══════════════════════════════════════════════════════════ */
 
-const s2r = { selA: new Set(), selB: new Set(), locA: false, locB: false };
+const s2r = { selA: new Set(), selB: new Set() };
+
+function s2rRefresh() {
+  $('btn-rev-s2r').disabled = !(s2r.selA.size === 1 && s2r.selB.size === 1);
+}
 
 function enterS2Refusal() {
   showScreen('screen-s2r');
   s2r.selA.clear(); s2r.selB.clear();
-  s2r.locA = false; s2r.locB = false;
-  $('lbl-s2r-a').textContent = S.teamA + ` — refuse one of ${S.teamB}'s attackers`;
-  $('lbl-s2r-b').textContent = S.teamB + ` — refuse one of ${S.teamA}'s attackers`;
-  resetPanel('pan-s2r-a'); resetPanel('pan-s2r-b');
-  $('btn-lock-s2r-a').disabled = false;
-  $('btn-lock-s2r-b').disabled = false;
   $('btn-rev-s2r').disabled = true;
   $('s2t-section').style.display = 'none';
 
@@ -1790,39 +1950,9 @@ function enterS2Refusal() {
   refusalSuggestOurs($('sug-s2r-a'), S.s2.atkB, S.s2.defA);
   refusalSuggestOpponent($('sug-s2r-b'), S.s2.atkA, S.s2.defB);
 
-  buildFactionChips($('list-s2r-a'), S.s2.atkB, s2r.selA, 1, S.s2.defA, () => {}, () => {
-    if (!s2r.locA) {
-      s2r.locA = true; lockPanel('pan-s2r-a');
-      $('btn-lock-s2r-a').disabled = true;
-      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
-    }
-  });
-  buildPlayerChips($('list-s2r-b'), S.s2.atkA, s2r.selB, 1, S.s2.defB, () => {}, () => {
-    if (!s2r.locB) {
-      s2r.locB = true; lockPanel('pan-s2r-b');
-      $('btn-lock-s2r-b').disabled = true;
-      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
-    }
-  });
-  wireOverlay('ov-s2r-a', 'pan-s2r-a');
-  wireOverlay('ov-s2r-b', 'pan-s2r-b');
+  buildFactionChips($('list-s2r-a'), S.s2.atkB, s2r.selA, 1, S.s2.defA, s2rRefresh);
+  buildPlayerChips($('list-s2r-b'), S.s2.atkA, s2r.selB, 1, S.s2.defB, s2rRefresh);
 
-  $('btn-lock-s2r-a').onclick = () => {
-    if (s2r.selA.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
-    if (!s2r.locA) {
-      s2r.locA = true; lockPanel('pan-s2r-a');
-      $('btn-lock-s2r-a').disabled = true;
-      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
-    }
-  };
-  $('btn-lock-s2r-b').onclick = () => {
-    if (s2r.selB.size !== 1) { toast('Refuse exactly 1 attacker', 'err'); return; }
-    if (!s2r.locB) {
-      s2r.locB = true; lockPanel('pan-s2r-b');
-      $('btn-lock-s2r-b').disabled = true;
-      $('btn-rev-s2r').disabled = !(s2r.locA && s2r.locB);
-    }
-  };
   $('btn-rev-s2r').onclick = finishS2Refusal;
 }
 
@@ -1836,6 +1966,9 @@ function finishS2Refusal() {
   S.s2.game3 = { ourPlayer: S.s2.defA,  theirFaction: acceptedB };
   S.s2.game4 = { ourPlayer: acceptedA,   theirFaction: S.s2.defB };
   S.s2.game5 = { ourPlayer: S.s2.refB,   theirFaction: S.s2.refA };
+  logGame('Game 3', S.s2.defA, acceptedB, 3);
+  logGame('Game 4', acceptedA, S.s2.defB, 3);
+  logGame('Game 5', S.s2.refB, S.s2.refA, 3);
 
   const el = $('s2t-pairings');
   el.innerHTML = '<div class="card-title">Stage 2 Pairings</div>';
@@ -1870,18 +2003,95 @@ function enterResults() {
   showScreen('screen-results');
   refreshOverviewBar();
 
-  const gEl = $('results-games');
-  gEl.innerHTML = '<div class="card-title">All 5 Games</div>';
-  [
+  const { usTotal, oppTotal } = computeExpected();
+  const delta = usTotal - oppTotal;
+
+  // ── Score summary blocks ─────────────────────────────────
+  const summaryEl = $('results-score-summary');
+  const edgeLabel = delta === 0 ? 'Even match'
+    : delta > 0 ? `+${delta} pts advantage` : `${delta} pts deficit`;
+  const edgeColor = delta === 0 ? 'var(--muted)' : delta > 0 ? 'var(--green)' : 'var(--red)';
+  summaryEl.innerHTML = `
+    <div class="score-block us">
+      <div class="score-block-label">${S.teamA}</div>
+      <div class="score-block-num">${usTotal}</div>
+      <div class="score-block-sub">of 100 pts expected</div>
+    </div>
+    <div class="score-block opp">
+      <div class="score-block-label">${S.teamB}</div>
+      <div class="score-block-num">${oppTotal}</div>
+      <div class="score-block-sub">of 100 pts expected</div>
+    </div>
+    <div style="grid-column:1/-1;text-align:center;font-size:0.78rem;font-weight:700;color:${edgeColor};padding:0.2rem 0 0.5rem">
+      ${edgeLabel}
+    </div>`;
+
+  // ── Per-game breakdown table ─────────────────────────────
+  const allGames = [
     ['Game 1', S.s1.game1],
     ['Game 2', S.s1.game2],
     ['Game 3', S.s2.game3],
     ['Game 4', S.s2.game4],
-    ['Game 5', S.s2.game5],
-  ].forEach(([label, g]) => {
-    gEl.insertAdjacentHTML('beforeend',
-      pairingLine(label, S.players[g.ourPlayer], S.factions[g.theirFaction], g.table || '—'));
-  });
+    ['Game 5 ★', S.s2.game5],
+  ];
+  const gEl = $('results-games');
+  gEl.innerHTML = `
+    <div class="card-title">Game Breakdown
+      <span style="font-weight:400;font-size:0.65rem;color:var(--muted);letter-spacing:0;margin-left:0.5rem">
+        Score = our expected result (0–20). Their score = 20 − ours.
+      </span>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="game-breakdown">
+      <thead>
+        <tr>
+          <th>Game</th>
+          <th>Matchup</th>
+          <th>Our score</th>
+          <th>Their score</th>
+          <th>Net</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${allGames.map(([label, g]) => {
+          const sc = scoreNum(g.ourPlayer, g.theirFaction) ?? 10;
+          const oppSc = 20 - sc;
+          const net = sc - oppSc;
+          const netCls = net > 0 ? 'gb-delta-good' : net < 0 ? 'gb-delta-bad' : 'gb-delta-mid';
+          const netStr = net > 0 ? `+${net}` : String(net);
+          return `<tr>
+            <td><span class="game-num" style="font-size:0.72rem">${label}</span></td>
+            <td><strong>${S.players[g.ourPlayer]}</strong><span class="gb-vs">vs</span>${S.factions[g.theirFaction]}
+              ${g.table ? `<span class="table-tag" style="margin-left:0.35rem">Table: ${g.table}</span>` : ''}
+            </td>
+            <td><span class="${scClass(sc)}" style="font-weight:700">${sc}</span></td>
+            <td><span class="${scClass(20 - oppSc)}" style="font-weight:700">${oppSc}</span></td>
+            <td><span class="${netCls}">${netStr}</span></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>
+    </div>`;
+
+  // ── Decision log ─────────────────────────────────────────
+  const logEl = $('results-decision-log');
+  const logInner = $('results-log-inner');
+  if (DECISION_LOG.length > 0) {
+    logEl.style.display = 'block';
+    logInner.innerHTML = DECISION_LOG.map(entry => {
+      const sc = entry.score;
+      const net = sc - (20 - sc); // sc - oppSc
+      const cls = net > 0 ? 'dl-good' : net < 0 ? 'dl-bad' : 'dl-mid';
+      const netStr = net > 0 ? `+${net}` : String(net);
+      return `<div class="dl-entry">
+        <span class="dl-step">${entry.step}</span>
+        <span>${S.players[entry.ourPlayer]} vs ${S.factions[entry.theirFaction]}</span>
+        <span class="${cls}" style="margin-left:auto;font-weight:700">${sc}/20 (${netStr} net)</span>
+      </div>`;
+    }).join('');
+  } else {
+    logEl.style.display = 'none';
+  }
 
   $('results-tables').innerHTML = [
     `Pick 1: <span style="color:var(--text)">${S.teamA} defender (${S.players[S.s1.defA]}) → ${S.s1.tbl1}</span>`,
@@ -1910,6 +2120,7 @@ function pairingLine(label, playerName, factionName, table) {
 function refreshOverviewBar() {
   const slots = $('ov-slots');
   if (!slots) return;
+  refreshAdvantageMeter();
   const games = [
     { label: 'G1', game: S.s1.game1 },
     { label: 'G2', game: S.s1.game2 },
@@ -1937,6 +2148,10 @@ function refreshOverviewBar() {
 function showOverviewBar(visible) {
   const bar = $('overview-bar');
   if (bar) bar.style.display = visible ? 'block' : 'none';
+  if (!visible) {
+    const row = $('advantage-row');
+    if (row) row.style.display = 'none';
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
