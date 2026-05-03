@@ -13,7 +13,8 @@ This repository documents the pairing rules for 40K team match play — specific
 - [data/team.md](data/team.md) — Human-readable version of the full team assessment matrix (all factions, 0–20 scale).
 - [data/team-data.json](data/team-data.json) — Machine-readable team matrix. This is the source of truth loaded by index.html. Update here when scores change.
 - [data/meta.md](data/meta.md) — Notes on the global meta matrix and its differential→0–20 conversion.
-- [data/pairing-strategy.md](data/pairing-strategy.md) — Pairing coach strategy guide: the matrix concept, team size variants (5/6/8 players, odd vs. even), and the three foundational strategies (take out the trash, avoiding a red, pin).
+- [data/pairing-strategy.md](data/pairing-strategy.md) — Pairing coach strategy guide: the matrix concept, team size variants (5/6/8 players, odd vs. even), roster roles, defender/attacker mental model, and the foundational strategies (take out the trash, avoiding a red, pin, deliver-don't-win).
+- [data/pairing-uktc-guide.md](data/pairing-uktc-guide.md) — UKTC ITT beginner walkthrough of the Defenders & Attackers draft. External community guide stored verbatim as reference.
 
 ## Editing the Rules
 

@@ -292,6 +292,12 @@
       color: #b89060;
     }
     .strategy-callout.avoid strong { color: var(--amber); }
+    .strategy-callout.deliver {
+      background: #0e1620;
+      border-color: var(--blue);
+      color: #8fb3e0;
+    }
+    .strategy-callout.deliver strong { color: var(--blue); }
     .strategy-callout.none {
       background: var(--surface2);
       border-color: var(--border);
@@ -632,6 +638,98 @@
     }
     .score-legend .dot-us  { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
     .score-legend .dot-opp { width: 7px; height: 7px; border-radius: 50%; background: #e06c75; flex-shrink: 0; }
+
+    /* ── Table type badges ──────────────────────────────────── */
+    .ttype-dense    { background: oklch(28% 0.08 20);  color: oklch(80% 0.15 20);  border: 1px solid oklch(50% 0.15 20);  border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; }
+    .ttype-balanced { background: oklch(26% 0.06 60);  color: oklch(82% 0.14 60);  border: 1px solid oklch(55% 0.14 60);  border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; }
+    .ttype-open     { background: oklch(24% 0.07 250); color: oklch(80% 0.14 250); border: 1px solid oklch(52% 0.14 250); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em; }
+
+    /* ── Rolloff screen ─────────────────────────────────────── */
+    .rolloff-btn-row { display: flex; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .rolloff-winner-btn {
+      flex: 1; padding: 0.7rem 1rem; border-radius: var(--radius);
+      border: 2px solid var(--border); background: var(--surface2);
+      color: var(--text); font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      transition: border-color var(--dur), background var(--dur);
+    }
+    .rolloff-winner-btn.selected-a { border-color: var(--blue);  background: oklch(20% 0.05 250); color: var(--blue); }
+    .rolloff-winner-btn.selected-b { border-color: #e06c75; background: oklch(20% 0.05 20);  color: #e06c75; }
+    .table-type-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.6rem; flex-wrap: wrap; }
+    .table-type-row .tbl-num { font-size: 0.75rem; font-weight: 700; color: var(--gold); width: 1.8rem; flex-shrink: 0; }
+    .ttype-btn {
+      padding: 0.3rem 0.65rem; border-radius: 4px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--muted); font-size: 0.72rem; font-weight: 600;
+      cursor: pointer; transition: all 150ms;
+    }
+    .ttype-btn.active-dense    { background: oklch(28% 0.08 20);  color: oklch(80% 0.15 20);  border-color: oklch(50% 0.15 20); }
+    .ttype-btn.active-balanced { background: oklch(26% 0.06 60);  color: oklch(82% 0.14 60);  border-color: oklch(55% 0.14 60); }
+    .ttype-btn.active-open     { background: oklch(24% 0.07 250); color: oklch(80% 0.14 250); border-color: oklch(52% 0.14 250); }
+
+    /* ── Table preference grid ──────────────────────────────── */
+    .pref-grid { display: flex; flex-direction: column; gap: 0.5rem; }
+    .pref-row  { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+    .pref-name { font-size: 0.78rem; font-weight: 600; color: var(--text); min-width: 5rem; }
+    .pref-faction-name { font-size: 0.7rem; color: var(--muted); }
+    .pref-delta { font-size: 0.7rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 3px; }
+    .pref-delta.pos { background: oklch(22% 0.06 145); color: var(--green); }
+    .pref-delta.neg { background: oklch(22% 0.06 20);  color: var(--red); }
+    .pref-delta.neu { background: var(--surface2);      color: var(--muted); }
+
+    /* ── Table pick buttons on table screens ────────────────── */
+    .table-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.6rem; margin-top: 0.5rem; }
+    .table-pick-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+      padding: 0.65rem 0.5rem; border-radius: var(--radius); border: 2px solid var(--border);
+      background: var(--surface2); cursor: pointer; transition: all var(--dur);
+      font-size: 0.78rem; color: var(--text);
+    }
+    .table-pick-btn:hover { border-color: var(--gold-dim); }
+    .table-pick-btn.selected { border-color: var(--gold); background: var(--gold-bg); }
+    .table-pick-btn.taken { opacity: 0.4; pointer-events: none; }
+    .table-pick-btn .tp-num { font-size: 0.65rem; font-weight: 700; color: var(--muted); }
+    .tp-adj-score { font-size: 0.72rem; font-weight: 700; }
+    .tp-delta { font-size: 0.62rem; }
+    .tp-delta.pos { color: var(--green); }
+    .tp-delta.neg { color: var(--red); }
+
+    /* ── Score delta annotation ─────────────────────────────── */
+    .sc-delta-pos { color: var(--green); font-size: 0.65rem; }
+    .sc-delta-neg { color: var(--red);   font-size: 0.65rem; }
+
+    /* ── Axis slider rows ───────────────────────────────────── */
+    .axis-row {
+      display: grid;
+      grid-template-columns: 5.5rem 1fr auto;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .axis-row:last-child { border-bottom: none; }
+    .axis-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+    .axis-name small { display: block; font-size: 0.65rem; font-weight: 400; color: var(--muted); margin-top: 0.1rem; }
+    .axis-track { display: flex; align-items: center; gap: 0.4rem; }
+    .axis-track input[type=range] {
+      flex: 1;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .axis-end-label { font-size: 0.6rem; color: var(--muted); white-space: nowrap; }
+    .axis-val {
+      font-size: 0.78rem; font-weight: 700;
+      min-width: 2.2rem; text-align: right;
+    }
+    .axis-val.pos { color: var(--green); }
+    .axis-val.neg { color: var(--red); }
+    .axis-val.neu { color: var(--muted); }
+    .axis-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+      padding: 0 0.1rem;
+    }
   </style>
 </head>
 <body>
@@ -695,6 +793,22 @@
     </div>
 
     <div class="card">
+      <div class="card-title">Terrain Preferences <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— slide left = prefers dense, right = prefers open</span></div>
+      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.9rem">
+        Scores shift when table terrain aligns with a player's preference — or their opponent's.
+      </p>
+      <div style="margin-bottom:0.75rem">
+        <div class="card-title" style="font-size:0.62rem;margin-bottom:0.5rem">Our Players</div>
+        <div id="setup-our-prefs"></div>
+      </div>
+      <div id="setup-opp-prefs-wrap" style="display:none">
+        <hr class="div" style="margin:0.6rem 0 0.75rem" />
+        <div class="card-title" style="font-size:0.62rem;margin-bottom:0.5rem">Opponent Players — guess their terrain preference</div>
+        <div id="setup-opp-prefs"></div>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Override via Photo <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— optional, uses Claude OCR</span></div>
       <div class="field"><label>Claude API Key</label><input type="password" id="api-key" placeholder="sk-ant-…" /></div>
       <div class="upload-zone" id="upload-zone">
@@ -710,7 +824,33 @@
   </div>
 
 
-  <!-- ══ SCREEN 1 — S1 Defender ══ -->
+  <!-- ══ SCREEN 1 — Rolloff ══ -->
+  <div class="screen" id="screen-s1rolloff">
+    <div class="screen-title">Table Rolloff</div>
+    <div class="screen-sub">Before defenders are revealed, roll off for table choice order. Winner picks tables 1, 4 &amp; 5 — loser picks 2 &amp; 3.</div>
+
+    <div class="card">
+      <div class="card-title">Rolloff Result</div>
+      <div class="rolloff-btn-row">
+        <button class="rolloff-winner-btn" id="ro-btn-a" onclick="setRolloffWinner('A')">We Won the Rolloff</button>
+        <button class="rolloff-winner-btn" id="ro-btn-b" onclick="setRolloffWinner('B')">They Won the Rolloff</button>
+      </div>
+      <div id="ro-pick-order" class="info-box" style="display:none;margin-top:0"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Table Types — set all 5 tables</div>
+      <p style="font-size:0.74rem;color:var(--muted);margin-bottom:0.9rem">
+        Dense = melee / terrain heavy &nbsp;·&nbsp; Balanced = mixed &nbsp;·&nbsp; Open = shooting / sparse terrain
+      </p>
+      <div class="pref-grid" id="ro-table-types"></div>
+    </div>
+
+    <button class="btn btn-primary btn-full" id="btn-ro-next" disabled>Proceed to Defender Pick →</button>
+  </div>
+
+
+  <!-- ══ SCREEN 2 — S1 Defender ══ -->
   <div class="screen" id="screen-s1d">
     <div class="screen-title">Stage 1 — Choose Your Defender</div>
     <div class="screen-sub">Pick your defender, then record who the opponent chose after the real-life reveal.</div>
@@ -785,30 +925,29 @@
   </div>
 
 
-  <!-- ══ SCREEN 4 — S1 Tables ══ -->
+  <!-- ══ SCREEN 5 — S1 Tables ══ -->
   <div class="screen" id="screen-s1t">
     <div class="screen-title">Stage 1 — Table Pick</div>
-    <div class="screen-sub">Games 1 &amp; 2 are locked. Defenders choose their tables.</div>
+    <div class="screen-sub">Games 1 &amp; 2 are locked. Each defender picks a table for their own game.</div>
     <div class="card" id="s1t-pairings"></div>
-    <div class="info-box">
-      <strong>Table Choice Order:</strong> Team A defender picks first → Team B defender picks second → Token passes to <strong>Team B</strong>.
+    <div class="info-box" id="s1t-order-info"></div>
+    <div class="card" id="s1t-pick1-card">
+      <div class="card-title" id="s1t-pick1-title">Pick 1 — rolloff winner chooses</div>
+      <div class="table-pick-grid" id="s1t-pick1-grid"></div>
     </div>
-    <div class="card">
-      <div class="card-title">Table Assignments</div>
-      <div class="field-row">
-        <div class="field"><label id="s1t-lbl1">Game 1 (Team A defender picks)</label><input type="text" id="s1t-tbl1" placeholder="e.g. Table 3" /></div>
-        <div class="field"><label id="s1t-lbl2">Game 2 (Team B defender picks)</label><input type="text" id="s1t-tbl2" placeholder="e.g. Table 7" /></div>
-      </div>
+    <div class="card" id="s1t-pick2-card">
+      <div class="card-title" id="s1t-pick2-title">Pick 2 — rolloff loser chooses</div>
+      <div class="table-pick-grid" id="s1t-pick2-grid"></div>
     </div>
-    <button class="btn btn-primary btn-full" id="btn-s1t-next">Proceed to Stage 2 →</button>
+    <button class="btn btn-primary btn-full" id="btn-s1t-next" disabled>Proceed to Stage 2 →</button>
   </div>
 
 
-  <!-- ══ SCREEN 5 — S2 Defender ══ -->
+  <!-- ══ SCREEN 6 — S2 Defender ══ -->
   <div class="screen" id="screen-s2d">
     <div class="screen-title">Stage 2 — Choose Your Defender</div>
-    <div class="screen-sub">Token now with opponent. Pick your defender, then record theirs after the real-life reveal.</div>
-    <div class="info-box"><strong>Token:</strong> Opponent holds the Table Choice Token for Stage 2 — they pick table first.</div>
+    <div class="screen-sub">Pick your defender, then record theirs after the real-life reveal.</div>
+    <div class="info-box" id="s2d-rolloff-info"></div>
     <div id="strategy-s2d"></div>
     <div class="captain-layout">
       <div class="team-panel" id="pan-s2d-a">
@@ -879,21 +1018,22 @@
     </div>
     <div id="s2t-section" style="display:none;margin-top:1.5rem">
       <div class="card" id="s2t-pairings"></div>
-      <div class="info-box">
-        <strong>Table Choice Order:</strong> Team B defender picks first (Token holder) → Team A defender → Game 5 gets last remaining table.
+      <div class="info-box" id="s2t-order-info"></div>
+      <div class="card">
+        <div class="card-title" id="s2t-pick3-title">Pick 3 — rolloff loser's S2 defender</div>
+        <div class="table-pick-grid" id="s2t-pick3-grid"></div>
       </div>
       <div class="card">
-        <div class="card-title">Table Assignments</div>
-        <div class="field-row">
-          <div class="field"><label id="s2t-lbl3">Game 3 (Team B defender — Token)</label><input type="text" id="s2t-tbl3" placeholder="e.g. Table 1" /></div>
-          <div class="field"><label id="s2t-lbl4">Game 4 (Team A defender)</label><input type="text" id="s2t-tbl4" placeholder="e.g. Table 2" /></div>
-        </div>
-        <div class="field" style="margin-top:0.5rem">
-          <label>Game 5 — last remaining table</label>
-          <input type="text" id="s2t-tbl5" placeholder="e.g. Table 5" />
+        <div class="card-title" id="s2t-pick4-title">Pick 4 — rolloff winner's S2 defender</div>
+        <div class="table-pick-grid" id="s2t-pick4-grid"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Game 5 — last remaining table</div>
+        <div id="s2t-game5-tbl" style="font-size:0.82rem;color:var(--muted);padding:0.25rem 0">
+          Assigned automatically after picks 3 &amp; 4.
         </div>
       </div>
-      <button class="btn btn-primary btn-full" id="btn-s2t-finish">View Final Pairings →</button>
+      <button class="btn btn-primary btn-full" id="btn-s2t-finish" disabled>View Final Pairings →</button>
     </div>
   </div>
 
@@ -955,7 +1095,15 @@ const TEAM_DATA = {
     "David":  { "Necrons":20,"Tau":10,"Custodes":5,"SM (UM)":5,"Guard":8,"Sisters":16,"Grey Knights":18,"Blood Angels":10,"Space Wolves":10,"Ad Mech":4,"Orks":16,"Votann":10,"Nids":16,"Aeldari":4,"Drukhari":20,"GSC":5,"Tsons":1,"Death Guard":10,"CSM":5,"World Eaters":2,"Daemons":8,"Chaos Knights":10,"Imperial Knights":10 },
     "Berni":  { "Necrons":10,"Tau":15,"Custodes":10,"SM (UM)":9,"Guard":10,"Sisters":16,"Grey Knights":18,"Blood Angels":16,"Space Wolves":16,"Ad Mech":10,"Orks":0,"Votann":0,"Nids":10,"Aeldari":20,"Drukhari":16,"GSC":5,"Tsons":8,"Death Guard":10,"CSM":6,"World Eaters":15,"Daemons":7,"Chaos Knights":5,"Imperial Knights":10 },
     "Norge":  { "Tau":8,"Sisters":8,"Tsons":8,"Nids":11,"GSC":8,"Daemons":11 }
-  }
+  },
+  /* +3 = strongly prefers this type, 0 = neutral, -3 = strongly disfavours */
+  tablePrefs: {
+    "Daniel": { dense: 0,  balanced: 0, open: 0  },
+    "Paddy":  { dense: 3,  balanced: 0, open: -3 },
+    "David":  { dense: -3, balanced: 0, open: 3  },
+    "Berni":  { dense: -3, balanced: 0, open: 3  },
+    "Norge":  { dense: 0,  balanced: 0, open: 0  },
+  },
 };
 
 // Global meta fallback — row = our faction, col = opponent faction
@@ -997,6 +1145,22 @@ const META = {
   }
 };
 
+/* Known faction table preferences — +3 favours, 0 neutral, -3 disfavours */
+const FACTION_TABLE_PREFS = {
+  "Imperial Knights": { dense: -3, balanced: 0, open: 3  },
+  "Chaos Knights":    { dense: -3, balanced: 0, open: 3  },
+  "Guard":            { dense: -3, balanced: 0, open: 3  },
+  "Tau":              { dense: -3, balanced: 0, open: 3  },
+  "Aeldari":          { dense: -2, balanced: 0, open: 2  },
+  "Drukhari":         { dense: -2, balanced: 0, open: 2  },
+  "World Eaters":     { dense: 3,  balanced: 0, open: -3 },
+  "Orks":             { dense: 2,  balanced: 0, open: -2 },
+  "Daemons":          { dense: 2,  balanced: 0, open: -2 },
+  "Death Guard":      { dense: 2,  balanced: 0, open: -2 },
+  "Nids":             { dense: 2,  balanced: 0, open: -2 },
+  "GSC":              { dense: 2,  balanced: 0, open: -2 },
+};
+
 /* ═══════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════ */
@@ -1011,6 +1175,25 @@ const S = {
   poolA: [],  // remaining player indices (our side)
   poolB: [],  // remaining faction indices (opponent)
 
+  /* tables[i].type: 'dense' | 'balanced' | 'open' | null */
+  tables: [
+    { id: 1, type: null },
+    { id: 2, type: null },
+    { id: 3, type: null },
+    { id: 4, type: null },
+    { id: 5, type: null },
+  ],
+
+  /* Terrain axis per slot: -3 = strongly dense, 0 = neutral, +3 = strongly open */
+  ourAxis: TEAM_DATA.players.map(p => {
+    const t = TEAM_DATA.tablePrefs?.[p];
+    if (!t) return 0;
+    return Math.max(-3, Math.min(3, (t.open ?? 0) - (t.dense ?? 0)));
+  }),
+  oppAxis: [0, 0, 0, 0, 0],
+  rolloffWinner: null,  // 'A' (us) | 'B' (opponent)
+  // winner picks tables 1, 4, 5; loser picks tables 2, 3
+
   s1: { defA:null, defB:null, atkA:[], atkB:[], refA:null, refB:null,
         game1:null, game2:null, tbl1:'', tbl2:'' },
   s2: { defA:null, defB:null, atkA:[], atkB:[], refA:null, refB:null,
@@ -1018,7 +1201,7 @@ const S = {
 };
 
 const SCREENS = [
-  'screen-setup','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
+  'screen-setup','screen-s1rolloff','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
   'screen-s2d','screen-s2a','screen-s2r','screen-results'
 ];
 
@@ -1098,6 +1281,37 @@ function scoreLabel(pIdx, fIdx) {
   return isMeta ? score + '*' : String(score);
 }
 
+/* Convert a single dense↔open axis value to a directional pref for a table type.
+   axis: -3 (strongly dense) to +3 (strongly open). */
+function axisToPref(axis, tableType) {
+  if (tableType === 'dense') return -axis;
+  if (tableType === 'open')  return  axis;
+  return 0; // balanced
+}
+
+/* Net score delta for a matchup on a given table type.
+   Positive = good for us, negative = bad for us. */
+function tableScoreDelta(pIdx, fIdx, tableType) {
+  if (!tableType) return 0;
+  const ourPref = axisToPref(S.ourAxis[pIdx] ?? 0, tableType);
+  const oppPref = axisToPref(S.oppAxis[fIdx] ?? 0, tableType);
+  return ourPref - oppPref;
+}
+
+/* Returns { score, isMeta, delta } with table modifier applied and clamped to [0,20]. */
+function getScoreWithTable(pIdx, fIdx, tableType) {
+  const { score, isMeta } = getScore(pIdx, fIdx);
+  if (score === null) return { score: null, isMeta, delta: 0 };
+  const delta = tableScoreDelta(pIdx, fIdx, tableType);
+  return { score: Math.max(0, Math.min(20, score + delta)), isMeta, delta };
+}
+
+/* Returns the table type string for a given 1-based table ID, or null. */
+function tableTypeForId(tableId) {
+  const t = S.tables.find(t => t.id === tableId);
+  return t ? t.type : null;
+}
+
 /* ═══════════════════════════════════════════════════════════
    DECISION LOG
 ═══════════════════════════════════════════════════════════ */
@@ -1123,7 +1337,8 @@ function computeExpected() {
   let usLocked = 0, oppLocked = 0, locked = 0;
   games.forEach(g => {
     if (!g) return;
-    const sc = scoreNum(g.ourPlayer, g.theirFaction) ?? 10;
+    const { score } = getScoreWithTable(g.ourPlayer, g.theirFaction, g.tableType ?? null);
+    const sc = score ?? (scoreNum(g.ourPlayer, g.theirFaction) ?? 10);
     usLocked += sc;
     oppLocked += (20 - sc);
     locked++;
@@ -1372,11 +1587,12 @@ function refusalSuggestOpponent(containerEl, playerPool, oppDefIdx) {
 
 /*
  * Analyse current pool state and return the highest-priority strategic flag.
- * Priority: trash > avoid-red > pin > none
+ * Priority: trash > avoid-red > pin > deliver > none
  */
 function computeStrategy(poolA, poolB) {
-  const RED_THRESHOLD  = 5;
-  const PIN_THRESHOLD  = 14;
+  const RED_THRESHOLD     = 5;
+  const PIN_THRESHOLD     = 14;
+  const DELIVER_CEILING   = 10; // "even" — no remaining win available
 
   // --- Take out the trash: ≥2 of our players are ≤RED vs the same opp faction ---
   for (const fi of poolB) {
@@ -1428,13 +1644,34 @@ function computeStrategy(poolA, poolB) {
     }
   }
 
-  return { type: 'none', title: 'No Urgent Flags', body: 'Pool looks balanced — no critical moves required right now.' };
+  // --- Deliver, don't win: a player has no remaining matchup above the even line ---
+  for (const pi of poolA) {
+    let bestScore = -Infinity;
+    for (const fi of poolB) {
+      const sc = scoreNum(pi, fi);
+      if (sc !== null && sc > bestScore) bestScore = sc;
+    }
+    if (bestScore !== -Infinity && bestScore < DELIVER_CEILING) {
+      return {
+        type: 'deliver',
+        title: 'Deliver, Don’t Win',
+        body: `<strong>${S.players[pi]}</strong>'s best remaining matchup is ${bestScore}. ` +
+              `No win is available — score what you can, lose small, protect the roster.`
+      };
+    }
+  }
+
+  return {
+    type: 'none',
+    title: 'No Urgent Flags',
+    body: 'Pool looks balanced. Defender = consistent + resilient. Attacker offer = one strong + one that forces a different concession.'
+  };
 }
 
 function renderStrategyCallout(containerEl, poolA, poolB) {
   if (!containerEl) return;
   const { type, title, body } = computeStrategy(poolA, poolB);
-  const icons = { trash: '⚠', avoid: '🚨', pin: '📌', none: '✓' };
+  const icons = { trash: '⚠', avoid: '🚨', pin: '📌', deliver: '🎯', none: '✓' };
   containerEl.innerHTML =
     `<div class="strategy-callout ${type}"><strong>${icons[type]} ${title}:</strong> ${body}</div>`;
 }
@@ -1534,6 +1771,80 @@ function initSetup() {
   buildPlayerInputs();
   buildFactionPicker();
   buildMatrixTable();
+  buildOurPrefsGrid();
+}
+
+function deltaBadge(val) {
+  const cls = val > 0 ? 'pos' : val < 0 ? 'neg' : 'neu';
+  const str = val > 0 ? `+${val}` : String(val);
+  return `<span class="pref-delta ${cls}">${str}</span>`;
+}
+
+function axisValClass(v) { return v > 0 ? 'pos' : v < 0 ? 'neg' : 'neu'; }
+function axisValLabel(v) {
+  if (v <= -3) return '−3 dense';
+  if (v === -2) return '−2 dense';
+  if (v === -1) return '−1 dense';
+  if (v === 0)  return '0 neutral';
+  if (v === 1)  return '+1 open';
+  if (v === 2)  return '+2 open';
+  return '+3 open';
+}
+
+function buildAxisSliderRow(name, subtitle, axis, value, onChange) {
+  const row = document.createElement('div');
+  row.className = 'axis-row';
+  const clamp = v => Math.max(-3, Math.min(3, v));
+  const val = clamp(value);
+
+  row.innerHTML = `
+    <div class="axis-name">${name}<small>${subtitle}</small></div>
+    <div>
+      <div class="axis-track">
+        <span class="axis-end-label">Dense</span>
+        <input type="range" min="-3" max="3" step="1" value="${val}" />
+        <span class="axis-end-label">Open</span>
+      </div>
+    </div>
+    <div class="axis-val ${axisValClass(val)}">${axisValLabel(val)}</div>
+  `;
+  const slider = row.querySelector('input[type=range]');
+  const badge  = row.querySelector('.axis-val');
+  slider.addEventListener('input', () => {
+    const v = parseInt(slider.value);
+    badge.textContent = axisValLabel(v);
+    badge.className = `axis-val ${axisValClass(v)}`;
+    onChange(v);
+  });
+  return row;
+}
+
+function buildOurPrefsGrid() {
+  const el = $('setup-our-prefs');
+  if (!el) return;
+  el.innerHTML = '';
+  TEAM_DATA.players.forEach((p, i) => {
+    const fac = TEAM_DATA.playerFactions?.[p] ?? '';
+    const row = buildAxisSliderRow(p, fac, 'ourAxis', S.ourAxis[i], v => {
+      S.ourAxis[i] = v;
+    });
+    el.appendChild(row);
+  });
+}
+
+function buildOppPrefsGrid() {
+  const wrap = $('setup-opp-prefs-wrap');
+  const el   = $('setup-opp-prefs');
+  if (!el || !wrap) return;
+  if (!S.factions || S.factions.length === 0) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  el.innerHTML = '';
+  S.factions.forEach((f, i) => {
+    const row = buildAxisSliderRow(`Opp ${i+1}`, f, 'oppAxis', S.oppAxis[i], v => {
+      S.oppAxis[i] = v;
+    });
+    el.appendChild(row);
+  });
 }
 
 function buildPlayerInputs() {
@@ -1568,6 +1879,7 @@ function buildFactionPicker() {
       });
       count.textContent = `Selected: ${selectedFactions.size} / 5`;
       buildMatrixTable();
+      buildOppPrefsGrid();
     });
     grid.appendChild(chip);
   });
@@ -1579,6 +1891,7 @@ function buildMatrixTable() {
     : TEAM_DATA.factions.slice(0, 5);
 
   S.factions = active;
+  S.oppAxis  = [0, 0, 0, 0, 0];
   rebuildMatrix();
 
   const hdr  = $('matrix-hdr');
@@ -1707,17 +2020,70 @@ $('btn-start').addEventListener('click', () => {
 
   S.poolA = [0,1,2,3,4];
   S.poolB = [0,1,2,3,4];
+  S.rolloffWinner = null;
+  S.tables.forEach(t => { t.type = null; });
   Object.assign(S.s1, { defA:null,defB:null,atkA:[],atkB:[],refA:null,refB:null,game1:null,game2:null,tbl1:'',tbl2:'' });
   Object.assign(S.s2, { defA:null,defB:null,atkA:[],atkB:[],refA:null,refB:null,game3:null,game4:null,game5:null,tbl3:'',tbl4:'',tbl5:'' });
   DECISION_LOG.length = 0;
 
-  enterS1Defender();
+  enterS1Rolloff();
   showOverviewBar(true);
   refreshOverviewBar();
 });
 
 /* ═══════════════════════════════════════════════════════════
-   SCREEN 1 — S1 DEFENDER
+   SCREEN 1 — ROLLOFF
+═══════════════════════════════════════════════════════════ */
+
+function setRolloffWinner(side) {
+  S.rolloffWinner = side;
+  $('ro-btn-a').className = 'rolloff-winner-btn' + (side === 'A' ? ' selected-a' : '');
+  $('ro-btn-b').className = 'rolloff-winner-btn' + (side === 'B' ? ' selected-b' : '');
+  const winName  = side === 'A' ? (S.teamA || 'Us')   : (S.teamB || 'Opponent');
+  const loseName = side === 'A' ? (S.teamB || 'Opponent') : (S.teamA || 'Us');
+  $('ro-pick-order').style.display = 'block';
+  $('ro-pick-order').innerHTML =
+    `<strong>${winName}</strong> picks first — tables 1, 4, 5 &nbsp;·&nbsp; <strong>${loseName}</strong> picks tables 2, 3`;
+  checkRolloffReady();
+}
+
+function checkRolloffReady() {
+  const allSet = S.rolloffWinner !== null && S.tables.every(t => t.type !== null);
+  $('btn-ro-next').disabled = !allSet;
+}
+
+function setTableType(tableId, type) {
+  S.tables.find(t => t.id === tableId).type = type;
+  ['dense','balanced','open'].forEach(tp => {
+    const btn = $(`ro-ttype-${tableId}-${tp}`);
+    if (btn) btn.className = 'ttype-btn' + (type === tp ? ` active-${tp}` : '');
+  });
+  checkRolloffReady();
+}
+
+function enterS1Rolloff() {
+  showScreen('screen-s1rolloff');
+  S.rolloffWinner = null;
+  S.tables.forEach(t => { t.type = null; });
+  $('ro-btn-a').className = 'rolloff-winner-btn';
+  $('ro-btn-b').className = 'rolloff-winner-btn';
+  $('ro-pick-order').style.display = 'none';
+  $('btn-ro-next').disabled = true;
+
+  const container = $('ro-table-types');
+  container.innerHTML = S.tables.map(t => `
+    <div class="table-type-row">
+      <span class="tbl-num">T${t.id}</span>
+      ${['dense','balanced','open'].map(tp =>
+        `<button class="ttype-btn" id="ro-ttype-${t.id}-${tp}" onclick="setTableType(${t.id},'${tp}')">${tp.charAt(0).toUpperCase()+tp.slice(1)}</button>`
+      ).join('')}
+    </div>`).join('');
+
+  $('btn-ro-next').onclick = () => enterS1Defender();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 2 — S1 DEFENDER
 ═══════════════════════════════════════════════════════════ */
 
 const s1d = { selA: new Set(), selB: new Set() };
@@ -1835,25 +2201,89 @@ function finishS1Refusal() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   SCREEN 4 — S1 TABLES
+   SCREEN 5 — S1 TABLES
 ═══════════════════════════════════════════════════════════ */
+
+/* Render a set of table-pick buttons for one defender's game.
+   availableTableIds = table IDs they may pick from.
+   gameObj = S.s1.game1 or game2.
+   onPick(tableId) called when user selects. */
+function renderTablePickButtons(containerId, availableTableIds, gameObj, takenTableIds, onPick) {
+  const el = $(containerId);
+  el.innerHTML = '';
+  availableTableIds.forEach(tid => {
+    const t = S.tables.find(t => t.id === tid);
+    const isTaken  = takenTableIds.has(tid);
+    const ttLabel  = t.type ? t.type.charAt(0).toUpperCase() + t.type.slice(1) : '?';
+    const ttCls    = t.type ? `ttype-${t.type}` : '';
+    const isSelected = gameObj.tableId === tid;
+    const { score, isMeta, delta } = getScoreWithTable(gameObj.ourPlayer, gameObj.theirFaction, t.type);
+    const scoreStr = score !== null ? String(score) + (isMeta ? '*' : '') : '?';
+    const deltaHtml = delta !== 0
+      ? `<span class="tp-delta ${delta > 0 ? 'pos' : 'neg'}">${delta > 0 ? '+' : ''}${delta}</span>`
+      : '';
+    const btn = document.createElement('button');
+    btn.className = 'table-pick-btn' + (isSelected ? ' selected' : '') + (isTaken ? ' taken' : '');
+    btn.innerHTML = `
+      <span class="tp-num">Table ${tid}</span>
+      <span class="${ttCls}">${ttLabel}</span>
+      <span class="tp-adj-score ${score !== null ? scClass(score) : ''}">${scoreStr}</span>
+      ${deltaHtml}`;
+    btn.onclick = () => {
+      gameObj.tableId = tid;
+      onPick(tid);
+    };
+    el.appendChild(btn);
+  });
+}
 
 function enterS1Tables() {
   showScreen('screen-s1t');
+
   const el = $('s1t-pairings');
   el.innerHTML = '<div class="card-title">Stage 1 Pairings</div>';
   el.insertAdjacentHTML('beforeend', pairingLine('Game 1', S.players[S.s1.game1.ourPlayer], S.factions[S.s1.game1.theirFaction], ''));
   el.insertAdjacentHTML('beforeend', pairingLine('Game 2', S.players[S.s1.game2.ourPlayer], S.factions[S.s1.game2.theirFaction], ''));
-  $('s1t-lbl1').textContent = `Game 1 table (${S.teamA} defender ${S.players[S.s1.defA]} picks)`;
-  $('s1t-lbl2').textContent = `Game 2 table (${S.teamB} defender ${S.factions[S.s1.defB]} picks)`;
-  $('s1t-tbl1').value = '';
-  $('s1t-tbl2').value = '';
+
+  // Determine pick order based on rolloff
+  // Winner (pick 1) gets to choose from all 5; they own picks 1,4,5 conceptually
+  // But in S1 each defender picks for their own game — winner picks first
+  const weWon = S.rolloffWinner === 'A';
+  const winTeam  = weWon ? S.teamA  : S.teamB;
+  const loseTeam = weWon ? S.teamB  : S.teamA;
+  const pick1Game = weWon ? S.s1.game1 : S.s1.game2;  // winner's defender's game
+  const pick2Game = weWon ? S.s1.game2 : S.s1.game1;  // loser's defender's game
+  const pick1Player = weWon ? S.players[S.s1.defA] : S.factions[S.s1.defB];
+  const pick2Player = weWon ? S.factions[S.s1.defB] : S.players[S.s1.defA];
+
+  $('s1t-order-info').innerHTML =
+    `<strong>Rolloff winner (${winTeam})</strong> picks first. <strong>${loseTeam}</strong> picks second from remaining.`;
+
+  $('s1t-pick1-title').textContent = `Pick 1 — ${winTeam} defender (${pick1Player})`;
+  $('s1t-pick2-title').textContent = `Pick 2 — ${loseTeam} defender (${pick2Player})`;
+
+  pick1Game.tableId = null;
+  pick2Game.tableId = null;
+  const allIds = S.tables.map(t => t.id);
+  const takenByP2 = new Set();
+
+  function refreshPickBtns() {
+    const takenByP1 = pick1Game.tableId != null ? new Set([pick1Game.tableId]) : new Set();
+    renderTablePickButtons('s1t-pick1-grid', allIds, pick1Game, takenByP2, () => refreshPickBtns());
+    renderTablePickButtons('s1t-pick2-grid', allIds, pick2Game, takenByP1, () => refreshPickBtns());
+    $('btn-s1t-next').disabled = !(pick1Game.tableId != null && pick2Game.tableId != null);
+  }
+  refreshPickBtns();
 
   $('btn-s1t-next').onclick = () => {
-    S.s1.tbl1 = $('s1t-tbl1').value.trim() || '—';
-    S.s1.tbl2 = $('s1t-tbl2').value.trim() || '—';
-    S.s1.game1.table = S.s1.tbl1;
-    S.s1.game2.table = S.s1.tbl2;
+    const g1tbl = S.s1.game1.tableId;
+    const g2tbl = S.s1.game2.tableId;
+    S.s1.game1.table    = `T${g1tbl}`;
+    S.s1.game1.tableType = tableTypeForId(g1tbl);
+    S.s1.game2.table    = `T${g2tbl}`;
+    S.s1.game2.tableType = tableTypeForId(g2tbl);
+    S.s1.tbl1 = S.s1.game1.table;
+    S.s1.tbl2 = S.s1.game2.table;
     enterS2Defender();
   };
 }
@@ -1872,6 +2302,11 @@ function enterS2Defender() {
   showScreen('screen-s2d');
   s2d.selA.clear(); s2d.selB.clear();
   $('btn-rev-s2d').disabled = true;
+
+  const weWon   = S.rolloffWinner === 'A';
+  const loseTeam = weWon ? S.teamB : S.teamA;
+  $('s2d-rolloff-info').innerHTML =
+    `<strong>${loseTeam}</strong> is the rolloff loser — their S2 defender picks table first (Pick 3).`;
 
   renderStrategyCallout($('strategy-s2d'), S.poolA, S.poolB);
   defenderSuggestOurs($('sug-s2d-a'), S.poolA, [0,1,2,3,4]);
@@ -1976,21 +2411,73 @@ function finishS2Refusal() {
   el.insertAdjacentHTML('beforeend', pairingLine('Game 4', S.players[S.s2.game4.ourPlayer], S.factions[S.s2.game4.theirFaction], ''));
   el.insertAdjacentHTML('beforeend', pairingLine('Game 5 ★', S.players[S.s2.game5.ourPlayer], S.factions[S.s2.game5.theirFaction], ''));
 
-  $('s2t-lbl3').textContent = `Game 3 table (${S.teamB} defender ${S.factions[S.s2.defB]} — Token)`;
-  $('s2t-lbl4').textContent = `Game 4 table (${S.teamA} defender ${S.players[S.s2.defA]})`;
-  $('s2t-tbl3').value = '';
-  $('s2t-tbl4').value = '';
-  $('s2t-tbl5').value = '';
   refreshOverviewBar();
   $('s2t-section').style.display = 'block';
 
+  // Rolloff loser picks 3rd, rolloff winner picks 4th. Game 5 gets last table.
+  const weWon = S.rolloffWinner === 'A';
+  const winTeam  = weWon ? S.teamA  : S.teamB;
+  const loseTeam = weWon ? S.teamB  : S.teamA;
+  // In S2: loser's defender picks first (pick 3), winner's defender picks second (pick 4)
+  // game3 = our defender (defA) vs acceptedB; game4 = acceptedA vs their defender (defB)
+  // Loser picks first (pick 3). If we won: loser = opponent → defB is their S2 defender → game4
+  // If they won: loser = us → defA is our S2 defender → game3
+  const pick3Game = weWon ? S.s2.game4 : S.s2.game3;  // loser's S2 defender
+  const pick4Game = weWon ? S.s2.game3 : S.s2.game4;  // winner's S2 defender
+  const pick3Name = weWon ? S.factions[S.s2.defB] : S.players[S.s2.defA];
+  const pick4Name = weWon ? S.players[S.s2.defA]  : S.factions[S.s2.defB];
+
+  $('s2t-order-info').innerHTML =
+    `Pick 3 → <strong>${loseTeam}</strong> defender picks &nbsp;·&nbsp; Pick 4 → <strong>${winTeam}</strong> defender picks &nbsp;·&nbsp; Game 5 gets last table.`;
+  $('s2t-pick3-title').textContent = `Pick 3 — ${loseTeam} defender (${pick3Name})`;
+  $('s2t-pick4-title').textContent = `Pick 4 — ${winTeam} defender (${pick4Name})`;
+
+  // Determine which table IDs are already taken by S1
+  const s1Taken = new Set([S.s1.game1.tableId, S.s1.game2.tableId].filter(Boolean));
+  const availableIds = S.tables.map(t => t.id).filter(id => !s1Taken.has(id));
+
+  pick3Game.tableId = null;
+  pick4Game.tableId = null;
+
+  function refreshS2Picks() {
+    const takenByP3 = pick3Game.tableId != null ? new Set([pick3Game.tableId]) : new Set();
+    const takenByP4 = pick4Game.tableId != null ? new Set([pick4Game.tableId]) : new Set();
+    const allTaken = new Set([...takenByP3, ...takenByP4, ...s1Taken]);
+
+    renderTablePickButtons('s2t-pick3-grid', availableIds, pick3Game, takenByP4, () => refreshS2Picks());
+    renderTablePickButtons('s2t-pick4-grid', availableIds, pick4Game, takenByP3, () => refreshS2Picks());
+
+    // Game 5 gets last remaining
+    if (pick3Game.tableId != null && pick4Game.tableId != null) {
+      const lastId = S.tables.map(t => t.id).find(id => !allTaken.has(id));
+      S.s2.game5.tableId = lastId ?? null;
+      const t = lastId ? S.tables.find(t => t.id === lastId) : null;
+      const ttLabel = t?.type ? t.type.charAt(0).toUpperCase() + t.type.slice(1) : '?';
+      const ttCls   = t?.type ? `ttype-${t.type}` : '';
+      $('s2t-game5-tbl').innerHTML = lastId
+        ? `Table ${lastId} — <span class="${ttCls}">${ttLabel}</span>`
+        : `<span style="color:var(--muted)">Pending picks 3 &amp; 4.</span>`;
+      $('btn-s2t-finish').disabled = false;
+    } else {
+      $('s2t-game5-tbl').innerHTML = `<span style="color:var(--muted)">Assigned after picks 3 &amp; 4.</span>`;
+      $('btn-s2t-finish').disabled = true;
+    }
+  }
+  refreshS2Picks();
+
   $('btn-s2t-finish').onclick = () => {
-    S.s2.tbl3 = $('s2t-tbl3').value.trim() || '—';
-    S.s2.tbl4 = $('s2t-tbl4').value.trim() || '—';
-    S.s2.tbl5 = $('s2t-tbl5').value.trim() || '—';
-    S.s2.game3.table = S.s2.tbl3;
-    S.s2.game4.table = S.s2.tbl4;
-    S.s2.game5.table = S.s2.tbl5;
+    const g3tbl = S.s2.game3.tableId;
+    const g4tbl = S.s2.game4.tableId;
+    const g5tbl = S.s2.game5.tableId;
+    S.s2.game3.table    = `T${g3tbl}`;
+    S.s2.game3.tableType = tableTypeForId(g3tbl);
+    S.s2.game4.table    = `T${g4tbl}`;
+    S.s2.game4.tableType = tableTypeForId(g4tbl);
+    S.s2.game5.table    = `T${g5tbl}`;
+    S.s2.game5.tableType = tableTypeForId(g5tbl);
+    S.s2.tbl3 = S.s2.game3.table;
+    S.s2.tbl4 = S.s2.game4.table;
+    S.s2.tbl5 = S.s2.game5.table;
     enterResults();
   };
 }
@@ -2038,7 +2525,7 @@ function enterResults() {
   gEl.innerHTML = `
     <div class="card-title">Game Breakdown
       <span style="font-weight:400;font-size:0.65rem;color:var(--muted);letter-spacing:0;margin-left:0.5rem">
-        Score = our expected result (0–20). Their score = 20 − ours.
+        Score = our expected result (0–20) adjusted for table type. Their score = 20 − ours.
       </span>
     </div>
     <div style="overflow-x:auto">
@@ -2054,17 +2541,25 @@ function enterResults() {
       </thead>
       <tbody>
         ${allGames.map(([label, g]) => {
-          const sc = scoreNum(g.ourPlayer, g.theirFaction) ?? 10;
+          const tableType = g.tableType ?? null;
+          const { score: adjSc, delta } = getScoreWithTable(g.ourPlayer, g.theirFaction, tableType);
+          const sc = adjSc ?? (scoreNum(g.ourPlayer, g.theirFaction) ?? 10);
           const oppSc = 20 - sc;
           const net = sc - oppSc;
           const netCls = net > 0 ? 'gb-delta-good' : net < 0 ? 'gb-delta-bad' : 'gb-delta-mid';
           const netStr = net > 0 ? `+${net}` : String(net);
+          const ttCls  = tableType ? `ttype-${tableType}` : '';
+          const ttLabel = tableType ? tableType.charAt(0).toUpperCase() + tableType.slice(1) : null;
+          const ttBadge = g.table
+            ? `<span style="margin-left:0.3rem">${g.table}</span>${ttLabel ? ` <span class="${ttCls}">${ttLabel}</span>` : ''}`
+            : '';
+          const deltaBadge = delta !== 0
+            ? `<span class="sc-delta-${delta > 0 ? 'pos' : 'neg'}" style="margin-left:0.25rem">(${delta > 0 ? '+' : ''}${delta})</span>`
+            : '';
           return `<tr>
             <td><span class="game-num" style="font-size:0.72rem">${label}</span></td>
-            <td><strong>${S.players[g.ourPlayer]}</strong><span class="gb-vs">vs</span>${S.factions[g.theirFaction]}
-              ${g.table ? `<span class="table-tag" style="margin-left:0.35rem">Table: ${g.table}</span>` : ''}
-            </td>
-            <td><span class="${scClass(sc)}" style="font-weight:700">${sc}</span></td>
+            <td><strong>${S.players[g.ourPlayer]}</strong><span class="gb-vs">vs</span>${S.factions[g.theirFaction]}${ttBadge}</td>
+            <td><span class="${scClass(sc)}" style="font-weight:700">${sc}</span>${deltaBadge}</td>
             <td><span class="${scClass(20 - oppSc)}" style="font-weight:700">${oppSc}</span></td>
             <td><span class="${netCls}">${netStr}</span></td>
           </tr>`;
@@ -2093,12 +2588,27 @@ function enterResults() {
     logEl.style.display = 'none';
   }
 
+  const weWon    = S.rolloffWinner === 'A';
+  const winTeam  = weWon ? S.teamA : S.teamB;
+  const loseTeam = weWon ? S.teamB : S.teamA;
+  const p1defender = weWon ? S.players[S.s1.defA] : S.factions[S.s1.defB];
+  const p2defender = weWon ? S.factions[S.s1.defB] : S.players[S.s1.defA];
+  const p3defender = weWon ? S.factions[S.s2.defB] : S.players[S.s2.defA];
+  const p4defender = weWon ? S.players[S.s2.defA]  : S.factions[S.s2.defB];
+
+  function tableInfo(tblStr, tableType) {
+    if (!tblStr || tblStr === '—') return '—';
+    const ttLabel = tableType ? tableType.charAt(0).toUpperCase() + tableType.slice(1) : null;
+    const ttCls   = tableType ? `ttype-${tableType}` : '';
+    return `${tblStr}${ttLabel ? ` <span class="${ttCls}">${ttLabel}</span>` : ''}`;
+  }
+
   $('results-tables').innerHTML = [
-    `Pick 1: <span style="color:var(--text)">${S.teamA} defender (${S.players[S.s1.defA]}) → ${S.s1.tbl1}</span>`,
-    `Pick 2: <span style="color:var(--text)">${S.teamB} defender (${S.factions[S.s1.defB]}) → ${S.s1.tbl2}</span>`,
-    `Pick 3: <span style="color:var(--text)">${S.teamB} defender (${S.factions[S.s2.defB]}) → ${S.s2.tbl3}</span>`,
-    `Pick 4: <span style="color:var(--text)">${S.teamA} defender (${S.players[S.s2.defA]}) → ${S.s2.tbl4}</span>`,
-    `Pick 5: <span style="color:var(--text)">Game 5 (refused) → ${S.s2.tbl5}</span>`,
+    `Pick 1 (${winTeam} winner): <span style="color:var(--text)">${p1defender} → ${tableInfo(S.s1.tbl1, S.s1.game1?.tableType ?? null)}</span>`,
+    `Pick 2 (${loseTeam} loser): <span style="color:var(--text)">${p2defender} → ${tableInfo(S.s1.tbl2, S.s1.game2?.tableType ?? null)}</span>`,
+    `Pick 3 (${loseTeam} loser): <span style="color:var(--text)">${p3defender} → ${tableInfo(S.s2.tbl3, S.s2.game3?.tableType ?? null)}</span>`,
+    `Pick 4 (${winTeam} winner): <span style="color:var(--text)">${p4defender} → ${tableInfo(S.s2.tbl4, S.s2.game4?.tableType ?? null)}</span>`,
+    `Pick 5 (last): <span style="color:var(--text)">Game 5 (refused) → ${tableInfo(S.s2.tbl5, S.s2.game5?.tableType ?? null)}</span>`,
   ].join('<br />');
 }
 

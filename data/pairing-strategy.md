@@ -59,6 +59,47 @@ Once both teams have 3 or 4 players remaining after defender sets, they move dir
 
 ---
 
+## Roster Roles
+
+Every list on the team should have a job. UKTC pairing rooms talk about rosters in terms of **roles**, not "strong lists":
+
+- **Hammer** — wins big into specific matchups; built to spike.
+- **Anvil** — doesn't lose big; eats whatever lands on it and walks away with a stable score.
+- **Tech Piece** — targets a known meta archetype (often the army that nobody else on the roster handles).
+- **All-Rounder** — flexible glue; survives most slots, wins some.
+- **Wildcard** — the off-meta or pet pick that opponents have less rep against.
+
+Knowing each player's role makes the draft faster: you stop asking "who's our best?" and start asking "who's our defender, who's our hammer for their hammer, who's our damage-limitation pick?"
+
+---
+
+## Defender vs Attacker Mental Model
+
+The draft loop is simple — Defender goes out first, opponent offers two Attackers, the Defender's side accepts one and refuses the other back into the pool. What separates good captains from bad ones is what they put into each side of that loop.
+
+### What makes a good Defender
+
+A defender doesn't need to win — it needs to **not get blown out**. The bar is:
+
+- **Consistent** — its score doesn't swing wildly between matchups.
+- **Resilient** to the current meta bogeymen.
+- **Able to score even when behind** — secondaries, board control, mission play.
+
+If your defender can be wiped by multiple factions in the opposing roster, you aren't defending; you're donating points.
+
+### How to construct a two-Attacker offer
+
+The point of offering two Attackers is to give the opposing Defender **two bad choices**. If both your Attackers are simply "good into the Defender," your opponent just accepts the less catastrophic one and keeps the worst one in their pocket for later.
+
+A good offer pairs:
+
+- **One clearly strong matchup**, and
+- **One that forces a different kind of concession** — mission play, terrain dependency, attrition, secondary scoring — so the choice between them is genuinely uncomfortable.
+
+Two equally strong offers = no leverage. The opponent just refuses the worse one and you've handed them the initiative.
+
+---
+
 ## Basic Pairing Strategies
 
 ### Take Out the Trash
@@ -103,6 +144,20 @@ A **pin** is when you give an opponent's defender no good options — handing th
 
 **Even-player team:**
 - The pin target can be "hidden" as the forgotten card, meaning you need a **third** card in the scrum to guarantee the pin.
+
+---
+
+### Deliver, Don't Win
+
+When a refusal lands one of your players in a matchup they cannot win, the job changes. You are not chasing the upset — you are **delivering a team-useful score**.
+
+A 50–60 loss from a player who plays for secondaries and refuses to implode is a much better team result than a 20–80 loss from a player chasing the win. Treat the assignment as damage limitation:
+
+- Score what you can.
+- Lose small.
+- Don't sacrifice tempo on a desperate Hail Mary.
+
+This works hand-in-hand with **Passive Scoring Deployment** below — the difference is mindset. Passive scoring is a roster-construction tactic; "deliver, don't win" is what you tell the player at the table once the matchup is locked.
 
 ---
 
