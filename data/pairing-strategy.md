@@ -15,6 +15,18 @@ At its core, the matrix needs to answer two questions for every army:
 
 Pairings is both an art and a science. There is a lot of room to make data-driven decisions, but the human element — knowing your players and understanding the situation — cannot be quantified. Different players have very different perspectives on optimal pairings.
 
+### Player confidence as a matrix input
+
+A matchup score is not just about the armies — it reflects who is piloting them. A highly experienced or confident player can shift an expected result meaningfully. When building your matrix, factor in how comfortable each player feels into each matchup, not just the theoretical army-vs-army outcome.
+
+### Estimation integrity
+
+The matrix is a team social contract. When a player estimates a draw, the captain builds the entire pairing plan around that promise. Wrong estimates cascade: a 10 that should be an 8 can flip a round result. Players must be honest — even uncomfortable honesty ("I'll probably lose this") is more useful than optimism that misleads the captain.
+
+### Board preference as a matrix dimension
+
+For each matchup, note not just the expected score but the preferred terrain type (light / medium / heavy). This makes table-choice decisions visible during pairings and flags matchups where board selection matters as much as army selection.
+
 ---
 
 ## Team Size Variants
@@ -87,6 +99,8 @@ A defender doesn't need to win — it needs to **not get blown out**. The bar is
 
 If your defender can be wiped by multiple factions in the opposing roster, you aren't defending; you're donating points.
 
+**Table-sensitive armies make strong defenders.** An army whose performance varies sharply across terrain types — strong on heavy boards, weak on light ones, for example — is often underrated as a defender. Because the defender controls table pick, terrain-sensitivity becomes an asset: you choose the conditions that suit your army, turning a matchup-dependent list into a reliable anchor.
+
 ### How to construct a two-Attacker offer
 
 The point of offering two Attackers is to give the opposing Defender **two bad choices**. If both your Attackers are simply "good into the Defender," your opponent just accepts the less catastrophic one and keeps the worst one in their pocket for later.
@@ -97,6 +111,8 @@ A good offer pairs:
 - **One that forces a different kind of concession** — mission play, terrain dependency, attrition, secondary scoring — so the choice between them is genuinely uncomfortable.
 
 Two equally strong offers = no leverage. The opponent just refuses the worse one and you've handed them the initiative.
+
+**Forcing pairings via predictable refusals.** If one of your two attackers is clearly something the opponent will never accept — because it would be catastrophic for them — the pairing is effectively guaranteed before the cards are flipped. Construct offers where one option is unacceptable enough that the "choice" is actually no choice at all. Note the distinction from a **Pin**: a pin forces the opponent's *defender* into two bad matchup choices; forcing via predictable refusal controls which of your *attackers* gets accepted. They operate at different points in the sequence and can be combined.
 
 ---
 
@@ -205,6 +221,36 @@ When you know you are facing a gunline faction, your **table pick matters as muc
 
 ---
 
+### Killer Identification
+
+Before pairings begin, identify which opposing armies are capable of a 20-point game — their "killers." This is the single most important preparation step. Once you know which armies can blow out any matchup, decide which of your armies can contain or neutralise them, and build the rest of the pairing sequence around protecting that constraint first.
+
+If you cannot cleanly beat a killer, the question shifts: who on your roster can limit the score enough that the round is still winnable elsewhere? See **Passive Scoring Deployment** and **Deliver, Don't Win** for how to handle those assignments once the matchup is locked.
+
+---
+
+### Modelling the Opponent's Decisions
+
+Don't plan one sequence — plan two. Before the draft starts, work through the two most likely choices your opponent might make as first defender: "if they defend with X, we do Y; if they defend with Z, we do W." Both branches should be ready before you sit down.
+
+This reduces in-the-moment pressure, catches forced-pairing opportunities you might miss under stress, and prevents you from making a reactive decision when the other team reveals a card you didn't expect.
+
+A useful heuristic: assume your opponent is reading a mirrored version of your matrix and making the best move available to them. If your matrix says a matchup is green for you, it should look red to them — and they will try to avoid it. Plan accordingly.
+
+---
+
+### Mirror Matchups as a Deliberate Tool
+
+A mirror match is approximately neutral — roughly a 10-10 result for both sides. This makes mirrors a controlled, predictable outcome when controlled unpredictability is dangerous.
+
+Uses:
+- **Neutralising a threat**: if an opposing army is dangerous to most of your roster, forcing a mirror removes it from the pool at a known cost (a draw) rather than risking a loss.
+- **Blocking a better pairing**: accepting a mirror sometimes denies the opponent a more favourable matchup elsewhere, improving your overall round result even if the individual game is a wash.
+
+Mirrors are not concessions — they are decisions. Use them intentionally, not by default.
+
+---
+
 ### Post-Round Matrix Recalibration
 
 Your matrix scores are estimates, not facts. After each game, briefly check whether the actual result matched expectations:
@@ -213,3 +259,27 @@ Your matrix scores are estimates, not facts. After each game, briefly check whet
 - If a score was rated 8 but the player won convincingly, adjust it up.
 
 Update the scores before discussing pairings for the next round. Decisions made on stale estimates compound across a tournament — a wrong 14 that you keep treating as a strong counter can distort your entire pairing logic round after round.
+
+---
+
+## Round Assignments
+
+Once all five matchups are locked, the captain's final job is to give each player a clear mandate. The pairing process decided *who plays who* — the assignment decides *what winning looks like for this player in this game*.
+
+Every player falls into one of three roles for that round:
+
+### Spike
+
+You have a favourable matchup. Your job is to push the score as hard as possible — 20-point wins shift the round math significantly and give the rest of the team room to breathe. Don't play conservatively. Prioritise primary, press tempo, and close it out big.
+
+### Hold
+
+You have a roughly even matchup or a slight disadvantage. Your job is not to win — it is to **not lose badly**. Score what you can on secondaries, keep the primary close, and deliver a result in the 8–12 range. A 9-11 from a hold player is often worth more to the team than a 14-6 from a spike who played it safe.
+
+### Absorb
+
+You were thrown under the bus — either the matchup was unavoidable or you were the grenade the team needed someone to jump on. Your job is damage limitation. Forget the win. Focus entirely on secondaries, mission play, and anything that puts points on the board independently of your opponent's army. A 5-15 that was heading for a 2-18 is a team victory.
+
+---
+
+**Before the round starts, every player should know which of these they are.** Ambiguity is the enemy — a spike player who hedges loses points the team needed, and an absorb player who chases the win often implodes instead of bleeding slowly. Set the expectation out loud, confirm it, then go play.
