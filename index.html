@@ -74,7 +74,7 @@
 
     /* ── Layout ─────────────────────────────────────────────── */
     main {
-      max-width: 800px;
+      max-width: 960px;
       margin: 0 auto;
       padding: 1.75rem 1.25rem 0;
     }
@@ -215,7 +215,7 @@
     /* ── Captain-first layout ───────────────────────────────── */
     .captain-layout {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 1rem;
       align-items: start;
     }
@@ -303,6 +303,13 @@
       border-color: var(--border);
       color: var(--muted);
     }
+    .strategy-bullets {
+      margin: 0.45rem 0 0;
+      padding-left: 1.1rem;
+      line-height: 1.65;
+      list-style: disc;
+    }
+    .strategy-bullets li { margin-bottom: 0.15rem; }
 
     /* ── Player chips ───────────────────────────────────────── */
     .chip-list { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -322,8 +329,10 @@
     .p-chip:hover  { border-color: var(--gold-dim); }
     .p-chip.sel    { border-color: var(--gold); background: var(--gold-bg); }
     .p-chip.used   { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
-    .chip-score    { font-size: 0.8rem; font-weight: 700; }
-    .chip-hint     { font-size: 0.68rem; color: var(--muted); margin-left: 0.25rem; }
+    .chip-scores   { display: flex; align-items: baseline; gap: 0.35rem; flex-shrink: 0; }
+    .chip-score    { font-size: 0.8rem; font-weight: 700; min-width: 1.5rem; text-align: right; }
+    .chip-score-meta { font-size: 0.7rem; font-weight: 600; opacity: 0.65; min-width: 1.5rem; text-align: right; }
+    .chip-hint     { font-size: 0.63rem; color: var(--muted); margin-left: 0.18rem; }
 
     /* ── Suggestion panel ───────────────────────────────────── */
     .suggest-wrap {
@@ -350,6 +359,7 @@
       border-collapse: collapse;
       font-size: 0.78rem;
     }
+    .suggest-breakdown { font-size: 0.68rem; font-weight: 400; color: var(--muted); }
     .suggest-table th {
       background: var(--surface2);
       color: var(--muted);
@@ -471,7 +481,7 @@
       overflow-x: auto;
     }
     #overview-inner {
-      max-width: 800px;
+      max-width: 960px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -513,7 +523,7 @@
 
     /* ── Advantage meter ────────────────────────────────────── */
     #advantage-row {
-      max-width: 800px;
+      max-width: 960px;
       margin: 0 auto;
       padding: 0.3rem 0 0.45rem;
       border-top: 1px solid var(--border);
@@ -939,6 +949,10 @@
       <div class="card-title" id="s1t-pick2-title">Pick 2 — rolloff loser chooses</div>
       <div class="table-pick-grid" id="s1t-pick2-grid"></div>
     </div>
+    <div class="card">
+      <div class="card-title">Remaining tables after picks 1 &amp; 2</div>
+      <div id="s1t-remaining-tbl" style="font-size:0.82rem;color:var(--muted);line-height:1.8">Pick tables above to see what remains for Stage 2.</div>
+    </div>
     <button class="btn btn-primary btn-full" id="btn-s1t-next" disabled>Proceed to Stage 2 →</button>
   </div>
 
@@ -1048,6 +1062,9 @@
 
     <!-- Game breakdown -->
     <div class="card" id="results-games"></div>
+
+    <!-- Round assignments -->
+    <div class="card" id="results-assignments"></div>
 
     <!-- Decision log -->
     <div class="card" id="results-decision-log" style="display:none">
@@ -1396,7 +1413,7 @@ function rankPlayers(playerIdxs, factionIdxs) {
     const scores = factionIdxs.map(fi => scoreNum(pi, fi) ?? 10);
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     const min = Math.min(...scores);
-    return { idx: pi, name: S.players[pi], avg, min };
+    return { idx: pi, name: S.players[pi], avg, min, scores };
   }).sort((a, b) => b.avg - a.avg || b.min - a.min);
 }
 
@@ -1407,7 +1424,7 @@ function rankFactions(factionIdxs, playerIdxs) {
     const scores = playerIdxs.map(pi => scoreNum(pi, fi) ?? 10);
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     const min = Math.min(...scores);
-    return { idx: fi, name: S.factions[fi], avg, min };
+    return { idx: fi, name: S.factions[fi], avg, min, scores };
   }).sort((a, b) => a.avg - b.avg || a.min - b.min); // ascending = most dangerous first
 }
 
@@ -1427,7 +1444,7 @@ function rankFactionsOpponentPerspective(factionIdxs, playerIdxs) {
     const scores = playerIdxs.map(pi => oppMetaScore(fi, pi));
     const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
     const min = Math.min(...scores);
-    return { idx: fi, name: S.factions[fi], avg, min };
+    return { idx: fi, name: S.factions[fi], avg, min, scores };
   }).sort((a, b) => b.avg - a.avg || b.min - a.min);
 }
 
@@ -1477,14 +1494,15 @@ function buildSuggestHTML(uid, title, rows, hdr1, hdr2, hdr3) {
 function defenderSuggestOurs(containerEl, playerPool, factionPool) {
   const ranked = rankPlayers(playerPool, factionPool);
   const rows = ranked.map((r, i) => {
-    // avg of meta scores across factionPool
     const metaScores = factionPool.map(fi => getMetaScore(r.idx, fi) ?? 10);
     const metaAvg = metaScores.reduce((a, b) => a + b, 0) / metaScores.length;
+    const breakdown = r.scores.join(', ');
+    const metaBreakdown = metaScores.join(', ');
     return {
       name: r.name,
-      col1: r.avg.toFixed(1),
+      col1: `${r.avg.toFixed(1)} <span class="suggest-breakdown">(${breakdown})</span>`,
       col2: r.min,
-      col3: metaAvg.toFixed(1),
+      col3: `${metaAvg.toFixed(1)} <span class="suggest-breakdown">(${metaBreakdown})</span>`,
       cls1: scClass(r.avg),
       cls2: scClass(r.min),
       cls3: scClass(metaAvg),
@@ -1498,14 +1516,17 @@ function defenderSuggestOurs(containerEl, playerPool, factionPool) {
 /* Build defender suggestion for opponent side — ranked from their own meta perspective */
 function defenderSuggestOpponent(containerEl, factionPool, playerPool) {
   const ranked = rankFactionsOpponentPerspective(factionPool, playerPool);
-  const rows = ranked.map((r, i) => ({
-    name: r.name,
-    col1: r.avg.toFixed(1),
-    col2: r.min,
-    cls1: scClass(r.avg), // their score — higher = better for them
-    cls2: scClass(r.min),
-    isBest: i === 0
-  }));
+  const rows = ranked.map((r, i) => {
+    const breakdown = r.scores.join(', ');
+    return {
+      name: r.name,
+      col1: `${r.avg.toFixed(1)} <span class="suggest-breakdown">(${breakdown})</span>`,
+      col2: r.min,
+      cls1: scClass(r.avg),
+      cls2: scClass(r.min),
+      isBest: i === 0
+    };
+  });
   const uid = 'db-' + containerEl.id;
   containerEl.innerHTML = buildSuggestHTML(uid, '💡 Likely opponent defender — <span style="color:var(--muted);font-weight:400">numbers below = our score vs them (higher = better for us)</span>', rows, 'Our avg vs them', 'Our min', null);
 }
@@ -1528,37 +1549,51 @@ function attackerSuggestOurs(containerEl, playerPool, oppDefIdx) {
   containerEl.innerHTML = buildSuggestHTML(uid, '💡 Best attackers vs their defender', rows, 'Score (pers)', 'Meta', null);
 }
 
-/* Attacker suggestions: opponent factions vs specific our defender — ranked by their meta score */
+/* Attacker suggestions: opponent factions vs specific our defender — our score if we face them */
 function attackerSuggestOpponent(containerEl, factionPool, ourDefIdx) {
-  const ranked = factionPool.map(fi => ({
-    idx: fi, name: S.factions[fi], score: oppMetaScore(fi, ourDefIdx)
-  })).sort((a, b) => b.score - a.score);
-  const rows = ranked.map((r, i) => ({
-    name: r.name,
-    col1: r.score,
-    col2: null,
-    cls1: scClass(r.score), // their score — higher = better for them
-    isBest: i === 0
-  }));
+  const ranked = factionPool.map(fi => {
+    const { score, isMeta } = getScore(ourDefIdx, fi);
+    const metaSc = getMetaScore(ourDefIdx, fi);
+    return { idx: fi, name: S.factions[fi], score: score ?? 10, isMeta, metaSc };
+  }).sort((a, b) => b.score - a.score);
+  const rows = ranked.map((r, i) => {
+    const col1 = r.metaSc !== null && !r.isMeta && r.metaSc !== r.score
+      ? `${r.score} <span class="suggest-breakdown">(${r.metaSc} meta)</span>`
+      : `${r.score}${r.isMeta ? ' <span class="suggest-breakdown">meta</span>' : ''}`;
+    return {
+      name: r.name,
+      col1,
+      col2: null,
+      cls1: scClass(r.score),
+      isBest: i === 0
+    };
+  });
   const uid = 'ab-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends — <span style="color:var(--muted);font-weight:400">our score if accepted (higher = better for us)</span>', rows, 'Our score (meta)', null, null);
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends — <span style="color:var(--muted);font-weight:400">our score vs their attacker (higher = better for us)</span>', rows, 'Our score', null, null);
 }
 
 /* Refusal suggestions — show which of opponent's attackers to refuse.
-   Ranked by opponent's meta score: we refuse whoever is best for THEM. */
+   Ranked ascending by our score: refuse the one worst for us (lowest our score). */
 function refusalSuggestOurs(containerEl, factionPool, ourDefIdx) {
-  const ranked = factionPool.map(fi => ({
-    idx: fi, name: S.factions[fi], score: oppMetaScore(fi, ourDefIdx)
-  })).sort((a, b) => b.score - a.score);
-  const rows = ranked.map((r, i) => ({
-    name: r.name + (i === 0 ? ' ← refuse' : ' ← keep'),
-    col1: r.score,
-    col2: null,
-    cls1: scClass(r.score), // their score — red when high means danger for us
-    isBest: i === 0
-  }));
+  const ranked = factionPool.map(fi => {
+    const { score, isMeta } = getScore(ourDefIdx, fi);
+    const metaSc = getMetaScore(ourDefIdx, fi);
+    return { idx: fi, name: S.factions[fi], score: score ?? 10, isMeta, metaSc };
+  }).sort((a, b) => a.score - b.score); // ascending: worst for us first = refuse first
+  const rows = ranked.map((r, i) => {
+    const col1 = r.metaSc !== null && !r.isMeta && r.metaSc !== r.score
+      ? `${r.score} <span class="suggest-breakdown">(${r.metaSc} meta)</span>`
+      : `${r.score}${r.isMeta ? ' <span class="suggest-breakdown">meta</span>' : ''}`;
+    return {
+      name: r.name + (i === 0 ? ' ← refuse' : ' ← keep'),
+      col1,
+      col2: null,
+      cls1: scClass(r.score),
+      isBest: i === 0
+    };
+  });
   const uid = 'ra-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Refuse their best attacker — <span style="color:var(--muted);font-weight:400">our score if we keep them (lower = worse for us)</span>', rows, 'Our score if kept', null, null);
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Refuse their worst attacker for us — <span style="color:var(--muted);font-weight:400">our score if kept (refuse the lowest)</span>', rows, 'Our score if kept', null, null);
 }
 
 /* Predict which of our attackers the opponent will refuse.
@@ -1601,11 +1636,18 @@ function computeStrategy(poolA, poolB) {
       return sc !== null && sc <= RED_THRESHOLD;
     });
     if (redPlayers.length >= 2) {
+      const names = redPlayers.map(pi => S.players[pi]).join(' & ');
+      const faction = S.factions[fi];
       return {
         type: 'trash',
         title: 'Take Out the Trash',
-        body: `${redPlayers.map(pi => S.players[pi]).join(' & ')} are both red into <strong>${S.factions[fi]}</strong>. ` +
-              `At least one must be eliminated before facing them, or you risk a bad end-game matrix.`
+        body: `<strong>${names}</strong> are both red vs <strong>${faction}</strong>.`,
+        bullets: [
+          `At least one must exit the pool before <strong>${faction}</strong> appears.`,
+          `Accept a slightly worse matchup now to protect the end-game matrix.`,
+          `If <strong>${faction}</strong> is defending: send one of the red players as an attacker — they'll be refused and removed.`,
+          `If <strong>${faction}</strong> is in the scrum pool: the other red player must defend or attack away from it.`,
+        ]
       };
     }
   }
@@ -1616,13 +1658,26 @@ function computeStrategy(poolA, poolB) {
       const sc = scoreNum(pi, fi);
       if (sc !== null && sc <= RED_THRESHOLD) {
         const isOdd = poolA.length % 2 !== 0;
-        const advice = isOdd
-          ? `${S.players[pi]} must <strong>defend</strong> to guarantee avoiding <strong>${S.factions[fi]}</strong>.`
-          : `${S.players[pi]} can defend or stay for the scrum — but never attack into <strong>${S.factions[fi]}</strong>.`;
+        const player = S.players[pi];
+        const faction = S.factions[fi];
+        const bullets = isOdd
+          ? [
+              `<strong>${player}</strong> must <strong>defend</strong> to guarantee never facing <strong>${faction}</strong>.`,
+              `As defender, <strong>${player}</strong> controls table pick — choose terrain that suits your army.`,
+            ]
+          : [
+              `<strong>Option A — Defend:</strong> guarantees <strong>${player}</strong> never faces <strong>${faction}</strong>.`,
+              `<strong>Option B — Scrum route:</strong> defend with someone else (not also red vs <strong>${faction}</strong>). ` +
+                `Attack into every defender except <strong>${faction}</strong>. ` +
+                `If <strong>${faction}</strong> defends → hold <strong>${player}</strong> for the forgotten slot. ` +
+                `If <strong>${faction}</strong> attacks your defender → accept (avoids the forgotten collision).`,
+              `Never attack directly into <strong>${faction}</strong>.`,
+            ];
         return {
           type: 'avoid',
           title: 'Avoid Red Flag',
-          body: `<strong>${S.players[pi]}</strong> scores ${sc} vs <strong>${S.factions[fi]}</strong>. ${advice}`
+          body: `<strong>${player}</strong> scores ${sc} vs <strong>${faction}</strong> — avoid at all costs.`,
+          bullets
         };
       }
     }
@@ -1635,11 +1690,19 @@ function computeStrategy(poolA, poolB) {
       return sc !== null && sc >= PIN_THRESHOLD;
     });
     if (pinPlayers.length >= 2) {
+      const faction = S.factions[fi];
+      const scores = pinPlayers.map(pi => scoreNum(pi, fi));
+      const isEven = poolA.length % 2 === 0;
       return {
         type: 'pin',
         title: 'Pin Opportunity',
-        body: `<strong>${pinPlayers.map(pi => S.players[pi]).join(' & ')}</strong> both ` +
-              `crush <strong>${S.factions[fi]}</strong>. Save them as the last two attackers to force a pin.`
+        body: `<strong>${pinPlayers.map(pi => S.players[pi]).join(' & ')}</strong> both crush <strong>${faction}</strong> (${scores.join(' / ')}).`,
+        bullets: [
+          `Save them as the last two attackers — force <strong>${faction}</strong>'s defender into two losing choices.`,
+          `Don't burn a pin counter early; only commit once <strong>${faction}</strong> is on the board as defender.`,
+          `If the pin target attacks instead of defending → refuse it so it falls into the refused pair against one of your counters.`,
+          ...(isEven ? [`Even-player pool: you may need a third counter — <strong>${faction}</strong> could hide as the forgotten card.`] : []),
+        ]
       };
     }
   }
@@ -1654,9 +1717,14 @@ function computeStrategy(poolA, poolB) {
     if (bestScore !== -Infinity && bestScore < DELIVER_CEILING) {
       return {
         type: 'deliver',
-        title: 'Deliver, Don’t Win',
-        body: `<strong>${S.players[pi]}</strong>'s best remaining matchup is ${bestScore}. ` +
-              `No win is available — score what you can, lose small, protect the roster.`
+        title: 'Deliver, Don\'t Win',
+        body: `<strong>${S.players[pi]}</strong>'s best remaining matchup is ${bestScore} — no win available.`,
+        bullets: [
+          `Forget the result. Job: deliver the smallest loss possible.`,
+          `Focus entirely on secondaries and mission scoring — score independently of the opponent's army.`,
+          `A 5–15 headed for a 2–18 is a team victory.`,
+          `Don't chase a Hail Mary; implosions cost the team more than a controlled defeat.`,
+        ]
       };
     }
   }
@@ -1664,16 +1732,25 @@ function computeStrategy(poolA, poolB) {
   return {
     type: 'none',
     title: 'No Urgent Flags',
-    body: 'Pool looks balanced. Defender = consistent + resilient. Attacker offer = one strong + one that forces a different concession.'
+    body: 'Pool looks balanced — standard principles apply.',
+    bullets: [
+      `Defender: pick the most consistent list; resilient to the remaining meta bogeymen.`,
+      `Attacker offer: one clearly strong matchup + one that forces a different concession (not two equally good offers).`,
+      `Consider terrain sensitivity — a table-sensitive army with table-pick is a strong defender anchor.`,
+      `Model the opponent: if your matrix shows green, theirs shows red — they'll try to avoid it. Plan around that.`,
+    ]
   };
 }
 
 function renderStrategyCallout(containerEl, poolA, poolB) {
   if (!containerEl) return;
-  const { type, title, body } = computeStrategy(poolA, poolB);
+  const { type, title, body, bullets = [] } = computeStrategy(poolA, poolB);
   const icons = { trash: '⚠', avoid: '🚨', pin: '📌', deliver: '🎯', none: '✓' };
+  const bulletHtml = bullets.length
+    ? `<ul class="strategy-bullets">${bullets.map(b => `<li>${b}</li>`).join('')}</ul>`
+    : '';
   containerEl.innerHTML =
-    `<div class="strategy-callout ${type}"><strong>${icons[type]} ${title}:</strong> ${body}</div>`;
+    `<div class="strategy-callout ${type}"><strong>${icons[type]} ${title}:</strong> ${body}${bulletHtml}</div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1690,9 +1767,14 @@ function buildPlayerChips(container, pool, selSet, maxSel, scoreFactionIdx, onch
     let scoreHtml = '';
     if (scoreFactionIdx !== null && scoreFactionIdx !== undefined) {
       const { score, isMeta } = getScore(pi, scoreFactionIdx);
+      const metaSc = getMetaScore(pi, scoreFactionIdx);
       const sc = score ?? '?';
       const cls = score !== null ? scClass(score) : '';
-      scoreHtml = `<span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">meta</span>' : ''}</span>`;
+      if (!isMeta && metaSc !== null && metaSc !== score) {
+        scoreHtml = `<span class="chip-scores"><span class="chip-score ${cls}">${sc}</span><span class="chip-score chip-score-meta ${scClass(metaSc)}">${metaSc}<span class="chip-hint">m</span></span></span>`;
+      } else {
+        scoreHtml = `<span class="chip-scores"><span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">m</span>' : ''}</span></span>`;
+      }
     }
     chip.innerHTML = `<span>${S.players[pi]}</span>${scoreHtml}`;
     chip.addEventListener('click', () => {
@@ -1721,9 +1803,14 @@ function buildFactionChips(container, pool, selSet, maxSel, scorePlayerIdx, onch
     let scoreHtml = '';
     if (scorePlayerIdx !== null && scorePlayerIdx !== undefined) {
       const { score, isMeta } = getScore(scorePlayerIdx, fi);
+      const metaSc = getMetaScore(scorePlayerIdx, fi);
       const sc = score ?? '?';
       const cls = score !== null ? scClass(score) : '';
-      scoreHtml = `<span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">meta</span>' : ''}</span>`;
+      if (!isMeta && metaSc !== null && metaSc !== score) {
+        scoreHtml = `<span class="chip-scores"><span class="chip-score ${cls}">${sc}</span><span class="chip-score chip-score-meta ${scClass(metaSc)}">${metaSc}<span class="chip-hint">m</span></span></span>`;
+      } else {
+        scoreHtml = `<span class="chip-scores"><span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">m</span>' : ''}</span></span>`;
+      }
     }
     chip.innerHTML = `<span>${S.factions[fi]}</span>${scoreHtml}`;
     chip.addEventListener('click', () => {
@@ -2272,6 +2359,24 @@ function enterS1Tables() {
     renderTablePickButtons('s1t-pick1-grid', allIds, pick1Game, takenByP2, () => refreshPickBtns());
     renderTablePickButtons('s1t-pick2-grid', allIds, pick2Game, takenByP1, () => refreshPickBtns());
     $('btn-s1t-next').disabled = !(pick1Game.tableId != null && pick2Game.tableId != null);
+
+    // Show remaining tables for Stage 2 (picks 3, 4, and auto Game 5)
+    const takenNow = new Set([pick1Game.tableId, pick2Game.tableId].filter(Boolean));
+    const remaining = S.tables.filter(t => !takenNow.has(t.id));
+    const remEl = $('s1t-remaining-tbl');
+    if (remaining.length === 0) {
+      remEl.innerHTML = '<span style="color:var(--muted)">Pick tables above first.</span>';
+    } else {
+      const rows = remaining.map(t => {
+        const ttLabel = t.type ? t.type.charAt(0).toUpperCase() + t.type.slice(1) : '?';
+        const ttCls   = t.type ? `ttype-${t.type}` : '';
+        return `<div>Table ${t.id} — <span class="${ttCls}">${ttLabel}</span></div>`;
+      });
+      const note = takenNow.size === 2
+        ? `<div style="margin-top:0.4rem;font-size:0.74rem;color:var(--muted)">Picks 3 &amp; 4 choose from these; the last one goes to Game 5 automatically.</div>`
+        : `<div style="font-size:0.74rem;color:var(--muted)">(Finalises once both picks above are made.)</div>`;
+      remEl.innerHTML = rows.join('') + note;
+    }
   }
   refreshPickBtns();
 
@@ -2454,9 +2559,19 @@ function finishS2Refusal() {
       const t = lastId ? S.tables.find(t => t.id === lastId) : null;
       const ttLabel = t?.type ? t.type.charAt(0).toUpperCase() + t.type.slice(1) : '?';
       const ttCls   = t?.type ? `ttype-${t.type}` : '';
-      $('s2t-game5-tbl').innerHTML = lastId
-        ? `Table ${lastId} — <span class="${ttCls}">${ttLabel}</span>`
-        : `<span style="color:var(--muted)">Pending picks 3 &amp; 4.</span>`;
+      if (lastId) {
+        const { score, isMeta, delta } = getScoreWithTable(S.s2.game5.ourPlayer, S.s2.game5.theirFaction, t?.type ?? null);
+        const scoreStr = score !== null ? String(score) + (isMeta ? '*' : '') : '?';
+        const scoreClass = score !== null ? scClass(score) : '';
+        const deltaHtml = delta !== 0
+          ? ` <span class="tp-delta ${delta > 0 ? 'pos' : 'neg'}">${delta > 0 ? '+' : ''}${delta}</span>`
+          : '';
+        $('s2t-game5-tbl').innerHTML =
+          `Table ${lastId} — <span class="${ttCls}">${ttLabel}</span>` +
+          ` &nbsp; <span class="tp-adj-score ${scoreClass}">${scoreStr}</span>${deltaHtml}`;
+      } else {
+        $('s2t-game5-tbl').innerHTML = `<span style="color:var(--muted)">Pending picks 3 &amp; 4.</span>`;
+      }
       $('btn-s2t-finish').disabled = false;
     } else {
       $('s2t-game5-tbl').innerHTML = `<span style="color:var(--muted)">Assigned after picks 3 &amp; 4.</span>`;
@@ -2567,6 +2682,39 @@ function enterResults() {
       </tbody>
     </table>
     </div>`;
+
+  // ── Round Assignments ────────────────────────────────────
+  const assignEl = $('results-assignments');
+  const SPIKE_THRESHOLD  = 13;
+  const HOLD_MIN         = 9;
+  const assignRows = allGames.map(([label, g]) => {
+    const { score: adjSc } = getScoreWithTable(g.ourPlayer, g.theirFaction, g.tableType ?? null);
+    const sc = adjSc ?? (scoreNum(g.ourPlayer, g.theirFaction) ?? 10);
+    let role, color, mandate;
+    if (sc >= SPIKE_THRESHOLD) {
+      role    = 'SPIKE';
+      color   = 'var(--green)';
+      mandate = 'Push the score hard. Press tempo, prioritise primary, close it out big.';
+    } else if (sc >= HOLD_MIN) {
+      role    = 'HOLD';
+      color   = 'var(--muted)';
+      mandate = 'Deliver 8-12. Score secondaries, keep primary close, don\'t lose badly.';
+    } else {
+      role    = 'ABSORB';
+      color   = 'var(--red)';
+      mandate = 'Damage limitation. Forget the result — secondaries, mission play, lose small.';
+    }
+    return `<div style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.35rem 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:0.7rem;color:var(--muted);min-width:3.2rem;padding-top:0.05rem">${label}</span>
+      <span style="flex:1;font-size:0.82rem"><strong>${S.players[g.ourPlayer]}</strong><span style="color:var(--muted);margin:0 0.3rem">vs</span>${S.factions[g.theirFaction]}</span>
+      <span style="font-size:0.68rem;font-weight:700;color:${color};min-width:3.8rem;text-align:right;padding-top:0.05rem">${role}</span>
+      <span style="font-size:0.74rem;color:var(--muted);flex:1.4">${mandate}</span>
+    </div>`;
+  });
+  assignEl.innerHTML = `
+    <div class="card-title">Round Assignments</div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem">Brief every player before the round starts. Ambiguity costs points.</div>
+    ${assignRows.join('')}`;
 
   // ── Decision log ─────────────────────────────────────────
   const logEl = $('results-decision-log');
