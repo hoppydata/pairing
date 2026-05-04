@@ -1,50 +1,57 @@
 {
-  "teamName": "Terminus",
-  "players": ["Daniel", "Paddy", "David", "Berni", "Norge"],
+  "teamName": "My Team",
+  "players": ["Player 1", "Player 2", "Player 3", "Player 4", "Player 5"],
   "playerFactions": {
-    "Daniel": "Dark Angels",
-    "Paddy":  "Daemons",
-    "David":  "Imperial Knights",
-    "Berni":  "Guard",
-    "Norge":  "Custodes"
+    "Player 1": "Dark Angels",
+    "Player 2": "Daemons",
+    "Player 3": "Imperial Knights",
+    "Player 4": "Astra Militarum",
+    "Player 5": "Custodes"
   },
   "factions": [
-    "Necrons", "Tau", "Custodes", "SM (UM)", "Guard", "Sisters",
-    "Grey Knights", "Blood Angels", "Space Wolves", "Ad Mech", "Orks",
-    "Votann", "Nids", "Aeldari", "Drukhari", "GSC", "Tsons",
-    "Death Guard", "CSM", "World Eaters", "Daemons", "Chaos Knights", "Imperial Knights", "Dark Angels"
+    "Ad Mech", "Aeldari", "Astra Militarum", "Black Templars", "Blood Angels",
+    "Chaos Knights", "CSM", "Custodes", "Daemons", "Dark Angels",
+    "Death Guard", "Deathwatch", "Drukhari", "Emperor's Children", "Grey Knights",
+    "GSC", "Imperial Agents", "Imperial Knights", "Necrons", "Orks",
+    "Sisters", "SM (UM)", "Space Wolves", "Tau", "T'sons",
+    "Tyranids", "Votann", "World Eaters"
   ],
   "matrix": {
-    "Daniel": {
-      "Necrons": 10, "Tau": 12, "Custodes": 12, "SM (UM)": 12, "Guard": 8,
-      "Sisters": 12, "Grey Knights": 12, "Blood Angels": 10, "Space Wolves": 10,
-      "Ad Mech": 12, "Orks": 12, "Votann": 12, "Nids": 10, "Aeldari": 12,
-      "Drukhari": 6, "GSC": 6, "Tsons": 8, "Death Guard": 10, "CSM": 8,
-      "World Eaters": 12, "Daemons": 8, "Chaos Knights": 8, "Imperial Knights": 8
+    "Player 1": {
+      "Ad Mech": 12, "Aeldari": 12, "Astra Militarum": 8, "Black Templars": 10, "Blood Angels": 10,
+      "Chaos Knights": 8, "CSM": 8, "Custodes": 12, "Daemons": 8, "Dark Angels": 10,
+      "Death Guard": 10, "Deathwatch": 10, "Drukhari": 6, "Emperor's Children": 10, "Grey Knights": 12,
+      "GSC": 6, "Imperial Agents": 10, "Imperial Knights": 8, "Necrons": 10, "Orks": 12,
+      "Sisters": 12, "SM (UM)": 12, "Space Wolves": 10, "Tau": 12, "T'sons": 8,
+      "Tyranids": 10, "Votann": 12, "World Eaters": 12
     },
-    "Paddy": {
-      "Necrons": 10, "Tau": 10, "Custodes": 12, "SM (UM)": 12, "Guard": 5,
-      "Sisters": 12, "Grey Knights": 13, "Blood Angels": 12, "Space Wolves": 8,
-      "Ad Mech": 10, "Orks": 13, "Votann": 13, "Nids": 18, "Aeldari": 8,
-      "Drukhari": 10, "GSC": 13, "Tsons": 14, "Death Guard": 12, "CSM": 10,
-      "World Eaters": 10, "Daemons": 10
+    "Player 2": {
+      "Ad Mech": 10, "Aeldari": 8, "Astra Militarum": 5, "Black Templars": 10, "Blood Angels": 12,
+      "Chaos Knights": 10, "CSM": 10, "Custodes": 12, "Daemons": 10, "Dark Angels": 10,
+      "Death Guard": 12, "Deathwatch": 10, "Drukhari": 10, "Emperor's Children": 10, "Grey Knights": 13,
+      "GSC": 13, "Imperial Agents": 10, "Imperial Knights": 10, "Necrons": 10, "Orks": 13,
+      "Sisters": 12, "SM (UM)": 12, "Space Wolves": 8, "Tau": 10, "T'sons": 14,
+      "Tyranids": 18, "Votann": 13, "World Eaters": 10
     },
-    "David": {
-      "Necrons": 20, "Tau": 10, "Custodes": 5, "SM (UM)": 5, "Guard": 8,
-      "Sisters": 16, "Grey Knights": 18, "Blood Angels": 10, "Space Wolves": 10,
-      "Ad Mech": 4, "Orks": 16, "Votann": 10, "Nids": 16, "Aeldari": 4,
-      "Drukhari": 20, "GSC": 5, "Tsons": 1, "Death Guard": 10, "CSM": 5,
-      "World Eaters": 2, "Daemons": 8, "Chaos Knights": 10, "Imperial Knights": 10
+    "Player 3": {
+      "Ad Mech": 4, "Aeldari": 4, "Astra Militarum": 8, "Black Templars": 10, "Blood Angels": 10,
+      "Chaos Knights": 10, "CSM": 5, "Custodes": 5, "Daemons": 8, "Dark Angels": 10,
+      "Death Guard": 10, "Deathwatch": 10, "Drukhari": 20, "Emperor's Children": 10, "Grey Knights": 18,
+      "GSC": 5, "Imperial Agents": 10, "Imperial Knights": 10, "Necrons": 20, "Orks": 16,
+      "Sisters": 16, "SM (UM)": 5, "Space Wolves": 10, "Tau": 10, "T'sons": 1,
+      "Tyranids": 16, "Votann": 10, "World Eaters": 2
     },
-    "Berni": {
-      "Necrons": 10, "Tau": 15, "Custodes": 10, "SM (UM)": 9, "Guard": 10,
-      "Sisters": 16, "Grey Knights": 18, "Blood Angels": 16, "Space Wolves": 16,
-      "Ad Mech": 10, "Orks": 0, "Votann": 0, "Nids": 10, "Aeldari": 20,
-      "Drukhari": 16, "GSC": 5, "Tsons": 8, "Death Guard": 10, "CSM": 6,
-      "World Eaters": 15, "Daemons": 7, "Chaos Knights": 5, "Imperial Knights": 10
+    "Player 4": {
+      "Ad Mech": 10, "Aeldari": 20, "Astra Militarum": 10, "Black Templars": 10, "Blood Angels": 16,
+      "Chaos Knights": 5, "CSM": 6, "Custodes": 10, "Daemons": 7, "Dark Angels": 10,
+      "Death Guard": 10, "Deathwatch": 10, "Drukhari": 16, "Emperor's Children": 10, "Grey Knights": 18,
+      "GSC": 5, "Imperial Agents": 10, "Imperial Knights": 10, "Necrons": 10, "Orks": 0,
+      "Sisters": 16, "SM (UM)": 9, "Space Wolves": 16, "Tau": 15, "T'sons": 8,
+      "Tyranids": 10, "Votann": 0, "World Eaters": 15
     },
-    "Norge": {
-      "Tau": 8, "Sisters": 8, "Tsons": 8, "Nids": 11, "GSC": 8, "Daemons": 11
+    "Player 5": {
+      "GSC": 8, "Daemons": 11, "Emperor's Children": 10, "Sisters": 8, "T'sons": 8,
+      "Tau": 8, "Tyranids": 11
     }
   }
 }

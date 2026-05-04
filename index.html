@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>40K Team Pairing — Terminus</title>
+  <title>40K Team Pairing</title>
   <style>
     /* ── Design tokens ──────────────────────────────────────── */
     :root {
@@ -211,6 +211,19 @@
       font-weight: 600;
     }
     .faction-chip.off { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+
+    /* ── Player row (name + faction select) ─────────────────── */
+    .player-row { display: flex; align-items: center; gap: 0.5rem; }
+    .player-row input[type=text] { flex: 1; min-width: 0; }
+    .player-row select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--fg);
+      border-radius: 6px;
+      padding: 0.35rem 0.5rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
 
     /* ── Captain-first layout ───────────────────────────────── */
     .captain-layout {
@@ -716,6 +729,7 @@
       border-bottom: 1px solid var(--border);
     }
     .axis-row:last-child { border-bottom: none; }
+    .axis-row.player-pref { grid-template-columns: 1fr auto; padding: 0.15rem 0; border-bottom: none; margin-top: 0.25rem; }
     .axis-name { font-size: 0.8rem; font-weight: 600; color: var(--text); }
     .axis-name small { display: block; font-size: 0.65rem; font-weight: 400; color: var(--muted); margin-top: 0.1rem; }
     .axis-track { display: flex; align-items: center; gap: 0.4rem; }
@@ -776,7 +790,7 @@
     <div class="card">
       <div class="card-title">Teams</div>
       <div class="field-row">
-        <div class="field"><label>Our Team</label><input type="text" id="ta-name" value="Terminus" /></div>
+        <div class="field"><label>Our Team</label><input type="text" id="ta-name" value="My Team" /></div>
         <div class="field"><label>Opponent</label><input type="text" id="tb-name" value="Opponent" /></div>
       </div>
     </div>
@@ -784,6 +798,26 @@
     <div class="card">
       <div class="card-title">Our Players</div>
       <div id="player-inputs"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Meta Matrix <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— our faction (row) vs opponent faction (col) · 10 = even · &gt;10 favours us · &lt;10 favours opponent</span></div>
+      <div class="matrix-wrap">
+        <table class="matrix" id="meta-tbl">
+          <thead><tr id="meta-hdr"><th class="row-hdr">Our Faction ↓ / Opp →</th></tr></thead>
+          <tbody id="meta-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Player Personal Scores <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— all factions · italic = meta fallback</span></div>
+      <div class="matrix-wrap">
+        <table class="matrix" id="personal-tbl">
+          <thead><tr id="personal-hdr"><th class="row-hdr">Player ↓ / Faction →</th></tr></thead>
+          <tbody id="personal-body"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card">
@@ -803,12 +837,11 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Terrain Preferences <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— slide left = prefers dense, right = prefers open</span></div>
+      <div class="card-title">Terrain Preference Override <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— overrides the per-player defaults set above</span></div>
       <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.9rem">
-        Scores shift when table terrain aligns with a player's preference — or their opponent's.
+        Sliders are pre-seeded from each faction's known tendencies. Adjust here if a player's build differs.
       </p>
       <div style="margin-bottom:0.75rem">
-        <div class="card-title" style="font-size:0.62rem;margin-bottom:0.5rem">Our Players</div>
         <div id="setup-our-prefs"></div>
       </div>
       <div id="setup-opp-prefs-wrap" style="display:none">
@@ -1091,91 +1124,122 @@
 ═══════════════════════════════════════════════════════════ */
 
 const TEAM_DATA = {
-  teamName: "Terminus",
-  players: ["Daniel", "Paddy", "David", "Berni", "Norge"],
+  teamName: "My Team",
+  players: ["Player 1", "Player 2", "Player 3", "Player 4", "Player 5"],
   playerFactions: {
-    "Daniel": "Dark Angels",
-    "Paddy":  "Daemons",
-    "David":  "Imperial Knights",
-    "Berni":  "Guard",
-    "Norge":  "Custodes"
+    "Player 1": "Dark Angels",
+    "Player 2": "Daemons",
+    "Player 3": "Imperial Knights",
+    "Player 4": "Astra Militarum",
+    "Player 5": "Custodes"
   },
   factions: [
-    "Necrons","Tau","Custodes","SM (UM)","Guard","Sisters",
-    "Grey Knights","Blood Angels","Space Wolves","Ad Mech","Orks",
-    "Votann","Nids","Aeldari","Drukhari","GSC","Tsons",
-    "Death Guard","CSM","World Eaters","Daemons","Chaos Knights","Imperial Knights","Dark Angels"
+    "Ad Mech","Aeldari","Astra Militarum","Black Templars","Blood Angels",
+    "Chaos Knights","CSM","Custodes","Daemons","Dark Angels",
+    "Death Guard","Deathwatch","Drukhari","Emperor's Children","Grey Knights",
+    "GSC","Imperial Agents","Imperial Knights","Necrons","Orks",
+    "Sisters","SM (UM)","Space Wolves","Tau","T'sons",
+    "Tyranids","Votann","World Eaters"
   ],
   matrix: {
-    "Daniel": { "Necrons":10,"Tau":12,"Custodes":12,"SM (UM)":12,"Guard":8,"Sisters":12,"Grey Knights":12,"Blood Angels":10,"Space Wolves":10,"Ad Mech":12,"Orks":12,"Votann":12,"Nids":10,"Aeldari":12,"Drukhari":6,"GSC":6,"Tsons":8,"Death Guard":10,"CSM":8,"World Eaters":12,"Daemons":8,"Chaos Knights":8,"Imperial Knights":8 },
-    "Paddy":  { "Necrons":10,"Tau":10,"Custodes":12,"SM (UM)":12,"Guard":5,"Sisters":12,"Grey Knights":13,"Blood Angels":12,"Space Wolves":8,"Ad Mech":10,"Orks":13,"Votann":13,"Nids":18,"Aeldari":8,"Drukhari":10,"GSC":13,"Tsons":14,"Death Guard":12,"CSM":10,"World Eaters":10,"Daemons":10 },
-    "David":  { "Necrons":20,"Tau":10,"Custodes":5,"SM (UM)":5,"Guard":8,"Sisters":16,"Grey Knights":18,"Blood Angels":10,"Space Wolves":10,"Ad Mech":4,"Orks":16,"Votann":10,"Nids":16,"Aeldari":4,"Drukhari":20,"GSC":5,"Tsons":1,"Death Guard":10,"CSM":5,"World Eaters":2,"Daemons":8,"Chaos Knights":10,"Imperial Knights":10 },
-    "Berni":  { "Necrons":10,"Tau":15,"Custodes":10,"SM (UM)":9,"Guard":10,"Sisters":16,"Grey Knights":18,"Blood Angels":16,"Space Wolves":16,"Ad Mech":10,"Orks":0,"Votann":0,"Nids":10,"Aeldari":20,"Drukhari":16,"GSC":5,"Tsons":8,"Death Guard":10,"CSM":6,"World Eaters":15,"Daemons":7,"Chaos Knights":5,"Imperial Knights":10 },
-    "Norge":  { "Tau":8,"Sisters":8,"Tsons":8,"Nids":11,"GSC":8,"Daemons":11 }
+    "Player 1": { "Ad Mech":12,"Aeldari":12,"Astra Militarum":8,"Black Templars":10,"Blood Angels":10,"Chaos Knights":8,"CSM":8,"Custodes":12,"Daemons":8,"Dark Angels":10,"Death Guard":10,"Deathwatch":10,"Drukhari":6,"Emperor's Children":10,"Grey Knights":12,"GSC":6,"Imperial Agents":10,"Imperial Knights":8,"Necrons":10,"Orks":12,"Sisters":12,"SM (UM)":12,"Space Wolves":10,"Tau":12,"T'sons":8,"Tyranids":10,"Votann":12,"World Eaters":12 },
+    "Player 2": { "Ad Mech":10,"Aeldari":8,"Astra Militarum":5,"Black Templars":10,"Blood Angels":12,"Chaos Knights":10,"CSM":10,"Custodes":12,"Daemons":10,"Dark Angels":10,"Death Guard":12,"Deathwatch":10,"Drukhari":10,"Emperor's Children":10,"Grey Knights":13,"GSC":13,"Imperial Agents":10,"Imperial Knights":10,"Necrons":10,"Orks":13,"Sisters":12,"SM (UM)":12,"Space Wolves":8,"Tau":10,"T'sons":14,"Tyranids":18,"Votann":13,"World Eaters":10 },
+    "Player 3": { "Ad Mech":4,"Aeldari":4,"Astra Militarum":8,"Black Templars":10,"Blood Angels":10,"Chaos Knights":10,"CSM":5,"Custodes":5,"Daemons":8,"Dark Angels":10,"Death Guard":10,"Deathwatch":10,"Drukhari":20,"Emperor's Children":10,"Grey Knights":18,"GSC":5,"Imperial Agents":10,"Imperial Knights":10,"Necrons":20,"Orks":16,"Sisters":16,"SM (UM)":5,"Space Wolves":10,"Tau":10,"T'sons":1,"Tyranids":16,"Votann":10,"World Eaters":2 },
+    "Player 4": { "Ad Mech":10,"Aeldari":20,"Astra Militarum":10,"Black Templars":10,"Blood Angels":16,"Chaos Knights":5,"CSM":6,"Custodes":10,"Daemons":7,"Dark Angels":10,"Death Guard":10,"Deathwatch":10,"Drukhari":16,"Emperor's Children":10,"Grey Knights":18,"GSC":5,"Imperial Agents":10,"Imperial Knights":10,"Necrons":10,"Orks":0,"Sisters":16,"SM (UM)":9,"Space Wolves":16,"Tau":15,"T'sons":8,"Tyranids":10,"Votann":0,"World Eaters":15 },
+    "Player 5": { "Daemons":11,"Emperor's Children":10,"GSC":8,"Sisters":8,"T'sons":8,"Tau":8,"Tyranids":11 }
   },
   /* +3 = strongly prefers this type, 0 = neutral, -3 = strongly disfavours */
   tablePrefs: {
-    "Daniel": { dense: 0,  balanced: 0, open: 0  },
-    "Paddy":  { dense: 3,  balanced: 0, open: -3 },
-    "David":  { dense: -3, balanced: 0, open: 3  },
-    "Berni":  { dense: -3, balanced: 0, open: 3  },
-    "Norge":  { dense: 0,  balanced: 0, open: 0  },
+    "Player 1": { dense: 0,  balanced: 0, open: 0  },
+    "Player 2": { dense: 3,  balanced: 0, open: -3 },
+    "Player 3": { dense: -3, balanced: 0, open: 3  },
+    "Player 4": { dense: -3, balanced: 0, open: 3  },
+    "Player 5": { dense: 0,  balanced: 0, open: 0  },
   },
 };
 
 // Global meta fallback — row = our faction, col = opponent faction
 const META = {
   "Custodes": {
-    "Necrons":11,"Tau":11,"Custodes":15,"SM (UM)":8,"Guard":6,"Sisters":8,
-    "Grey Knights":13,"Blood Angels":10,"Space Wolves":8,"Ad Mech":12,"Orks":9,
-    "Votann":7,"Nids":12,"Aeldari":8,"Drukhari":10,"GSC":10,"Tsons":10,
-    "Death Guard":10,"CSM":11,"World Eaters":10,"Daemons":12,"Chaos Knights":10,
-    "Imperial Knights":8,"Dark Angels":10
+    "Ad Mech":12,"Aeldari":8,"Astra Militarum":6,"Black Templars":10,"Blood Angels":10,
+    "Chaos Knights":10,"CSM":11,"Custodes":15,"Daemons":12,"Dark Angels":10,
+    "Death Guard":10,"Deathwatch":10,"Drukhari":10,"Emperor's Children":10,"Grey Knights":13,
+    "GSC":10,"Imperial Agents":10,"Imperial Knights":8,"Necrons":11,"Orks":9,
+    "Sisters":8,"SM (UM)":8,"Space Wolves":8,"Tau":11,"T'sons":10,
+    "Tyranids":12,"Votann":7,"World Eaters":10
   },
-  "Guard": {
-    "Necrons":9,"Tau":7,"Custodes":10,"SM (UM)":11,"Guard":11,"Sisters":10,
-    "Grey Knights":12,"Blood Angels":12,"Space Wolves":10,"Ad Mech":10,"Orks":10,
-    "Votann":7,"Nids":10,"Aeldari":10,"Drukhari":10,"GSC":10,"Tsons":10,
-    "Death Guard":11,"CSM":10,"World Eaters":10,"Daemons":10,"Chaos Knights":10,
-    "Imperial Knights":9,"Dark Angels":10
+  "Astra Militarum": {
+    "Ad Mech":10,"Aeldari":10,"Astra Militarum":11,"Black Templars":10,"Blood Angels":12,
+    "Chaos Knights":10,"CSM":10,"Custodes":10,"Daemons":10,"Dark Angels":10,
+    "Death Guard":11,"Deathwatch":10,"Drukhari":10,"Emperor's Children":10,"Grey Knights":12,
+    "GSC":10,"Imperial Agents":10,"Imperial Knights":9,"Necrons":9,"Orks":10,
+    "Sisters":10,"SM (UM)":11,"Space Wolves":10,"Tau":7,"T'sons":10,
+    "Tyranids":10,"Votann":7,"World Eaters":10
   },
   "Daemons": {
-    "Necrons":13,"Tau":9,"Custodes":7,"SM (UM)":11,"Guard":8,"Sisters":10,
-    "Grey Knights":11,"Blood Angels":9,"Space Wolves":11,"Ad Mech":12,"Orks":9,
-    "Votann":8,"Nids":10,"Aeldari":11,"Drukhari":12,"GSC":15,"Tsons":10,
-    "Death Guard":10,"CSM":10,"World Eaters":11,"Daemons":9,"Chaos Knights":11,
-    "Imperial Knights":8,"Dark Angels":10
+    "Ad Mech":12,"Aeldari":11,"Astra Militarum":8,"Black Templars":10,"Blood Angels":9,
+    "Chaos Knights":11,"CSM":10,"Custodes":7,"Daemons":9,"Dark Angels":10,
+    "Death Guard":10,"Deathwatch":10,"Drukhari":12,"Emperor's Children":10,"Grey Knights":11,
+    "GSC":15,"Imperial Agents":10,"Imperial Knights":8,"Necrons":13,"Orks":9,
+    "Sisters":10,"SM (UM)":11,"Space Wolves":11,"Tau":9,"T'sons":10,
+    "Tyranids":10,"Votann":8,"World Eaters":11
   },
   "Dark Angels": {
-    "Necrons":8,"Tau":11,"Custodes":9,"SM (UM)":12,"Guard":8,"Sisters":10,
-    "Grey Knights":17,"Blood Angels":11,"Space Wolves":9,"Ad Mech":11,"Orks":11,
-    "Votann":8,"Nids":10,"Aeldari":11,"Drukhari":10,"GSC":7,"Tsons":10,
-    "Death Guard":3,"CSM":10,"World Eaters":12,"Daemons":9,"Chaos Knights":10,
-    "Imperial Knights":10,"Dark Angels":10
+    "Ad Mech":11,"Aeldari":11,"Astra Militarum":8,"Black Templars":10,"Blood Angels":11,
+    "Chaos Knights":10,"CSM":10,"Custodes":9,"Daemons":9,"Dark Angels":10,
+    "Death Guard":3,"Deathwatch":10,"Drukhari":10,"Emperor's Children":10,"Grey Knights":17,
+    "GSC":7,"Imperial Agents":10,"Imperial Knights":10,"Necrons":8,"Orks":11,
+    "Sisters":10,"SM (UM)":12,"Space Wolves":9,"Tau":11,"T'sons":10,
+    "Tyranids":10,"Votann":8,"World Eaters":12
   },
   "Imperial Knights": {
-    "Necrons":10,"Tau":13,"Custodes":9,"SM (UM)":9,"Guard":11,"Sisters":7,
-    "Grey Knights":9,"Blood Angels":10,"Space Wolves":8,"Ad Mech":11,"Orks":9,
-    "Votann":9,"Nids":10,"Aeldari":7,"Drukhari":11,"GSC":11,"Tsons":10,
-    "Death Guard":11,"CSM":10,"World Eaters":7,"Daemons":11,"Chaos Knights":7,
-    "Imperial Knights":5,"Dark Angels":10
+    "Ad Mech":11,"Aeldari":7,"Astra Militarum":11,"Black Templars":10,"Blood Angels":10,
+    "Chaos Knights":7,"CSM":10,"Custodes":9,"Daemons":11,"Dark Angels":10,
+    "Death Guard":11,"Deathwatch":10,"Drukhari":11,"Emperor's Children":10,"Grey Knights":9,
+    "GSC":11,"Imperial Agents":10,"Imperial Knights":5,"Necrons":10,"Orks":9,
+    "Sisters":7,"SM (UM)":9,"Space Wolves":8,"Tau":13,"T'sons":10,
+    "Tyranids":10,"Votann":9,"World Eaters":7
+  },
+  "Emperor's Children": {
+    "Ad Mech":10,"Aeldari":10,"Astra Militarum":10,"Black Templars":10,"Blood Angels":10,
+    "Chaos Knights":10,"CSM":10,"Custodes":10,"Daemons":10,"Dark Angels":10,
+    "Death Guard":10,"Deathwatch":10,"Drukhari":10,"Emperor's Children":10,"Grey Knights":10,
+    "GSC":10,"Imperial Agents":10,"Imperial Knights":10,"Necrons":10,"Orks":10,
+    "Sisters":10,"SM (UM)":10,"Space Wolves":10,"Tau":10,"T'sons":10,
+    "Tyranids":10,"Votann":10,"World Eaters":10
   }
 };
 
-/* Known faction table preferences — +3 favours, 0 neutral, -3 disfavours */
+/* Known faction table preferences — +3 favours dense, -3 favours open (open: positive = open preference) */
 const FACTION_TABLE_PREFS = {
-  "Imperial Knights": { dense: -3, balanced: 0, open: 3  },
-  "Chaos Knights":    { dense: -3, balanced: 0, open: 3  },
-  "Guard":            { dense: -3, balanced: 0, open: 3  },
-  "Tau":              { dense: -3, balanced: 0, open: 3  },
-  "Aeldari":          { dense: -2, balanced: 0, open: 2  },
-  "Drukhari":         { dense: -2, balanced: 0, open: 2  },
-  "World Eaters":     { dense: 3,  balanced: 0, open: -3 },
-  "Orks":             { dense: 2,  balanced: 0, open: -2 },
-  "Daemons":          { dense: 2,  balanced: 0, open: -2 },
-  "Death Guard":      { dense: 2,  balanced: 0, open: -2 },
-  "Nids":             { dense: 2,  balanced: 0, open: -2 },
-  "GSC":              { dense: 2,  balanced: 0, open: -2 },
+  "Ad Mech":           { dense: -2, balanced: 0, open: 2  },
+  "Aeldari":           { dense: -1, balanced: 0, open: 1  },
+  "Astra Militarum":   { dense: -3, balanced: 0, open: 3  },
+  "Black Templars":    { dense: 2,  balanced: 0, open: -2 },
+  "Blood Angels":      { dense: 2,  balanced: 0, open: -2 },
+  "Chaos Knights":     { dense: -1, balanced: 0, open: 1  },
+  "CSM":               { dense: 0,  balanced: 0, open: 0  },
+  "Custodes":          { dense: 1,  balanced: 0, open: -1 },
+  "Daemons":           { dense: 2,  balanced: 0, open: -2 },
+  "Dark Angels":       { dense: 1,  balanced: 0, open: -1 },
+  "Death Guard":       { dense: 1,  balanced: 0, open: -1 },
+  "Deathwatch":        { dense: 0,  balanced: 0, open: 0  },
+  "Drukhari":          { dense: 0,  balanced: 0, open: 0  },
+  "Emperor's Children":{ dense: 2,  balanced: 0, open: -2 },
+  "Grey Knights":      { dense: 1,  balanced: 0, open: -1 },
+  "GSC":               { dense: 1,  balanced: 0, open: -1 },
+  "Imperial Agents":   { dense: 0,  balanced: 0, open: 0  },
+  "Imperial Knights":  { dense: -1, balanced: 0, open: 1  },
+  "Necrons":           { dense: 0,  balanced: 0, open: 0  },
+  "Orks":              { dense: 1,  balanced: 0, open: -1 },
+  "Sisters":           { dense: -1, balanced: 0, open: 1  },
+  "SM (UM)":           { dense: 0,  balanced: 0, open: 0  },
+  "Space Wolves":      { dense: 2,  balanced: 0, open: -2 },
+  "Tau":               { dense: -3, balanced: 0, open: 3  },
+  "T'sons":            { dense: -1, balanced: 0, open: 1  },
+  "Tyranids":          { dense: 1,  balanced: 0, open: -1 },
+  "Votann":            { dense: -1, balanced: 0, open: 1  },
+  "World Eaters":      { dense: 3,  balanced: 0, open: -3 },
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -1185,7 +1249,8 @@ const FACTION_TABLE_PREFS = {
 const S = {
   teamA: 'Team A',
   teamB: 'Team B',
-  players: [...TEAM_DATA.players],   // names indexed 0-4
+  players: [...TEAM_DATA.players],                                        // names indexed 0-4
+  playerFactions: TEAM_DATA.players.map(p => TEAM_DATA.playerFactions[p] ?? TEAM_DATA.factions[0]),
   factions: [],                       // 5 selected opponent faction names
   matrix: [],                         // [5][5] scores, null = no personal data
 
@@ -1203,7 +1268,8 @@ const S = {
 
   /* Terrain axis per slot: -3 = strongly dense, 0 = neutral, +3 = strongly open */
   ourAxis: TEAM_DATA.players.map(p => {
-    const t = TEAM_DATA.tablePrefs?.[p];
+    const fac = TEAM_DATA.playerFactions[p];
+    const t = fac ? FACTION_TABLE_PREFS[fac] : null;
     if (!t) return 0;
     return Math.max(-3, Math.min(3, (t.open ?? 0) - (t.dense ?? 0)));
   }),
@@ -1264,7 +1330,7 @@ function scClass(v) {
 function getScore(pIdx, fIdx) {
   const personal = S.matrix[pIdx]?.[fIdx];
   if (personal !== null && personal !== undefined) return { score: personal, isMeta: false };
-  const ourFaction = TEAM_DATA.playerFactions[S.players[pIdx]] ?? null;
+  const ourFaction = S.playerFactions[pIdx] ?? null;
   const oppFaction = S.factions[fIdx];
   const meta = ourFaction ? (META[ourFaction]?.[oppFaction] ?? null) : null;
   return { score: meta, isMeta: meta !== null };
@@ -1274,7 +1340,7 @@ function scoreNum(pIdx, fIdx) { return getScore(pIdx, fIdx).score; }
 
 /* Returns our META score for player pIdx vs opponent faction fIdx */
 function getMetaScore(pIdx, fIdx) {
-  const ourFaction = TEAM_DATA.playerFactions[S.players[pIdx]] ?? null;
+  const ourFaction = S.playerFactions[pIdx] ?? null;
   const oppFaction = S.factions[fIdx];
   return ourFaction ? (META[ourFaction]?.[oppFaction] ?? null) : null;
 }
@@ -1286,7 +1352,7 @@ function getMetaScore(pIdx, fIdx) {
  */
 function oppMetaScore(fIdx, pIdx) {
   const oppFaction = S.factions[fIdx];
-  const ourFaction = TEAM_DATA.playerFactions[S.players[pIdx]] ?? null;
+  const ourFaction = S.playerFactions[pIdx] ?? null;
   if (!ourFaction) return 10;
   const ourScore = META[ourFaction]?.[oppFaction] ?? 10;
   return 20 - ourScore;
@@ -1851,11 +1917,120 @@ function unfreezePanel(panelId) {
 
 let selectedFactions = new Set();
 
+function buildMetaTable() {
+  const allFactions = TEAM_DATA.factions;
+  const ourFactions = [...new Set(S.playerFactions)];
+  const otherMetaRows = Object.keys(META).filter(f => !ourFactions.includes(f));
+  const rows = [...ourFactions, ...otherMetaRows];
+
+  const hdr = $('meta-hdr');
+  hdr.innerHTML = '<th class="row-hdr">Our Faction ↓ / Opp →</th>';
+  allFactions.forEach(f => {
+    const th = document.createElement('th');
+    th.textContent = f;
+    hdr.appendChild(th);
+  });
+
+  const body = $('meta-body');
+  body.innerHTML = '';
+  rows.forEach(ourFaction => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<th class="row-hdr">${ourFaction}</th>`;
+    allFactions.forEach(oppFaction => {
+      const td = document.createElement('td');
+      const val = META[ourFaction]?.[oppFaction] ?? null;
+      const scCls = val !== null ? scClass(val) : '';
+      td.innerHTML = `<input type="number" min="0" max="20"
+        value="${val !== null ? val : ''}"
+        placeholder="${val === null ? '?' : ''}"
+        class="${scCls}"
+        style="${val === null ? 'color:var(--muted);font-style:italic' : ''}"
+        data-our="${ourFaction}" data-opp="${oppFaction}" />`;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  body.querySelectorAll('input[type=number]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const { our: ourFaction, opp: oppFaction } = inp.dataset;
+      const raw = inp.value.trim();
+      const v = raw === '' ? null : Math.max(0, Math.min(20, parseInt(raw) || 0));
+      if (!META[ourFaction]) META[ourFaction] = {};
+      if (v === null) { delete META[ourFaction][oppFaction]; }
+      else { META[ourFaction][oppFaction] = v; }
+      inp.className = v !== null ? scClass(v) : '';
+      inp.style.color = v === null ? 'var(--muted)' : '';
+      inp.style.fontStyle = v === null ? 'italic' : '';
+      buildPersonalScoreTable();
+    });
+  });
+}
+
+function buildPersonalScoreTable() {
+  const allFactions = TEAM_DATA.factions;
+
+  const hdr = $('personal-hdr');
+  hdr.innerHTML = '<th class="row-hdr">Player ↓ / Faction →</th>';
+  allFactions.forEach(f => {
+    const th = document.createElement('th');
+    th.textContent = f;
+    hdr.appendChild(th);
+  });
+
+  const body = $('personal-body');
+  body.innerHTML = '';
+  S.players.forEach((player, pi) => {
+    const tr = document.createElement('tr');
+    const fac = S.playerFactions[pi] ?? '';
+    tr.innerHTML = `<th class="row-hdr">${player} <span style="font-size:0.65rem;color:var(--muted);font-weight:400">(${fac})</span></th>`;
+    allFactions.forEach(faction => {
+      const td = document.createElement('td');
+      const personal = TEAM_DATA.matrix[TEAM_DATA.players[pi]]?.[faction];
+      const hasPersonal = personal !== undefined && personal !== null;
+      const ourFaction = S.playerFactions[pi] ?? null;
+      const metaVal = ourFaction ? (META[ourFaction]?.[faction] ?? null) : null;
+      const displayVal = hasPersonal ? personal : '';
+      const ph = metaVal !== null ? `~${metaVal}` : '?';
+      const scNum = hasPersonal ? personal : metaVal;
+      const scCls = scNum !== null ? scClass(scNum) : '';
+      td.innerHTML = `<input type="number" min="0" max="20"
+        value="${displayVal}"
+        placeholder="${ph}"
+        class="${scCls}"
+        style="${!hasPersonal ? 'color:var(--muted);font-style:italic' : ''}"
+        data-player="${player}" data-faction="${faction}" />`;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+
+  body.querySelectorAll('input[type=number]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const { player, faction } = inp.dataset;
+      const raw = inp.value.trim();
+      const v = raw === '' ? null : Math.max(0, Math.min(20, parseInt(raw) || 0));
+      if (!TEAM_DATA.matrix[player]) TEAM_DATA.matrix[player] = {};
+      if (v === null) { delete TEAM_DATA.matrix[player][faction]; }
+      else { TEAM_DATA.matrix[player][faction] = v; }
+      inp.className = v !== null ? scClass(v) : '';
+      inp.style.color = !inp.value ? 'var(--muted)' : '';
+      inp.style.fontStyle = !inp.value ? 'italic' : '';
+      rebuildMatrix();
+      buildMatrixTable();
+    });
+  });
+}
+
 function initSetup() {
   S.players = [...TEAM_DATA.players];
+  S.playerFactions = TEAM_DATA.players.map(p => TEAM_DATA.playerFactions[p] ?? TEAM_DATA.factions[0]);
+  S.ourAxis = S.playerFactions.map(factionAxisSeed);
   S.teamA   = TEAM_DATA.teamName;
   $('ta-name').value = S.teamA;
   buildPlayerInputs();
+  buildMetaTable();
+  buildPersonalScoreTable();
   buildFactionPicker();
   buildMatrixTable();
   buildOurPrefsGrid();
@@ -1906,15 +2081,38 @@ function buildAxisSliderRow(name, subtitle, axis, value, onChange) {
   return row;
 }
 
+function syncInlineSlider(i, v) {
+  const wrap = $('player-inputs');
+  if (!wrap) return;
+  const fields = wrap.querySelectorAll('.field');
+  const sliderRow = fields[i]?.querySelector('.axis-row.player-pref');
+  if (!sliderRow) return;
+  const slider = sliderRow.querySelector('input[type=range]');
+  const badge  = sliderRow.querySelector('.axis-val');
+  if (slider) slider.value = v;
+  if (badge)  { badge.textContent = axisValLabel(v); badge.className = `axis-val ${axisValClass(v)}`; }
+}
+
+function syncOverrideSlider(i, v) {
+  const el = $(`override-axis-${i}`);
+  if (!el) return;
+  const slider = el.querySelector('input[type=range]');
+  const badge  = el.querySelector('.axis-val');
+  if (slider) slider.value = v;
+  if (badge)  { badge.textContent = axisValLabel(v); badge.className = `axis-val ${axisValClass(v)}`; }
+}
+
 function buildOurPrefsGrid() {
   const el = $('setup-our-prefs');
   if (!el) return;
   el.innerHTML = '';
-  TEAM_DATA.players.forEach((p, i) => {
-    const fac = TEAM_DATA.playerFactions?.[p] ?? '';
+  S.players.forEach((p, i) => {
+    const fac = S.playerFactions[i] ?? '';
     const row = buildAxisSliderRow(p, fac, 'ourAxis', S.ourAxis[i], v => {
       S.ourAxis[i] = v;
+      syncInlineSlider(i, v);
     });
+    row.id = `override-axis-${i}`;
     el.appendChild(row);
   });
 }
@@ -1934,12 +2132,36 @@ function buildOppPrefsGrid() {
   });
 }
 
+function factionAxisSeed(fac) {
+  const t = FACTION_TABLE_PREFS[fac];
+  if (!t) return 0;
+  return Math.max(-3, Math.min(3, (t.open ?? 0) - (t.dense ?? 0)));
+}
+
 function buildPlayerInputs() {
   const wrap = $('player-inputs');
   wrap.innerHTML = '';
+  const opts = TEAM_DATA.factions.map(f => `<option value="${f}">${f}</option>`).join('');
   S.players.forEach((p, i) => {
-    wrap.insertAdjacentHTML('beforeend',
-      `<div class="field"><label>Player ${i+1}</label><input type="text" id="pin${i}" value="${p}" /></div>`);
+    const fac = S.playerFactions[i] ?? TEAM_DATA.factions[0];
+    const fieldEl = document.createElement('div');
+    fieldEl.className = 'field';
+    fieldEl.innerHTML =
+      `<label>Player ${i+1}</label>
+       <div class="player-row">
+         <input type="text" id="pin${i}" value="${p}" />
+         <select id="pfac${i}">${opts}</select>
+       </div>`;
+    wrap.appendChild(fieldEl);
+    fieldEl.querySelector(`#pfac${i}`).value = fac;
+
+    const sliderRow = buildAxisSliderRow('', '', 'ourAxis', S.ourAxis[i], v => {
+      S.ourAxis[i] = v;
+      syncOverrideSlider(i, v);
+    });
+    sliderRow.classList.add('player-pref');
+    sliderRow.querySelector('.axis-name').remove();
+    fieldEl.appendChild(sliderRow);
   });
 }
 
@@ -1978,7 +2200,11 @@ function buildMatrixTable() {
     : TEAM_DATA.factions.slice(0, 5);
 
   S.factions = active;
-  S.oppAxis  = [0, 0, 0, 0, 0];
+  S.oppAxis  = active.map(f => {
+    const t = FACTION_TABLE_PREFS[f];
+    if (!t) return 0;
+    return Math.max(-3, Math.min(3, (t.open ?? 0) - (t.dense ?? 0)));
+  });
   rebuildMatrix();
 
   const hdr  = $('matrix-hdr');
@@ -2026,6 +2252,7 @@ function readSetup() {
   S.teamB = $('tb-name').value.trim() || 'Opponent';
   for (let i = 0; i < 5; i++) {
     S.players[i] = ($(`pin${i}`)?.value.trim()) || TEAM_DATA.players[i];
+    S.playerFactions[i] = $(`pfac${i}`)?.value || S.playerFactions[i];
   }
 }
 
@@ -2828,11 +3055,29 @@ $('btn-restart').addEventListener('click', () => {
 initSetup();
 showScreen('screen-setup');
 
-// Rebuild matrix when player names change
+// Rebuild matrix when player names or factions change
 $('player-inputs').addEventListener('focusout', e => {
   if (e.target.matches('input[type="text"]')) {
     readSetup();
     buildMatrixTable();
+    buildPersonalScoreTable();
+  }
+});
+$('player-inputs').addEventListener('change', e => {
+  if (e.target.matches('select')) {
+    readSetup();
+    // Re-seed terrain axis from the newly chosen faction
+    const idx = [...$('player-inputs').querySelectorAll('select')].indexOf(e.target);
+    if (idx >= 0) {
+      const seeded = factionAxisSeed(e.target.value);
+      S.ourAxis[idx] = seeded;
+      syncInlineSlider(idx, seeded);
+      syncOverrideSlider(idx, seeded);
+    }
+    buildMetaTable();
+    buildPersonalScoreTable();
+    buildMatrixTable();
+    buildOurPrefsGrid();
   }
 });
 
