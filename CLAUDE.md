@@ -32,4 +32,28 @@ Norge's scores are incomplete — add entries as results come in.
 
 ## Score Scale
 - 0–20 personal matrix: 10 = even, 20 = full win, 0 = full loss
-- Meta differential → 0–20: `round(diff / 5) + 10`, clamped [0, 20]
+- VP delta → 0–20 (stepped, matches official Game Points table):
+  ```
+  bracket = abs(delta) <= 5 ? 0 : min(ceil((abs(delta) - 5) / 5), 10)
+  score   = delta >= 0 ? 10 + bracket : 10 - bracket
+  ```
+  Examples: delta -22 → 6, delta +15 → 12, delta 0 → 10
+
+## Updating the Global Meta Matrix
+
+The `META` constant in `index.html` contains global faction matchup data (rows = our player factions, cols = all 28 opponents). It is **not shown in the UI** — it acts as a fallback when personal scores are missing.
+
+**Use the `/update-meta` skill** when the competitive meta shifts significantly (new dataslate, major season change):
+
+```
+/update-meta path/to/screenshot.png
+```
+
+The skill reads a faction × faction VP delta matrix from the screenshot, applies the conversion formula above, patches `const META` in `index.html`, and regenerates `data/meta.md`.
+
+**Manual update process** (if doing it by hand):
+1. Collect VP deltas from a meta source (Goonhammer, ITC results, etc.)
+2. Convert each delta using the formula above
+3. Find `const META = {` in `index.html` and update the relevant rows (only our player factions need entries)
+4. Update `data/meta.md` to match
+5. Cross-check faction names against `TEAM_DATA.factions` — spelling must match exactly

@@ -782,17 +782,14 @@
 
 <main>
 
-  <!-- ══ SCREEN 0 — Setup ══ -->
-  <div class="screen active" id="screen-setup">
-    <div class="screen-title">Match Setup</div>
-    <div class="screen-sub">Enter team names, then pick the 5 opponent factions to build the match matrix.</div>
+  <!-- ══ SCREEN 0 — Tournament Setup ══ -->
+  <div class="screen active" id="screen-pre-tournament">
+    <div class="screen-title">Tournament Setup</div>
+    <div class="screen-sub">Enter once per tournament weekend. Your team, players, and scores persist across all matches.</div>
 
     <div class="card">
-      <div class="card-title">Teams</div>
-      <div class="field-row">
-        <div class="field"><label>Our Team</label><input type="text" id="ta-name" value="My Team" /></div>
-        <div class="field"><label>Opponent</label><input type="text" id="tb-name" value="Opponent" /></div>
-      </div>
+      <div class="card-title">Our Team</div>
+      <div class="field"><label>Team Name</label><input type="text" id="ta-name" value="My Team" /></div>
     </div>
 
     <div class="card">
@@ -820,6 +817,20 @@
       </div>
     </div>
 
+    <button class="btn btn-primary btn-full" id="btn-save-tournament">Continue to Match Setup →</button>
+  </div>
+
+
+  <!-- ══ SCREEN 1 — Match Setup ══ -->
+  <div class="screen" id="screen-pre-match">
+    <div class="screen-title">Match Setup</div>
+    <div class="screen-sub">Pick the 5 opponent factions to build the match matrix.</div>
+
+    <div class="card">
+      <div class="card-title">Opponent</div>
+      <div class="field"><label>Team Name</label><input type="text" id="tb-name" value="Opponent" /></div>
+    </div>
+
     <div class="card">
       <div class="card-title">Opponent Factions — pick exactly 5</div>
       <div id="faction-picker" class="faction-grid"></div>
@@ -837,33 +848,24 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Terrain Preference Override <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— overrides the per-player defaults set above</span></div>
-      <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.9rem">
-        Sliders are pre-seeded from each faction's known tendencies. Adjust here if a player's build differs.
-      </p>
-      <div style="margin-bottom:0.75rem">
-        <div id="setup-our-prefs"></div>
-      </div>
-      <div id="setup-opp-prefs-wrap" style="display:none">
-        <hr class="div" style="margin:0.6rem 0 0.75rem" />
-        <div class="card-title" style="font-size:0.62rem;margin-bottom:0.5rem">Opponent Players — guess their terrain preference</div>
-        <div id="setup-opp-prefs"></div>
-      </div>
+      <div class="card-title">Our Terrain Preference <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— adjust if build differs from faction default</span></div>
+      <div id="setup-our-prefs"></div>
     </div>
 
-    <div class="card">
-      <div class="card-title">Override via Photo <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— optional, uses Claude OCR</span></div>
-      <div class="field"><label>Claude API Key</label><input type="password" id="api-key" placeholder="sk-ant-…" /></div>
-      <div class="upload-zone" id="upload-zone">
-        <input type="file" id="photo-upload" accept="image/*" />
-        <div class="u-icon">📷</div>
-        <p><strong style="color:var(--text)">Upload team matrix photo</strong></p>
-        <p style="font-size:0.73rem">Overwrites built-in scores with OCR values.</p>
-        <p id="upload-status" style="margin-top:0.4rem;color:var(--gold);display:none"></p>
-      </div>
+    <div id="setup-opp-prefs-wrap" class="card" style="display:none">
+      <div class="card-title">Opponent Terrain Preference <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— guess their tendencies</span></div>
+      <div id="setup-opp-prefs"></div>
     </div>
 
-    <button class="btn btn-primary btn-full" id="btn-start">Begin Pairing →</button>
+    <div id="composition-warnings" class="card">
+      <div class="card-title">Composition Analysis</div>
+      <p style="color:var(--muted);font-size:0.82rem">Select 5 opponent factions to see analysis.</p>
+    </div>
+
+    <div class="btn-row" style="gap:0.75rem;margin-bottom:1.25rem">
+      <button class="btn btn-outline" id="btn-back-tournament">← Tournament Setup</button>
+      <button class="btn btn-primary" id="btn-start" style="flex:1">Begin Pairing →</button>
+    </div>
   </div>
 
 
@@ -1284,7 +1286,7 @@ const S = {
 };
 
 const SCREENS = [
-  'screen-setup','screen-s1rolloff','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
+  'screen-pre-tournament','screen-pre-match','screen-s1rolloff','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
   'screen-s2d','screen-s2a','screen-s2r','screen-results'
 ];
 
@@ -1842,7 +1844,7 @@ function buildPlayerChips(container, pool, selSet, maxSel, scoreFactionIdx, onch
         scoreHtml = `<span class="chip-scores"><span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">m</span>' : ''}</span></span>`;
       }
     }
-    chip.innerHTML = `<span>${S.players[pi]}</span>${scoreHtml}`;
+    chip.innerHTML = `<span>${S.players[pi]}<small style="display:block;font-size:0.68em;color:var(--muted);font-weight:400;line-height:1.2">${S.playerFactions[pi] ?? ''}</small></span>${scoreHtml}`;
     chip.addEventListener('click', () => {
       if (selSet.has(pi)) {
         selSet.delete(pi);
@@ -2022,7 +2024,7 @@ function buildPersonalScoreTable() {
   });
 }
 
-function initSetup() {
+function initPreTournament() {
   S.players = [...TEAM_DATA.players];
   S.playerFactions = TEAM_DATA.players.map(p => TEAM_DATA.playerFactions[p] ?? TEAM_DATA.factions[0]);
   S.ourAxis = S.playerFactions.map(factionAxisSeed);
@@ -2031,9 +2033,16 @@ function initSetup() {
   buildPlayerInputs();
   buildMetaTable();
   buildPersonalScoreTable();
+}
+
+function initPreMatch() {
+  $('tb-name').value = S.teamB || 'Opponent';
+  selectedFactions.clear();
   buildFactionPicker();
   buildMatrixTable();
   buildOurPrefsGrid();
+  buildOppPrefsGrid();
+  buildCompositionWarnings();
 }
 
 function deltaBadge(val) {
@@ -2132,6 +2141,97 @@ function buildOppPrefsGrid() {
   });
 }
 
+function buildCompositionWarnings() {
+  const el = $('composition-warnings');
+  if (!el) return;
+
+  const GAP_THRESHOLD    = 6;   // score ≤6 = genuinely bad matchup
+  const GAP_COUNT        = 3;   // ≥3 players bad = team coverage gap
+  const PIN_THRESHOLD    = 14;  // score ≥14 = strong attacker
+  const DEF_THRESHOLD    = 11;  // opp avg ≥11 = likely defender
+  const PINNABLE_AVG     = 8;   // our player avg ≤8 = opponent can pin them
+
+  if (S.factions.length < 5) {
+    el.innerHTML = '<div class="card-title">Composition Analysis</div><p style="color:var(--muted);font-size:0.82rem">Select 5 opponent factions to see analysis.</p>';
+    return;
+  }
+
+  const warnings = [];
+
+  // Expected opponent defenders — faction they benefit most from defending with
+  const defRankings = S.factions.map((fName, fi) => {
+    const avg = S.players.reduce((sum, _, pi) => sum + (oppMetaScore(fi, pi) ?? 10), 0) / S.players.length;
+    return { fi, fName, avg };
+  }).sort((a, b) => b.avg - a.avg);
+
+  defRankings.slice(0, 2).forEach(({ fName, avg }) => {
+    if (avg >= DEF_THRESHOLD) {
+      warnings.push({ type: 'info', text: `Expected opponent defender: <strong>${fName}</strong> (opp avg ${avg.toFixed(1)})` });
+    }
+  });
+
+  // Coverage gaps — majority of our players unfavoured
+  S.factions.forEach((fName, fi) => {
+    const badNames = [];
+    S.players.forEach((name, pi) => {
+      const sc = scoreNum(pi, fi);
+      if (sc !== null && sc <= GAP_THRESHOLD) badNames.push(name);
+    });
+    if (badNames.length >= GAP_COUNT) {
+      warnings.push({ type: 'gap', text: `Coverage gap vs <strong>${fName}</strong>: ${badNames.length}/5 players score ≤${GAP_THRESHOLD} (${badNames.join(', ')})` });
+    }
+  });
+
+  // Pin opportunities — strong attacker into their likely defender
+  defRankings.slice(0, 2).forEach(({ fi, fName, avg }) => {
+    if (avg < DEF_THRESHOLD) return;
+    const strongNames = S.players.filter((_, pi) => {
+      const sc = scoreNum(pi, fi);
+      return sc !== null && sc >= PIN_THRESHOLD;
+    });
+    if (strongNames.length > 0) {
+      warnings.push({ type: 'pin', text: `Pin opportunity vs <strong>${fName}</strong>: ${strongNames.join(', ')} score ≥${PIN_THRESHOLD}` });
+    }
+  });
+
+  // Pinnable players — our players with low avg across these 5 factions, opponent will target them
+  S.players.forEach((name, pi) => {
+    const scores = S.factions.map((_, fi) => scoreNum(pi, fi)).filter(sc => sc !== null);
+    if (scores.length === 0) return;
+    const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+    if (avg <= PINNABLE_AVG) {
+      const worst = S.factions
+        .map((fName, fi) => ({ fName, sc: scoreNum(pi, fi) }))
+        .filter(x => x.sc !== null)
+        .sort((a, b) => a.sc - b.sc)
+        .slice(0, 2)
+        .map(x => `${x.fName} (${x.sc})`)
+        .join(', ');
+      warnings.push({ type: 'risk', text: `<strong>${name}</strong> is pinnable — avg ${avg.toFixed(1)} across these factions. Worst: ${worst}` });
+    }
+  });
+
+  if (warnings.length === 0) {
+    el.innerHTML = '<div class="card-title">Composition Analysis</div><p style="color:var(--muted);font-size:0.82rem">No significant gaps or pin opportunities detected.</p>';
+    return;
+  }
+
+  const iconMap  = { gap: '⚠', pin: '◈', info: '→', risk: '!' };
+  const colorMap = { gap: 'var(--red)', pin: 'var(--gold)', info: 'var(--blue)', risk: 'var(--amber)' };
+
+  el.innerHTML = `
+    <div class="card-title">Composition Analysis</div>
+    <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:0.5rem">
+      ${warnings.map(w => `
+        <li style="font-size:0.82rem;line-height:1.5;padding:0.45rem 0.7rem;
+                   border-left:3px solid ${colorMap[w.type]};
+                   background:var(--surface2);border-radius:0 var(--radius) var(--radius) 0">
+          <span style="color:${colorMap[w.type]};font-weight:700;margin-right:0.4rem">${iconMap[w.type]}</span>
+          ${w.text}
+        </li>`).join('')}
+    </ul>`;
+}
+
 function factionAxisSeed(fac) {
   const t = FACTION_TABLE_PREFS[fac];
   if (!t) return 0;
@@ -2189,6 +2289,7 @@ function buildFactionPicker() {
       count.textContent = `Selected: ${selectedFactions.size} / 5`;
       buildMatrixTable();
       buildOppPrefsGrid();
+      buildCompositionWarnings();
     });
     grid.appendChild(chip);
   });
@@ -2247,80 +2348,14 @@ function buildMatrixTable() {
   });
 }
 
-function readSetup() {
+function saveTournamentSetup() {
   S.teamA = $('ta-name').value.trim() || TEAM_DATA.teamName;
-  S.teamB = $('tb-name').value.trim() || 'Opponent';
   for (let i = 0; i < 5; i++) {
     S.players[i] = ($(`pin${i}`)?.value.trim()) || TEAM_DATA.players[i];
     S.playerFactions[i] = $(`pfac${i}`)?.value || S.playerFactions[i];
   }
-}
-
-/* ═══════════════════════════════════════════════════════════
-   OCR OVERRIDE
-═══════════════════════════════════════════════════════════ */
-
-$('photo-upload').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const apiKey = $('api-key').value.trim();
-  if (!apiKey) { toast('Enter Claude API key first', 'err'); return; }
-  readSetup();
-  const status = $('upload-status');
-  status.style.display = 'block';
-  status.textContent = '⏳ Calling Claude…';
-  try {
-    const b64 = await fileToB64(file);
-    const prompt = `You are helping extract a 40K team pairing matrix.
-Players (rows): ${S.players.join(', ')}.
-Opponent factions (cols): ${S.factions.join(', ')}.
-Each cell is 0–20. Return ONLY JSON:
-{"matrix":[[r0c0,r0c1,r0c2,r0c3,r0c4],[r1c0,r1c1,r1c2,r1c3,r1c4],[r2c0,r2c1,r2c2,r2c3,r2c4],[r3c0,r3c1,r3c2,r3c3,r3c4],[r4c0,r4c1,r4c2,r4c3,r4c4]]}`;
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 512,
-        messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data: b64 } },
-          { type: 'text', text: prompt },
-        ]}],
-      }),
-    });
-    if (!resp.ok) { const e = await resp.json().catch(() => ({})); throw new Error(e.error?.message || `HTTP ${resp.status}`); }
-    const data = await resp.json();
-    const raw = data.content?.[0]?.text || '';
-    const m = raw.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error('No JSON in response');
-    const parsed = JSON.parse(m[0]);
-    if (!Array.isArray(parsed.matrix) || parsed.matrix.length !== 5) throw new Error('Bad matrix shape');
-    parsed.matrix.forEach((row, pi) => {
-      row.forEach((v, fi) => {
-        S.matrix[pi][fi] = (v === null || v === '') ? null : Math.max(0, Math.min(20, parseInt(v) || 0));
-      });
-    });
-    buildMatrixTable();
-    status.textContent = '✓ Matrix loaded from photo — please verify. Empty cells fall back to meta.';
-    toast('Matrix loaded from photo', 'ok');
-  } catch (err) {
-    status.textContent = `✗ ${err.message}`;
-    toast('OCR failed: ' + err.message, 'err');
-  }
-});
-
-function fileToB64(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result.split(',')[1]);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
+  buildPersonalScoreTable();
+  showScreen('screen-pre-match');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2328,7 +2363,7 @@ function fileToB64(file) {
 ═══════════════════════════════════════════════════════════ */
 
 $('btn-start').addEventListener('click', () => {
-  readSetup();
+  S.teamB = $('tb-name').value.trim() || 'Opponent';
   if (selectedFactions.size !== 5) { toast('Select exactly 5 opponent factions', 'err'); return; }
   if (new Set(S.players).size < 5) { toast('Player names must be unique', 'err'); return; }
 
@@ -3045,30 +3080,38 @@ function showOverviewBar(visible) {
 
 $('btn-restart').addEventListener('click', () => {
   showOverviewBar(false);
-  showScreen('screen-setup');
+  initPreMatch();
+  showScreen('screen-pre-match');
 });
+
+$('btn-save-tournament').addEventListener('click', () => saveTournamentSetup());
+
+$('btn-back-tournament').addEventListener('click', () => showScreen('screen-pre-tournament'));
 
 /* ═══════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════ */
 
-initSetup();
-showScreen('screen-setup');
+initPreTournament();
+initPreMatch();
+showScreen('screen-pre-tournament');
 
-// Rebuild matrix when player names or factions change
+// Rebuild when player names change
 $('player-inputs').addEventListener('focusout', e => {
   if (e.target.matches('input[type="text"]')) {
-    readSetup();
+    for (let i = 0; i < 5; i++) {
+      S.players[i] = ($(`pin${i}`)?.value.trim()) || TEAM_DATA.players[i];
+    }
     buildMatrixTable();
     buildPersonalScoreTable();
   }
 });
+// Rebuild when faction changes
 $('player-inputs').addEventListener('change', e => {
   if (e.target.matches('select')) {
-    readSetup();
-    // Re-seed terrain axis from the newly chosen faction
     const idx = [...$('player-inputs').querySelectorAll('select')].indexOf(e.target);
     if (idx >= 0) {
+      S.playerFactions[idx] = e.target.value;
       const seeded = factionAxisSeed(e.target.value);
       S.ourAxis[idx] = seeded;
       syncInlineSlider(idx, seeded);
