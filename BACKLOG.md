@@ -77,4 +77,4 @@ Quality-of-life issues noticed in recent sessions.
 | Session | Items worked |
 |---------|-------------|
 | 2026-05-04 | 1b (implemented, unverified) |
-| 2026-05-05 | 1b (verified), 2a, 2b, 1c |
+| 2026-05-05 | 1b (verified), 2a, 2b, 1c, 1d |

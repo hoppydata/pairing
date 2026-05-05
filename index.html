@@ -946,6 +946,7 @@
         <div class="sel-count" id="cnt-s1a-b">Selected: 0 / 2</div>
       </div>
     </div>
+    <div id="warn-mirror-s1a"></div>
     <div class="btn-row">
       <button class="btn btn-primary btn-full" id="btn-rev-s1a" disabled>Proceed to Refusal →</button>
     </div>
@@ -1044,6 +1045,7 @@
         <div class="sel-count" id="cnt-s2a-b">Selected: 0 / 2</div>
       </div>
     </div>
+    <div id="warn-mirror-s2a"></div>
     <div class="btn-row">
       <button class="btn btn-primary btn-full" id="btn-rev-s2a" disabled>Proceed to Refusal →</button>
     </div>
@@ -2528,10 +2530,31 @@ function enterS1Defender() {
 
 const s1a = { selA: new Set(), selB: new Set() };
 
+/* Mirror-match leverage check.
+ * Fires when both of our selected attackers score 9–11 vs the opponent defender:
+ * no leverage — opponent can accept either without conceding anything. */
+function mirrorMatchCheck(warningElId, ourSelSet, oppDefIdx) {
+  const el = $(warningElId);
+  if (!el) return;
+  if (ourSelSet.size !== 2) { el.innerHTML = ''; return; }
+  const scores = [...ourSelSet].map(pi => scoreNum(pi, oppDefIdx));
+  const allDraw = scores.every(sc => sc !== null && sc >= 9 && sc <= 11);
+  if (allDraw) {
+    el.innerHTML = `<div style="margin:0.5rem 0;padding:0.45rem 0.7rem;font-size:0.82rem;line-height:1.5;
+      border-left:3px solid var(--amber);background:var(--surface2);border-radius:0 var(--radius) var(--radius) 0">
+      <span style="color:var(--amber);font-weight:700;margin-right:0.4rem">≈</span>
+      Both offers score ${scores[0]}–${scores[1]} vs their defender — no leverage. Opponent can accept either freely. Consider swapping one attacker.
+    </div>`;
+  } else {
+    el.innerHTML = '';
+  }
+}
+
 function s1aRefresh() {
   $('cnt-s1a-a').textContent = `Selected: ${s1a.selA.size} / 2`;
   $('cnt-s1a-b').textContent = `Selected: ${s1a.selB.size} / 2`;
   $('btn-rev-s1a').disabled = !(s1a.selA.size === 2 && s1a.selB.size === 2);
+  mirrorMatchCheck('warn-mirror-s1a', s1a.selA, S.s1.defB);
 }
 
 function enterS1Attackers() {
@@ -2759,6 +2782,7 @@ function s2aRefresh() {
   $('cnt-s2a-a').textContent = `Selected: ${s2a.selA.size} / 2`;
   $('cnt-s2a-b').textContent = `Selected: ${s2a.selB.size} / 2`;
   $('btn-rev-s2a').disabled = !(s2a.selA.size === 2 && s2a.selB.size === 2);
+  mirrorMatchCheck('warn-mirror-s2a', s2a.selA, S.s2.defB);
 }
 
 function enterS2Attackers() {
