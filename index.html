@@ -410,6 +410,7 @@
       margin-bottom: 0.45rem;
       font-size: 0.86rem;
     }
+    .player-faction { font-size: 0.78em; color: var(--muted); font-weight: 400; }
     .game-num {
       font-size: 0.68rem;
       font-weight: 700;
@@ -449,17 +450,24 @@
       position: fixed;
       bottom: 1.5rem;
       left: 50%;
-      transform: translateX(-50%) translateY(120%);
+      transform: translateX(-50%) translateY(calc(100% + 2rem));
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 0.6rem 1.1rem;
       font-size: 0.83rem;
-      transition: transform 0.3s var(--ease);
+      transition: transform 0.3s var(--ease), visibility 0s linear 0.3s;
       z-index: 999;
       white-space: nowrap;
+      visibility: hidden;
+      pointer-events: none;
     }
-    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+      visibility: visible;
+      pointer-events: auto;
+      transition: transform 0.3s var(--ease), visibility 0s linear 0s;
+    }
     #toast.err  { border-color: var(--red);   color: var(--red);   }
     #toast.ok   { border-color: var(--green);  color: var(--green); }
 
@@ -1315,6 +1323,7 @@ function showScreen(id) {
 }
 
 function toast(msg, type = '') {
+  if (msg === null || msg === undefined || msg === '') return;
   const t = $('toast');
   t.textContent = msg;
   t.className = 'show ' + type;
@@ -2150,6 +2159,8 @@ function buildCompositionWarnings() {
   const PIN_THRESHOLD    = 14;  // score ≥14 = strong attacker
   const DEF_THRESHOLD    = 11;  // opp avg ≥11 = likely defender
   const PINNABLE_AVG     = 8;   // our player avg ≤8 = opponent can pin them
+  const OVERCONF_DELTA   = 3;   // personal avg ≥ meta avg + this = integrity flag
+  const OVERCONF_MIN_N   = 2;   // require at least this many personal scores to flag
 
   if (S.factions.length < 5) {
     el.innerHTML = '<div class="card-title">Composition Analysis</div><p style="color:var(--muted);font-size:0.82rem">Select 5 opponent factions to see analysis.</p>';
@@ -2211,13 +2222,39 @@ function buildCompositionWarnings() {
     }
   });
 
+  // Estimation integrity — personal scores systematically above meta (overconfidence check)
+  S.players.forEach((name, pi) => {
+    const personalEntries = S.factions
+      .map((_, fi) => {
+        const personal = S.matrix[pi]?.[fi];
+        if (personal === null || personal === undefined) return null;
+        const meta = getMetaScore(pi, fi);
+        if (meta === null) return null;
+        return { personal, meta };
+      })
+      .filter(x => x !== null);
+
+    if (personalEntries.length < OVERCONF_MIN_N) return;
+
+    const personalAvg = personalEntries.reduce((s, x) => s + x.personal, 0) / personalEntries.length;
+    const metaAvg     = personalEntries.reduce((s, x) => s + x.meta,     0) / personalEntries.length;
+    const delta = personalAvg - metaAvg;
+
+    if (delta >= OVERCONF_DELTA) {
+      warnings.push({
+        type: 'overconf',
+        text: `<strong>${name}</strong>'s self-ratings avg ${personalAvg.toFixed(1)} vs meta avg ${metaAvg.toFixed(1)} (+${delta.toFixed(1)}) — verify with team before pairings.`
+      });
+    }
+  });
+
   if (warnings.length === 0) {
     el.innerHTML = '<div class="card-title">Composition Analysis</div><p style="color:var(--muted);font-size:0.82rem">No significant gaps or pin opportunities detected.</p>';
     return;
   }
 
-  const iconMap  = { gap: '⚠', pin: '◈', info: '→', risk: '!' };
-  const colorMap = { gap: 'var(--red)', pin: 'var(--gold)', info: 'var(--blue)', risk: 'var(--amber)' };
+  const iconMap  = { gap: '⚠', pin: '◈', info: '→', risk: '!', overconf: '?' };
+  const colorMap = { gap: 'var(--red)', pin: 'var(--gold)', info: 'var(--blue)', risk: 'var(--amber)', overconf: 'var(--amber)' };
 
   el.innerHTML = `
     <div class="card-title">Composition Analysis</div>
@@ -2591,8 +2628,8 @@ function enterS1Tables() {
 
   const el = $('s1t-pairings');
   el.innerHTML = '<div class="card-title">Stage 1 Pairings</div>';
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 1', S.players[S.s1.game1.ourPlayer], S.factions[S.s1.game1.theirFaction], ''));
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 2', S.players[S.s1.game2.ourPlayer], S.factions[S.s1.game2.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 1', S.players[S.s1.game1.ourPlayer], S.playerFactions[S.s1.game1.ourPlayer], S.factions[S.s1.game1.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 2', S.players[S.s1.game2.ourPlayer], S.playerFactions[S.s1.game2.ourPlayer], S.factions[S.s1.game2.theirFaction], ''));
 
   // Determine pick order based on rolloff
   // Winner (pick 1) gets to choose from all 5; they own picks 1,4,5 conceptually
@@ -2774,9 +2811,9 @@ function finishS2Refusal() {
 
   const el = $('s2t-pairings');
   el.innerHTML = '<div class="card-title">Stage 2 Pairings</div>';
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 3', S.players[S.s2.game3.ourPlayer], S.factions[S.s2.game3.theirFaction], ''));
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 4', S.players[S.s2.game4.ourPlayer], S.factions[S.s2.game4.theirFaction], ''));
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 5 ★', S.players[S.s2.game5.ourPlayer], S.factions[S.s2.game5.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 3', S.players[S.s2.game3.ourPlayer], S.playerFactions[S.s2.game3.ourPlayer], S.factions[S.s2.game3.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 4', S.players[S.s2.game4.ourPlayer], S.playerFactions[S.s2.game4.ourPlayer], S.factions[S.s2.game4.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 5 ★', S.players[S.s2.game5.ourPlayer], S.playerFactions[S.s2.game5.ourPlayer], S.factions[S.s2.game5.theirFaction], ''));
 
   refreshOverviewBar();
   $('s2t-section').style.display = 'block';
@@ -2935,7 +2972,7 @@ function enterResults() {
             : '';
           return `<tr>
             <td><span class="game-num" style="font-size:0.72rem">${label}</span></td>
-            <td><strong>${S.players[g.ourPlayer]}</strong><span class="gb-vs">vs</span>${S.factions[g.theirFaction]}${ttBadge}</td>
+            <td><strong>${S.players[g.ourPlayer]}</strong><span class="player-faction"> (${S.playerFactions[g.ourPlayer]})</span><span class="gb-vs">vs</span>${S.factions[g.theirFaction]}${ttBadge}</td>
             <td><span class="${scClass(sc)}" style="font-weight:700">${sc}</span>${deltaBadge}</td>
             <td><span class="${scClass(20 - oppSc)}" style="font-weight:700">${oppSc}</span></td>
             <td><span class="${netCls}">${netStr}</span></td>
@@ -2968,7 +3005,7 @@ function enterResults() {
     }
     return `<div style="display:flex;align-items:flex-start;gap:0.6rem;padding:0.35rem 0;border-bottom:1px solid var(--border)">
       <span style="font-size:0.7rem;color:var(--muted);min-width:3.2rem;padding-top:0.05rem">${label}</span>
-      <span style="flex:1;font-size:0.82rem"><strong>${S.players[g.ourPlayer]}</strong><span style="color:var(--muted);margin:0 0.3rem">vs</span>${S.factions[g.theirFaction]}</span>
+      <span style="flex:1;font-size:0.82rem"><strong>${S.players[g.ourPlayer]}</strong><span class="player-faction"> (${S.playerFactions[g.ourPlayer]})</span><span style="color:var(--muted);margin:0 0.3rem">vs</span>${S.factions[g.theirFaction]}</span>
       <span style="font-size:0.68rem;font-weight:700;color:${color};min-width:3.8rem;text-align:right;padding-top:0.05rem">${role}</span>
       <span style="font-size:0.74rem;color:var(--muted);flex:1.4">${mandate}</span>
     </div>`;
@@ -2990,7 +3027,7 @@ function enterResults() {
       const netStr = net > 0 ? `+${net}` : String(net);
       return `<div class="dl-entry">
         <span class="dl-step">${entry.step}</span>
-        <span>${S.players[entry.ourPlayer]} vs ${S.factions[entry.theirFaction]}</span>
+        <span>${S.players[entry.ourPlayer]} <span class="player-faction">(${S.playerFactions[entry.ourPlayer]})</span> vs ${S.factions[entry.theirFaction]}</span>
         <span class="${cls}" style="margin-left:auto;font-weight:700">${sc}/20 (${netStr} net)</span>
       </div>`;
     }).join('');
@@ -3026,11 +3063,11 @@ function enterResults() {
    HELPERS
 ═══════════════════════════════════════════════════════════ */
 
-function pairingLine(label, playerName, factionName, table) {
+function pairingLine(label, playerName, playerFaction, factionName, table) {
   const tag = table ? `<span class="table-tag">Table: ${table}</span>` : '';
   return `<div class="pairing-line">
     <span class="game-num">${label}</span>
-    <span>${playerName}</span>
+    <span>${playerName}<span class="player-faction"> (${playerFaction})</span></span>
     <span class="vs">vs</span>
     <span>${factionName}</span>
     ${tag}
@@ -3057,7 +3094,7 @@ function refreshOverviewBar() {
     const scoreSpan = score !== null ? `<span class="ov-slot-score ${cls}">${score}</span>` : '';
     return `<div class="ov-slot filled ${cls}" title="${S.players[game.ourPlayer]} vs ${S.factions[game.theirFaction]}">
       <span class="ov-slot-num">${label}</span>
-      <span>${S.players[game.ourPlayer]}</span>
+      <span>${S.players[game.ourPlayer]} <span class="player-faction">(${S.playerFactions[game.ourPlayer]})</span></span>
       <span class="ov-slot-vs">vs</span>
       <span>${S.factions[game.theirFaction]}</span>
       ${scoreSpan}
