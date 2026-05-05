@@ -1121,6 +1121,9 @@
       <div class="card-title">Table Choice Summary</div>
       <div style="font-size:0.82rem;color:var(--muted);line-height:1.9" id="results-tables"></div>
     </div>
+    <!-- Post-round recalibration -->
+    <div class="card" id="results-recalib"></div>
+
     <button class="btn btn-outline btn-full" id="btn-restart" style="margin-top:0.5rem">New Match ↺</button>
   </div>
 
@@ -2945,6 +2948,75 @@ function finishS2Refusal() {
    SCREEN 8 — RESULTS
 ═══════════════════════════════════════════════════════════ */
 
+function buildRecalibCard(allGames) {
+  const el = $('results-recalib');
+  if (!el) return;
+
+  const rows = allGames.map(([label, g], idx) => {
+    const matrixSc = S.matrix[g.ourPlayer]?.[g.theirFaction] ?? null;
+    const { score: usedSc } = getScore(g.ourPlayer, g.theirFaction);
+    const displaySc = usedSc ?? 10;
+    const isMeta = matrixSc === null;
+    const srcLabel = isMeta ? 'meta' : 'personal';
+    const scCls = scClass(displaySc);
+    return `<div style="display:flex;align-items:center;gap:0.6rem;padding:0.35rem 0;border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <span style="font-size:0.7rem;color:var(--muted);min-width:3.2rem">${label}</span>
+      <span style="flex:1;font-size:0.82rem;min-width:10rem">
+        <strong>${S.players[g.ourPlayer]}</strong><span class="player-faction"> (${S.playerFactions[g.ourPlayer]})</span>
+        <span style="color:var(--muted);margin:0 0.3rem">vs</span>${S.factions[g.theirFaction]}
+      </span>
+      <span style="font-size:0.78rem;color:var(--muted);min-width:5.5rem">
+        Matrix: <span class="${scCls}" style="font-weight:700">${displaySc}</span>
+        <span style="font-size:0.65rem">(${srcLabel})</span>
+      </span>
+      <span style="display:flex;align-items:center;gap:0.35rem">
+        <label style="font-size:0.72rem;color:var(--muted)" for="recalib-${idx}">Actual:</label>
+        <input id="recalib-${idx}" type="number" min="0" max="20" placeholder="0–20"
+          style="width:3.5rem;padding:0.2rem 0.4rem;font-size:0.82rem;background:var(--surface2);
+                 border:1px solid var(--border);border-radius:4px;color:var(--text);text-align:center"
+          data-pi="${g.ourPlayer}" data-fi="${g.theirFaction}" data-used="${displaySc}" />
+        <button class="btn-recalib" data-idx="${idx}"
+          style="font-size:0.72rem;padding:0.2rem 0.55rem;border:1px solid var(--border);
+                 border-radius:4px;background:var(--surface2);color:var(--muted);cursor:pointer">
+          Update
+        </button>
+        <span class="recalib-status" id="recalib-status-${idx}" style="font-size:0.72rem;min-width:2.5rem"></span>
+      </span>
+    </div>`;
+  });
+
+  el.innerHTML = `
+    <div class="card-title">Post-Round Recalibration
+      <span style="font-weight:400;font-size:0.65rem;color:var(--muted);letter-spacing:0;margin-left:0.5rem">
+        Enter actual results to keep your matrix honest.
+      </span>
+    </div>
+    <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.6rem;line-height:1.5">
+      If a game felt very different from your matrix score, update it now — stale estimates compound over rounds.
+    </div>
+    ${rows.join('')}`;
+
+  el.querySelectorAll('.btn-recalib').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = +btn.dataset.idx;
+      const inp = $(`recalib-${idx}`);
+      const statusEl = $(`recalib-status-${idx}`);
+      const raw = inp.value.trim();
+      if (raw === '') { statusEl.textContent = '—'; statusEl.style.color = 'var(--muted)'; return; }
+      const val = Math.max(0, Math.min(20, parseInt(raw) || 0));
+      const pi = +inp.dataset.pi;
+      const fi = +inp.dataset.fi;
+      const used = +inp.dataset.used;
+      S.matrix[pi][fi] = val;
+      inp.value = val;
+      const diff = val - used;
+      const diffStr = diff > 0 ? `+${diff}` : String(diff);
+      statusEl.textContent = diff === 0 ? '✓ same' : `✓ ${diffStr}`;
+      statusEl.style.color = diff === 0 ? 'var(--muted)' : diff > 0 ? 'var(--green)' : 'var(--red)';
+    });
+  });
+}
+
 function enterResults() {
   showScreen('screen-results');
   refreshOverviewBar();
@@ -3094,6 +3166,8 @@ function enterResults() {
     const ttCls   = tableType ? `ttype-${tableType}` : '';
     return `${tblStr}${ttLabel ? ` <span class="${ttCls}">${ttLabel}</span>` : ''}`;
   }
+
+  buildRecalibCard(allGames);
 
   $('results-tables').innerHTML = [
     `Pick 1 (${winTeam} winner): <span style="color:var(--text)">${p1defender} → ${tableInfo(S.s1.tbl1, S.s1.game1?.tableType ?? null)}</span>`,
