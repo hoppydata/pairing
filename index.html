@@ -132,6 +132,47 @@
     }
     input:focus { border-color: var(--gold-dim); }
 
+    /* ── Branch planning ────────────────────────────────────── */
+    .branch-slot { margin-bottom: 1.1rem; }
+    .branch-slot:last-child { margin-bottom: 0; }
+    .branch-faction-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.4rem;
+    }
+    .branch-plan-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.88rem;
+      font-family: inherit;
+      padding: 0.55rem 0.75rem;
+      outline: none;
+      resize: vertical;
+      min-height: 3.5rem;
+      transition: border-color var(--dur);
+      line-height: 1.5;
+    }
+    .branch-plan-input:focus { border-color: var(--gold-dim); }
+    .branch-plan-input::placeholder { color: var(--muted); }
+
+    /* Branch reference panel shown during draft screens */
+    .branch-ref-panel {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.7rem 0.9rem;
+      margin-bottom: 1rem;
+      font-size: 0.82rem;
+    }
+    .branch-ref-title {
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
+    }
+    .branch-ref-row { color: var(--muted); line-height: 1.6; }
+    .branch-ref-row strong { color: var(--text); font-weight: 600; }
+
     /* ── Buttons ────────────────────────────────────────────── */
     .btn {
       display: inline-flex;
@@ -877,6 +918,23 @@
   </div>
 
 
+  <!-- ══ SCREEN 0.5 — Branch Planning ══ -->
+  <div class="screen" id="screen-branch">
+    <div class="screen-title">Pre-Round Branch Planning</div>
+    <div class="screen-sub">Plan two branches before you sit down. Pre-game decisions are better than reactive ones under time pressure. <em>Optional — you can skip this.</em></div>
+
+    <div class="card" id="branch-plan-card">
+      <div class="card-title">If they defend with…</div>
+      <div id="branch-slots"></div>
+    </div>
+
+    <div class="btn-row" style="gap:0.75rem">
+      <button class="btn btn-outline" id="btn-branch-skip" style="flex:1">Skip →</button>
+      <button class="btn btn-primary" id="btn-branch-save" style="flex:2">Save Plans &amp; Continue →</button>
+    </div>
+  </div>
+
+
   <!-- ══ SCREEN 1 — Rolloff ══ -->
   <div class="screen" id="screen-s1rolloff">
     <div class="screen-title">Table Rolloff</div>
@@ -946,6 +1004,7 @@
         <div class="sel-count" id="cnt-s1a-b">Selected: 0 / 2</div>
       </div>
     </div>
+    <div id="branch-ref-s1a"></div>
     <div id="warn-mirror-s1a"></div>
     <div class="btn-row">
       <button class="btn btn-primary btn-full" id="btn-rev-s1a" disabled>Proceed to Refusal →</button>
@@ -1045,6 +1104,7 @@
         <div class="sel-count" id="cnt-s2a-b">Selected: 0 / 2</div>
       </div>
     </div>
+    <div id="branch-ref-s2a"></div>
     <div id="warn-mirror-s2a"></div>
     <div class="btn-row">
       <button class="btn btn-primary btn-full" id="btn-rev-s2a" disabled>Proceed to Refusal →</button>
@@ -1296,10 +1356,13 @@ const S = {
         game1:null, game2:null, tbl1:'', tbl2:'' },
   s2: { defA:null, defB:null, atkA:[], atkB:[], refA:null, refB:null,
         game3:null, game4:null, game5:null, tbl3:'', tbl4:'', tbl5:'' },
+
+  // Pre-round branch plans: 2 slots with expected opp defender faction + our plan text
+  branchPlans: [{ faction: '', plan: '' }, { faction: '', plan: '' }],
 };
 
 const SCREENS = [
-  'screen-pre-tournament','screen-pre-match','screen-s1rolloff','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
+  'screen-pre-tournament','screen-pre-match','screen-branch','screen-s1rolloff','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
   'screen-s2d','screen-s2a','screen-s2r','screen-results'
 ];
 
@@ -2438,10 +2501,78 @@ $('btn-start').addEventListener('click', () => {
   Object.assign(S.s2, { defA:null,defB:null,atkA:[],atkB:[],refA:null,refB:null,game3:null,game4:null,game5:null,tbl3:'',tbl4:'',tbl5:'' });
   DECISION_LOG.length = 0;
 
-  enterS1Rolloff();
+  enterBranchPlan();
   showOverviewBar(true);
   refreshOverviewBar();
 });
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN 0.5 — BRANCH PLANNING
+═══════════════════════════════════════════════════════════ */
+
+function getExpectedOppDefenders() {
+  if (S.factions.length < 5) return [];
+  const DEF_THRESHOLD = 11;
+  return S.factions.map((fName, fi) => {
+    const avg = S.players.reduce((sum, _, pi) => sum + (oppMetaScore(fi, pi) ?? 10), 0) / S.players.length;
+    return { fName, avg };
+  }).sort((a, b) => b.avg - a.avg)
+    .filter(d => d.avg >= DEF_THRESHOLD)
+    .slice(0, 2)
+    .map(d => d.fName);
+}
+
+function renderBranchRefPanel(elId) {
+  const el = $(elId);
+  if (!el) return;
+  const plans = S.branchPlans.filter(p => p.faction || p.plan);
+  if (plans.length === 0) { el.innerHTML = ''; return; }
+  const rows = plans.map(p =>
+    `<div class="branch-ref-row"><strong>${p.faction || '—'}</strong>: ${p.plan || '<em style="color:var(--muted)">no plan entered</em>'}</div>`
+  ).join('');
+  el.innerHTML = `<div class="branch-ref-panel">
+    <div class="branch-ref-title">Pre-round branch plan</div>
+    ${rows}
+  </div>`;
+}
+
+function enterBranchPlan() {
+  showScreen('screen-branch');
+
+  const preloaded = getExpectedOppDefenders();
+  S.branchPlans = [
+    { faction: preloaded[0] ?? '', plan: '' },
+    { faction: preloaded[1] ?? '', plan: '' },
+  ];
+
+  const container = $('branch-slots');
+  container.innerHTML = [0, 1].map(i => `
+    <div class="branch-slot">
+      <div class="branch-faction-label">Branch ${i + 1} — if they defend with</div>
+      <div class="field" style="margin-bottom:0.4rem">
+        <input type="text" id="branch-fac-${i}" value="${S.branchPlans[i].faction}"
+          placeholder="Faction name (e.g. Space Marines)"
+          style="margin-bottom:0.4rem" />
+      </div>
+      <textarea id="branch-plan-${i}" class="branch-plan-input"
+        placeholder="Our plan if they defend with this faction…"
+        rows="2">${S.branchPlans[i].plan}</textarea>
+    </div>
+  `).join('<hr style="border:none;border-top:1px solid var(--border);margin:0.9rem 0">');
+
+  $('btn-branch-skip').onclick = () => {
+    S.branchPlans = [{ faction: '', plan: '' }, { faction: '', plan: '' }];
+    enterS1Rolloff();
+  };
+
+  $('btn-branch-save').onclick = () => {
+    S.branchPlans = [0, 1].map(i => ({
+      faction: $(`branch-fac-${i}`)?.value.trim() ?? '',
+      plan:    $(`branch-plan-${i}`)?.value.trim() ?? '',
+    }));
+    enterS1Rolloff();
+  };
+}
 
 /* ═══════════════════════════════════════════════════════════
    SCREEN 1 — ROLLOFF
@@ -2558,6 +2689,7 @@ function s1aRefresh() {
   $('cnt-s1a-b').textContent = `Selected: ${s1a.selB.size} / 2`;
   $('btn-rev-s1a').disabled = !(s1a.selA.size === 2 && s1a.selB.size === 2);
   mirrorMatchCheck('warn-mirror-s1a', s1a.selA, S.s1.defB);
+  renderBranchRefPanel('branch-ref-s1a');
 }
 
 function enterS1Attackers() {
@@ -2786,6 +2918,7 @@ function s2aRefresh() {
   $('cnt-s2a-b').textContent = `Selected: ${s2a.selB.size} / 2`;
   $('btn-rev-s2a').disabled = !(s2a.selA.size === 2 && s2a.selB.size === 2);
   mirrorMatchCheck('warn-mirror-s2a', s2a.selA, S.s2.defB);
+  renderBranchRefPanel('branch-ref-s2a');
 }
 
 function enterS2Attackers() {
