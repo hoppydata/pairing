@@ -2161,6 +2161,7 @@ function buildCompositionWarnings() {
   const PINNABLE_AVG     = 8;   // our player avg ≤8 = opponent can pin them
   const OVERCONF_DELTA   = 3;   // personal avg ≥ meta avg + this = integrity flag
   const OVERCONF_MIN_N   = 2;   // require at least this many personal scores to flag
+  const COUNTER_THRESHOLD = 13; // score ≥13 = qualifies as top-2 counter for a faction
 
   if (S.factions.length < 5) {
     el.innerHTML = '<div class="card-title">Composition Analysis</div><p style="color:var(--muted);font-size:0.82rem">Select 5 opponent factions to see analysis.</p>';
@@ -2222,6 +2223,26 @@ function buildCompositionWarnings() {
     }
   });
 
+  // Defender by elimination — player least needed as attacker (fewest top-2 counter appearances)
+  const elimRanking = S.players.map((name, pi) => {
+    const counterCount = S.factions.filter((_, fi) => {
+      const sc = scoreNum(pi, fi);
+      return sc !== null && sc >= COUNTER_THRESHOLD;
+    }).length;
+    return { name, counterCount };
+  }).sort((a, b) => a.counterCount - b.counterCount);
+
+  const elimCandidate = elimRanking[0];
+  const elimRunnerUp  = elimRanking[1];
+  const tie = elimRunnerUp && elimRunnerUp.counterCount === elimCandidate.counterCount;
+  const elimReason = tie
+    ? `tied with ${elimRunnerUp.name} at ${elimCandidate.counterCount} counter(s) — either can defend`
+    : `${elimCandidate.counterCount} counter(s) vs ${elimRunnerUp ? elimRunnerUp.counterCount : '?'} for next — least needed attacking`;
+  warnings.push({
+    type: 'elim',
+    text: `Defender by elimination: <strong>${elimCandidate.name}</strong> — ${elimReason}.`
+  });
+
   // Estimation integrity — personal scores systematically above meta (overconfidence check)
   S.players.forEach((name, pi) => {
     const personalEntries = S.factions
@@ -2253,8 +2274,8 @@ function buildCompositionWarnings() {
     return;
   }
 
-  const iconMap  = { gap: '⚠', pin: '◈', info: '→', risk: '!', overconf: '?' };
-  const colorMap = { gap: 'var(--red)', pin: 'var(--gold)', info: 'var(--blue)', risk: 'var(--amber)', overconf: 'var(--amber)' };
+  const iconMap  = { gap: '⚠', pin: '◈', info: '→', risk: '!', overconf: '?', elim: '◎' };
+  const colorMap = { gap: 'var(--red)', pin: 'var(--gold)', info: 'var(--blue)', risk: 'var(--amber)', overconf: 'var(--amber)', elim: 'var(--blue)' };
 
   el.innerHTML = `
     <div class="card-title">Composition Analysis</div>
