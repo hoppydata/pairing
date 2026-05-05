@@ -63,6 +63,20 @@ Quality-of-life issues noticed in recent sessions.
 
 ---
 
+### 1f. Symmetric opponent attacker prediction `S`
+**What:** `attackerSuggestOpponent` previously sorted by *our* score (factions we beat hardest). Replaced with `rankFactionAttackersOpp` which sorts by the opponent's expected score (`oppMetaScore`) — what they'd actually send. Suggestion list now shows two columns: "Their score (est)" and "Our score".
+**Why:** A skilled opponent picks attackers the same way we do — where *they* score best. Our previous list was the inverse of reality.
+**Acceptance:** "Opponent likely sends" list reorders so the top entry is the faction with the highest opponent-perspective score. Both columns visible.
+
+---
+
+### 1g. Lookahead table-pick hint when losing rolloff `S`
+**What:** When we lose the rolloff, an info chip appears at S1 pick 2 and S2 pick 3 if a within-tolerance alternative table yields a higher *team* total (current pick + future pick) than the greedy local choice. Threshold: ≥2 VP team gain at S1, ≥3 VP at S2 (stricter since only Game 5 follows).
+**Why:** Greedy single-pick optimisation hides the team angle. The strategy guide explicitly calls out: pick 2 captain might do better taking a less-significant table when this opens up a much-better option for pick 3.
+**Acceptance:** Chip appears only when loser, before the relevant pick is made, and only when team net gain exceeds the threshold. Does not auto-pick — purely advisory.
+
+---
+
 ## 3. Data & Matrix
 
 ### 3a. Norge Scores Completion `ongoing`
@@ -77,4 +91,4 @@ Quality-of-life issues noticed in recent sessions.
 | Session | Items worked |
 |---------|-------------|
 | 2026-05-04 | 1b (implemented, unverified) |
-| 2026-05-05 | 1b (verified), 2a, 2b, 1c, 1d, 1a, 1e |
+| 2026-05-05 | 1b (verified), 2a, 2b, 1c, 1d, 1a, 1e, 1f, 1g |

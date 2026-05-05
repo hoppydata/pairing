@@ -1044,6 +1044,7 @@
     <div class="screen-sub">Games 1 &amp; 2 are locked. Each defender picks a table for their own game.</div>
     <div class="card" id="s1t-pairings"></div>
     <div class="info-box" id="s1t-order-info"></div>
+    <div id="s1t-lookahead"></div>
     <div class="card" id="s1t-pick1-card">
       <div class="card-title" id="s1t-pick1-title">Pick 1 — rolloff winner chooses</div>
       <div class="table-pick-grid" id="s1t-pick1-grid"></div>
@@ -1138,6 +1139,7 @@
     <div id="s2t-section" style="display:none;margin-top:1.5rem">
       <div class="card" id="s2t-pairings"></div>
       <div class="info-box" id="s2t-order-info"></div>
+      <div id="s2t-lookahead"></div>
       <div class="card">
         <div class="card-title" id="s2t-pick3-title">Pick 3 — rolloff loser's S2 defender</div>
         <div class="table-pick-grid" id="s2t-pick3-grid"></div>
@@ -1474,6 +1476,24 @@ function tableTypeForId(tableId) {
   return t ? t.type : null;
 }
 
+/* Lookahead: best expected score for any of `playerPool` × any of `factionPool`
+   across `tableIds`. Used to estimate teammate value of leaving certain tables
+   open for a later pick. Returns the max adjusted score. */
+function bestFutureScore(playerPool, factionPool, tableIds) {
+  if (!tableIds.length || !playerPool.length || !factionPool.length) return 10;
+  let best = -Infinity;
+  for (const pi of playerPool) {
+    for (const fi of factionPool) {
+      for (const tid of tableIds) {
+        const tt = tableTypeForId(tid);
+        const { score } = getScoreWithTable(pi, fi, tt);
+        if (score !== null && score > best) best = score;
+      }
+    }
+  }
+  return best === -Infinity ? 10 : best;
+}
+
 /* ═══════════════════════════════════════════════════════════
    DECISION LOG
 ═══════════════════════════════════════════════════════════ */
@@ -1601,6 +1621,17 @@ function rankPlayerAttackers(playerIdxs, oppDefender) {
   }).sort((a, b) => b.score - a.score);
 }
 
+/* Rank opponent factions by THEIR expected score vs our defender (descending).
+   Mirrors rankPlayerAttackers but from the opponent's perspective —
+   used to predict what the opponent will actually send as attackers. */
+function rankFactionAttackersOpp(factionIdxs, ourDefIdx) {
+  return factionIdxs.map(fi => {
+    const oppSc = oppMetaScore(fi, ourDefIdx);
+    const ourSc = scoreNum(ourDefIdx, fi) ?? 10;
+    return { idx: fi, name: S.factions[fi], oppSc, ourSc };
+  }).sort((a, b) => b.oppSc - a.oppSc);
+}
+
 /*
  * Build a collapsible suggestion panel HTML string.
  * rows: [{name, col1, col2, col1Class, col2Class, isBest}]
@@ -1694,27 +1725,21 @@ function attackerSuggestOurs(containerEl, playerPool, oppDefIdx) {
   containerEl.innerHTML = buildSuggestHTML(uid, '💡 Best attackers vs their defender', rows, 'Score (pers)', 'Meta', null);
 }
 
-/* Attacker suggestions: opponent factions vs specific our defender — our score if we face them */
+/* Attacker suggestions: predict what factions the opponent will send vs our defender.
+   Ranked by THEIR expected score descending (a competent opponent picks what scores
+   best for them, not what we beat hardest). Show their score and our score. */
 function attackerSuggestOpponent(containerEl, factionPool, ourDefIdx) {
-  const ranked = factionPool.map(fi => {
-    const { score, isMeta } = getScore(ourDefIdx, fi);
-    const metaSc = getMetaScore(ourDefIdx, fi);
-    return { idx: fi, name: S.factions[fi], score: score ?? 10, isMeta, metaSc };
-  }).sort((a, b) => b.score - a.score);
-  const rows = ranked.map((r, i) => {
-    const col1 = r.metaSc !== null && !r.isMeta && r.metaSc !== r.score
-      ? `${r.score} <span class="suggest-breakdown">(${r.metaSc} meta)</span>`
-      : `${r.score}${r.isMeta ? ' <span class="suggest-breakdown">meta</span>' : ''}`;
-    return {
-      name: r.name,
-      col1,
-      col2: null,
-      cls1: scClass(r.score),
-      isBest: i === 0
-    };
-  });
+  const ranked = rankFactionAttackersOpp(factionPool, ourDefIdx);
+  const rows = ranked.map((r, i) => ({
+    name: r.name,
+    col1: r.oppSc.toFixed(1),
+    col2: r.ourSc,
+    cls1: scClass(20 - r.oppSc),  // colour from our perspective: high opp score = bad for us
+    cls2: scClass(r.ourSc),
+    isBest: i === 0
+  }));
   const uid = 'ab-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends — <span style="color:var(--muted);font-weight:400">our score vs their attacker (higher = better for us)</span>', rows, 'Our score', null, null);
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends — <span style="color:var(--muted);font-weight:400">ranked by their expected score (top = most likely)</span>', rows, 'Their score (est)', 'Our score', null);
 }
 
 /* Refusal suggestions — show which of opponent's attackers to refuse.
@@ -2838,6 +2863,8 @@ function enterS1Tables() {
     renderTablePickButtons('s1t-pick2-grid', allIds, pick2Game, takenByP1, () => refreshPickBtns());
     $('btn-s1t-next').disabled = !(pick1Game.tableId != null && pick2Game.tableId != null);
 
+    renderS1Lookahead(pick1Game, pick2Game);
+
     // Show remaining tables for Stage 2 (picks 3, 4, and auto Game 5)
     const takenNow = new Set([pick1Game.tableId, pick2Game.tableId].filter(Boolean));
     const remaining = S.tables.filter(t => !takenNow.has(t.id));
@@ -2869,6 +2896,151 @@ function enterS1Tables() {
     S.s1.tbl2 = S.s1.game2.table;
     enterS2Defender();
   };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TABLE PICK LOOKAHEAD HINTS
+═══════════════════════════════════════════════════════════ */
+
+const LOOKAHEAD_MIN_GAIN = 2;       // S1 hint shown when team net gain ≥ this
+const LOOKAHEAD_MIN_GAIN_S2 = 3;    // S2 hint stricter (only Game 5 is downstream)
+const LOOKAHEAD_LOCAL_TOLERANCE = 2; // alternative must score within this much locally
+
+/* Render S1 pick-2 lookahead chip if we lost the rolloff and a better
+   team-total alternative exists. */
+function renderS1Lookahead(pick1Game, pick2Game) {
+  const el = $('s1t-lookahead');
+  if (!el) return;
+  el.innerHTML = '';
+
+  // Only when we lost the rolloff (so pick 2 = ours, pick 3 = also ours).
+  if (S.rolloffWinner !== 'B') return;
+  if (pick1Game.tableId == null) return;   // pick 1 must be locked first
+  if (pick2Game.tableId != null) return;   // hide once pick 2 is made
+
+  const ourPlayer = pick2Game.ourPlayer;       // our S1 defender
+  const ourFaction = pick2Game.theirFaction;   // their faction in our S1 def's game
+  const availIds = S.tables.map(t => t.id).filter(id => id !== pick1Game.tableId);
+
+  // Score each available table for our S1 defender game.
+  const scored = availIds.map(tid => {
+    const tt = tableTypeForId(tid);
+    const { score } = getScoreWithTable(ourPlayer, ourFaction, tt);
+    return { tid, score: score ?? 10 };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const greedy = scored[0];
+
+  // Our remaining S1 pool players are those still in S.poolA — these are the
+  // candidates for our S2 defender (pick 3). Remaining opponent factions =
+  // S.poolB minus the faction in our S1 def's game. Since we don't know
+  // their S2 defender yet, score against any-of-remaining as an upper bound.
+  const ourRemainingPlayers = S.poolA.filter(pi => pi !== ourPlayer);
+  const oppRemainingFactions = S.poolB.filter(fi => fi !== ourFaction);
+
+  const candidates = [];
+  for (const alt of scored.slice(1)) {
+    if (greedy.score - alt.score > LOOKAHEAD_LOCAL_TOLERANCE) continue;
+    const remAfterAlt = availIds.filter(id => id !== alt.tid);
+    const remAfterGreedy = availIds.filter(id => id !== greedy.tid);
+    const futureAlt = bestFutureScore(ourRemainingPlayers, oppRemainingFactions, remAfterAlt);
+    const futureGreedy = bestFutureScore(ourRemainingPlayers, oppRemainingFactions, remAfterGreedy);
+    const teamNet = (alt.score + futureAlt) - (greedy.score + futureGreedy);
+    if (teamNet >= LOOKAHEAD_MIN_GAIN) {
+      candidates.push({ alt, teamNet, futureAlt, futureGreedy });
+    }
+  }
+  if (!candidates.length) return;
+
+  candidates.sort((a, b) => b.teamNet - a.teamNet);
+  const best = candidates[0];
+  el.innerHTML = `<div class="info-box">
+    <strong>ⓘ Lookahead — pick 2 vs pick 3 trade-off:</strong>
+    Greedy choice <strong>Table ${greedy.tid}</strong> scores ${greedy.score} locally,
+    but <strong>Table ${best.alt.tid}</strong> (scoring ${best.alt.score}) leaves a stronger
+    table open for our S2 defender (best future ${best.futureAlt.toFixed(1)} vs ${best.futureGreedy.toFixed(1)}).
+    Net team gain: <strong>+${best.teamNet.toFixed(1)} VP</strong>.
+  </div>`;
+}
+
+/* Render S2 pick-3 lookahead chip if the Game-5 player is one of ours and a
+   better-for-Game-5 alternative is close to the greedy pick-3 score. */
+function renderS2Lookahead(pick3Game, pick4Game, game5, availableIds, s1Taken) {
+  const el = $('s2t-lookahead');
+  if (!el) return;
+  el.innerHTML = '';
+
+  if (S.rolloffWinner !== 'B') return;
+  if (pick3Game.tableId != null) return;   // hide once pick 3 is made
+
+  // Game 5 player is one of our refused attackers iff S.s2.refB is set and
+  // the resulting game5.ourPlayer is one of our players. game5 is our slot
+  // (.ourPlayer is always our side per finishS2Refusal logic).
+  if (!game5 || game5.ourPlayer == null) return;
+
+  const ourPlayer = pick3Game.ourPlayer;
+  const ourFaction = pick3Game.theirFaction;
+
+  const scored = availableIds.map(tid => {
+    const tt = tableTypeForId(tid);
+    const { score } = getScoreWithTable(ourPlayer, ourFaction, tt);
+    return { tid, score: score ?? 10 };
+  });
+  scored.sort((a, b) => b.score - a.score);
+  const greedy = scored[0];
+
+  // After pick 3 (alt or greedy), opponent picks 4 from remaining 2 — we model
+  // them as taking the table best for THEIR S2 defender's game.
+  const oppPlayer = pick4Game.theirFaction;   // their faction (this is opponent's defender)
+  const oppMatchup = pick4Game.ourPlayer;     // our attacker they face
+  function game5TableAfter(altTid) {
+    const remaining = availableIds.filter(id => id !== altTid);
+    if (remaining.length < 2) return null;
+    // Opponent picks the table that maximises their score (= 20 - our score
+    // approximation isn't great here; use lowest-our-score remaining as
+    // proxy for their best pick).
+    const ranked = remaining.map(tid => {
+      const tt = tableTypeForId(tid);
+      const { score } = getScoreWithTable(oppMatchup, oppPlayer, tt);
+      return { tid, ourScore: score ?? 10 };
+    }).sort((a, b) => a.ourScore - b.ourScore); // lowest ours first = their best
+    const oppPick = ranked[0].tid;
+    const game5Tid = remaining.find(id => id !== oppPick);
+    return game5Tid;
+  }
+
+  const candidates = [];
+  for (const alt of scored.slice(1)) {
+    if (greedy.score - alt.score > LOOKAHEAD_LOCAL_TOLERANCE) continue;
+    const altGame5 = game5TableAfter(alt.tid);
+    const greedyGame5 = game5TableAfter(greedy.tid);
+    if (altGame5 == null || greedyGame5 == null) continue;
+    const altScore = (() => {
+      const tt = tableTypeForId(altGame5);
+      const { score } = getScoreWithTable(game5.ourPlayer, game5.theirFaction, tt);
+      return score ?? 10;
+    })();
+    const greedyScore = (() => {
+      const tt = tableTypeForId(greedyGame5);
+      const { score } = getScoreWithTable(game5.ourPlayer, game5.theirFaction, tt);
+      return score ?? 10;
+    })();
+    const teamNet = (alt.score + altScore) - (greedy.score + greedyScore);
+    if (teamNet >= LOOKAHEAD_MIN_GAIN_S2) {
+      candidates.push({ alt, teamNet, altGame5, altScore, greedyGame5, greedyScore });
+    }
+  }
+  if (!candidates.length) return;
+
+  candidates.sort((a, b) => b.teamNet - a.teamNet);
+  const best = candidates[0];
+  el.innerHTML = `<div class="info-box">
+    <strong>ⓘ Lookahead — pick 3 vs Game 5 trade-off:</strong>
+    Greedy choice <strong>Table ${greedy.tid}</strong> scores ${greedy.score} locally;
+    <strong>Table ${best.alt.tid}</strong> (scoring ${best.alt.score}) likely leaves
+    Table ${best.altGame5} for Game 5 (score ${best.altScore} vs ${best.greedyScore}).
+    Net team gain: <strong>+${best.teamNet.toFixed(1)} VP</strong>.
+  </div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -3031,6 +3203,8 @@ function finishS2Refusal() {
 
     renderTablePickButtons('s2t-pick3-grid', availableIds, pick3Game, takenByP4, () => refreshS2Picks());
     renderTablePickButtons('s2t-pick4-grid', availableIds, pick4Game, takenByP3, () => refreshS2Picks());
+
+    renderS2Lookahead(pick3Game, pick4Game, S.s2.game5, availableIds, s1Taken);
 
     // Game 5 gets last remaining
     if (pick3Game.tableId != null && pick4Game.tableId != null) {
