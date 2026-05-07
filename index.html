@@ -809,6 +809,7 @@
 
 <header>
   <h1>40K ⚔ Team Pairing</h1>
+  <button class="btn btn-outline" id="global-back" style="display:none;padding:0.35rem 0.7rem;font-size:0.78rem">← Back</button>
   <div id="step-indicator"></div>
 </header>
 
@@ -912,8 +913,7 @@
     </div>
 
     <div class="btn-row" style="gap:0.75rem;margin-bottom:1.25rem">
-      <button class="btn btn-outline" id="btn-back-tournament">← Tournament Setup</button>
-      <button class="btn btn-primary" id="btn-start" style="flex:1">Begin Pairing →</button>
+      <button class="btn btn-primary btn-full" id="btn-start">Begin Pairing →</button>
     </div>
   </div>
 
@@ -1368,6 +1368,24 @@ const SCREENS = [
   'screen-s2d','screen-s2a','screen-s2r','screen-results'
 ];
 
+/* Back-navigation: which screen to return to when the user presses the
+   global Back button. Each entry maps current screen → previous screen.
+   Entry-handler functions per target screen (called after rollback) are
+   defined in BACK_HANDLERS below. */
+const BACK_TARGETS = {
+  'screen-pre-match':   'screen-pre-tournament',
+  'screen-branch':      'screen-pre-match',
+  'screen-s1rolloff':   'screen-branch',
+  'screen-s1d':         'screen-s1rolloff',
+  'screen-s1a':         'screen-s1d',
+  'screen-s1r':         'screen-s1a',
+  'screen-s1t':         'screen-s1r',
+  'screen-s2d':         'screen-s1t',
+  'screen-s2a':         'screen-s2d',
+  'screen-s2r':         'screen-s2a',
+  'screen-results':     'screen-s2r',
+};
+
 /* ═══════════════════════════════════════════════════════════
    UTILITIES
 ═══════════════════════════════════════════════════════════ */
@@ -1378,6 +1396,10 @@ function showScreen(id) {
   SCREENS.forEach(s => $(s).classList.toggle('active', s === id));
   const idx = SCREENS.indexOf(id);
   const ind = $('step-indicator');
+  const backBtn = $('global-back');
+  if (backBtn) {
+    backBtn.style.display = BACK_TARGETS[id] ? 'inline-flex' : 'none';
+  }
   ind.innerHTML = '';
   if (idx === 0) { ind.textContent = 'Setup'; return; }
   for (let i = 1; i < SCREENS.length; i++) {
@@ -3538,6 +3560,152 @@ function showOverviewBar(visible) {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   BACK NAVIGATION
+═══════════════════════════════════════════════════════════ */
+
+/* Rebuild S.poolA / S.poolB from the currently-committed defenders &
+   games. Called during back-rollback so going S2D → S1T (etc.) restores
+   the pool entries that the forward step had stripped out. */
+function rebuildPoolsFromCommitted() {
+  const allP = [0, 1, 2, 3, 4];
+  const allF = [0, 1, 2, 3, 4];
+
+  const usedP = new Set();
+  const usedF = new Set();
+
+  // Defenders that are still committed
+  if (S.s1?.defA != null) usedP.add(S.s1.defA);
+  if (S.s1?.defB != null) usedF.add(S.s1.defB);
+  if (S.s2?.defA != null) usedP.add(S.s2.defA);
+  if (S.s2?.defB != null) usedF.add(S.s2.defB);
+
+  // Locked games (their accepted attacker is also out of the pool).
+  // game5 holds the two refused attackers — they DO still belong out of pool
+  // once games 3+4 are locked, since by the time s2 is committed all 5 are paired.
+  [S.s1?.game1, S.s1?.game2, S.s2?.game3, S.s2?.game4, S.s2?.game5].forEach(g => {
+    if (!g) return;
+    if (g.ourPlayer != null) usedP.add(g.ourPlayer);
+    if (g.theirFaction != null) usedF.add(g.theirFaction);
+  });
+
+  S.poolA = allP.filter(i => !usedP.has(i));
+  S.poolB = allF.filter(i => !usedF.has(i));
+}
+
+/* Per-screen rollback: undo the commits that were made when the user
+   originally advanced PAST the previous screen. Mutating S only — DOM
+   is re-painted by the destination screen's enter*() function. */
+const BACK_ROLLBACKS = {
+  // Leaving pre-match → pre-tournament: nothing committed yet.
+  'screen-pre-match':  () => {},
+
+  // Leaving branch → pre-match: keep branch plans (user may want them);
+  // overview bar should hide again.
+  'screen-branch':     () => { showOverviewBar(false); },
+
+  // Leaving rolloff → branch: rolloff winner & table types are draft state,
+  // safe to keep (re-entering rolloff will re-render them from S).
+  'screen-s1rolloff':  () => {},
+
+  // Leaving S1D → rolloff: defenders not yet committed when entering S1D,
+  // so this is also a no-op for state. (defA/defB are committed on the
+  // S1D Reveal click, i.e. when leaving S1D forward — not when leaving back.)
+  'screen-s1d':        () => {},
+
+  // Leaving S1A → S1D: undo S1D's commit (defA/defB removed from pool).
+  'screen-s1a':        () => {
+    S.s1.defA = null;
+    S.s1.defB = null;
+    rebuildPoolsFromCommitted();
+  },
+
+  // Leaving S1R → S1A: atkA/atkB were stored on the S1A reveal click.
+  // Clear them so user re-picks; pools weren't shrunk further in S1A.
+  'screen-s1r':        () => {
+    S.s1.atkA = [];
+    S.s1.atkB = [];
+  },
+
+  // Leaving S1T → S1R: refusal committed game1/game2 + reshuffled pools.
+  'screen-s1t':        () => {
+    S.s1.game1 = null;
+    S.s1.game2 = null;
+    S.s1.refA = null;
+    S.s1.refB = null;
+    S.s1.tbl1 = '';
+    S.s1.tbl2 = '';
+    rebuildPoolsFromCommitted();
+    refreshOverviewBar();
+  },
+
+  // Leaving S2D → S1T: the S1T finish wrote table/tableType onto game1/2
+  // and S.s1.tbl1/tbl2. Reset table picks; games stay locked (pairings
+  // were committed in S1R, not S1T).
+  'screen-s2d':        () => {
+    if (S.s1.game1) { S.s1.game1.table = undefined; S.s1.game1.tableType = undefined; S.s1.game1.tableId = null; }
+    if (S.s1.game2) { S.s1.game2.table = undefined; S.s1.game2.tableType = undefined; S.s1.game2.tableId = null; }
+    S.s1.tbl1 = '';
+    S.s1.tbl2 = '';
+    refreshOverviewBar();
+  },
+
+  // Leaving S2A → S2D: S2D committed defA/defB and shrank pools.
+  'screen-s2a':        () => {
+    S.s2.defA = null;
+    S.s2.defB = null;
+    rebuildPoolsFromCommitted();
+  },
+
+  // Leaving S2R → S2A: atkA/atkB stored on S2A reveal click.
+  'screen-s2r':        () => {
+    S.s2.atkA = [];
+    S.s2.atkB = [];
+  },
+
+  // Leaving Results → S2R: undo S2R finish (games 3/4/5, tables 3-5).
+  'screen-results':    () => {
+    S.s2.game3 = null;
+    S.s2.game4 = null;
+    S.s2.game5 = null;
+    S.s2.refA = null;
+    S.s2.refB = null;
+    S.s2.tbl3 = '';
+    S.s2.tbl4 = '';
+    S.s2.tbl5 = '';
+    rebuildPoolsFromCommitted();
+    refreshOverviewBar();
+  },
+};
+
+/* Per-target re-entry: which init/enter function to call after rollback. */
+const BACK_HANDLERS = {
+  'screen-pre-tournament': () => { initPreTournament(); showScreen('screen-pre-tournament'); },
+  'screen-pre-match':      () => { showScreen('screen-pre-match'); },
+  'screen-branch':         () => { enterBranchPlan(); },
+  'screen-s1rolloff':      () => { enterS1Rolloff(); },
+  'screen-s1d':            () => { enterS1Defender(); },
+  'screen-s1a':            () => { enterS1Attackers(); },
+  'screen-s1r':            () => { enterS1Refusal(); },
+  'screen-s1t':            () => { enterS1Tables(); },
+  'screen-s2d':            () => { enterS2Defender(); },
+  'screen-s2a':            () => { enterS2Attackers(); },
+  'screen-s2r':            () => { enterS2Refusal(); },
+};
+
+function goBack() {
+  const current = SCREENS.find(id => $(id).classList.contains('active'));
+  const target = BACK_TARGETS[current];
+  if (!target) return;
+  const rollback = BACK_ROLLBACKS[current];
+  if (rollback) rollback();
+  const handler = BACK_HANDLERS[target];
+  if (handler) handler();
+  else showScreen(target);
+}
+
+$('global-back').addEventListener('click', goBack);
+
+/* ═══════════════════════════════════════════════════════════
    RESTART
 ═══════════════════════════════════════════════════════════ */
 
@@ -3548,8 +3716,6 @@ $('btn-restart').addEventListener('click', () => {
 });
 
 $('btn-save-tournament').addEventListener('click', () => saveTournamentSetup());
-
-$('btn-back-tournament').addEventListener('click', () => showScreen('screen-pre-tournament'));
 
 /* ═══════════════════════════════════════════════════════════
    INIT
