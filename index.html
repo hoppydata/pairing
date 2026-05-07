@@ -884,7 +884,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title"><span class="badge-primary">PRIMARY</span>Player Personal Scores <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— prefilled from meta · edit to lock in your real read · italic = still seeded from meta</span></div>
+      <div class="card-title"><span class="badge-primary">PRIMARY</span>Player Personal Scores <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— from real games · italic placeholder shows the meta fallback (~N) when empty</span></div>
       <div class="matrix-wrap">
         <table class="matrix" id="personal-tbl">
           <thead><tr id="personal-hdr"><th class="row-hdr">Player ↓ / Faction →</th></tr></thead>
@@ -2151,34 +2151,6 @@ function buildMetaTable() {
   });
 }
 
-/* Personal-score cells that were auto-seeded from META on init.
-   Used to render them in italic until the user edits them.
-   Key format: `${player}|${faction}`. */
-const seededFromMeta = new Set();
-
-/* For every (player, faction) where the personal score is missing AND
-   a META value exists, copy META → TEAM_DATA.matrix and remember that
-   we did so. Never overwrites an explicit value (including 0). */
-function seedPersonalScoresFromMeta() {
-  const allFactions = TEAM_DATA.factions;
-  S.players.forEach((_, pi) => {
-    const playerName = TEAM_DATA.players[pi];
-    const ourFaction = S.playerFactions[pi] ?? null;
-    if (!ourFaction) return;
-    const row = META[ourFaction];
-    if (!row) return;
-    if (!TEAM_DATA.matrix[playerName]) TEAM_DATA.matrix[playerName] = {};
-    const cells = TEAM_DATA.matrix[playerName];
-    allFactions.forEach(faction => {
-      if (cells[faction] !== undefined && cells[faction] !== null) return;
-      const metaVal = row[faction];
-      if (metaVal === undefined || metaVal === null) return;
-      cells[faction] = metaVal;
-      seededFromMeta.add(`${playerName}|${faction}`);
-    });
-  });
-}
-
 function buildPersonalScoreTable() {
   const allFactions = TEAM_DATA.factions;
 
@@ -2200,19 +2172,17 @@ function buildPersonalScoreTable() {
       const td = document.createElement('td');
       const personal = TEAM_DATA.matrix[TEAM_DATA.players[pi]]?.[faction];
       const hasPersonal = personal !== undefined && personal !== null;
-      const isSeeded = seededFromMeta.has(`${TEAM_DATA.players[pi]}|${faction}`);
       const ourFaction = S.playerFactions[pi] ?? null;
       const metaVal = ourFaction ? (META[ourFaction]?.[faction] ?? null) : null;
       const displayVal = hasPersonal ? personal : '';
       const ph = metaVal !== null ? `~${metaVal}` : '?';
       const scNum = hasPersonal ? personal : metaVal;
       const scCls = scNum !== null ? scClass(scNum) : '';
-      const italic = !hasPersonal || isSeeded;
       td.innerHTML = `<input type="number" min="0" max="20"
         value="${displayVal}"
         placeholder="${ph}"
         class="${scCls}"
-        style="${italic ? 'color:var(--muted);font-style:italic' : ''}"
+        style="${!hasPersonal ? 'color:var(--muted);font-style:italic' : ''}"
         data-player="${player}" data-faction="${faction}" />`;
       tr.appendChild(td);
     });
@@ -2227,9 +2197,6 @@ function buildPersonalScoreTable() {
       if (!TEAM_DATA.matrix[player]) TEAM_DATA.matrix[player] = {};
       if (v === null) { delete TEAM_DATA.matrix[player][faction]; }
       else { TEAM_DATA.matrix[player][faction] = v; }
-      // First user edit clears the meta-seeded marker so the cell
-      // stops rendering as italic.
-      seededFromMeta.delete(`${player}|${faction}`);
       inp.className = v !== null ? scClass(v) : '';
       inp.style.color = !inp.value ? 'var(--muted)' : '';
       inp.style.fontStyle = !inp.value ? 'italic' : '';
@@ -2242,7 +2209,6 @@ function buildPersonalScoreTable() {
 function initPreTournament() {
   S.players = [...TEAM_DATA.players];
   S.playerFactions = TEAM_DATA.players.map(p => TEAM_DATA.playerFactions[p] ?? TEAM_DATA.factions[0]);
-  seedPersonalScoresFromMeta();
   S.ourAxis = S.playerFactions.map(factionAxisSeed);
   S.teamA   = TEAM_DATA.teamName;
   $('ta-name').value = S.teamA;
@@ -3932,7 +3898,6 @@ $('player-inputs').addEventListener('change', e => {
       S.ourAxis[idx] = seeded;
       syncInlineSlider(idx, seeded);
       syncOverrideSlider(idx, seeded);
-      seedPersonalScoresFromMeta();
     }
     buildMetaTable();
     buildPersonalScoreTable();
