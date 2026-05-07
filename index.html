@@ -2093,12 +2093,15 @@ let metaExpanded = false;
 function buildMetaTable() {
   const allFactions = TEAM_DATA.factions;
   const ourFactions = [...new Set(S.playerFactions)];
-  const otherMetaRows = Object.keys(META).filter(f => !ourFactions.includes(f));
-  const rows = metaExpanded ? [...ourFactions, ...otherMetaRows] : ourFactions;
+  // Expanded view: every faction in the codex gets a row, even if META
+  // hasn't been populated for it yet (those rows render as empty inputs
+  // ready to fill in).
+  const otherRows = allFactions.filter(f => !ourFactions.includes(f));
+  const rows = metaExpanded ? [...ourFactions, ...otherRows] : ourFactions;
 
   const toggleBtn = $('btn-meta-toggle');
   if (toggleBtn) {
-    const hiddenCount = otherMetaRows.length;
+    const hiddenCount = otherRows.length;
     toggleBtn.textContent = metaExpanded
       ? 'Collapse ⌃'
       : `Expand ⌄ (+${hiddenCount} rows)`;
