@@ -1,156 +1,34 @@
-# Global Meta Matrix Reference
+# Global Meta Matrix
 
-Source: competitive meta reference image (worldwide averages). Fixed — does not change mid-tournament.
+**Updated:** 2026-05-07
+**Source:** Faction × faction VP-delta screenshot (provided by user, current dataslate)
+**Conversion formula:**
+```
+bracket = abs(delta) <= 5 ? 0 : min(ceil((abs(delta) - 5) / 5), 10)
+score   = delta >= 0 ? 10 + bracket : 10 - bracket
+```
 
-## Scale
-- Converted from point differentials: `round(diff / 5) + 10`, clamped [0, 20].
-- 10 = even, 20 = full win, 0 = full loss.
-- SM (UM) uses the "Space Marines" column from the meta image. Other SM variants (Black Templars etc.) ignored.
-- Nids row missing for Guard/Daemons/Dark Angels/Imperial Knights in source image — left as 10.
+10 = even, >10 favours us, <10 favours opponent. Self-cells (mirror match) set to 10.
 
-## Player Factions (fixed for the tournament)
+## Player Factions
 
-| Player  | Faction          |
-|---------|------------------|
-| Daniel  | Dark Angels      |
-| Paddy   | Daemons          |
-| David   | Imperial Knights |
-| Berni   | Guard            |
-| Norge   | Custodes         |
+| Player    | Faction            |
+|-----------|--------------------|
+| Player 1  | Dark Angels        |
+| Player 2  | Daemons            |
+| Player 3  | Imperial Knights   |
+| Player 4  | Astra Militarum    |
+| Player 5  | Custodes           |
 
-## Meta Values (0–20 scale)
+`Emperor's Children` is also tracked as a known meta presence even though it's not on our roster.
 
-### Custodes (Norge)
-| Opponent        | Score |
-|-----------------|-------|
-| Necrons         | 11    |
-| Tau             | 11    |
-| Custodes        | 15    |
-| SM (UM)         | 8     |
-| Guard           | 6     |
-| Sisters         | 8     |
-| Grey Knights    | 13    |
-| Blood Angels    | 10    |
-| Space Wolves    | 8     |
-| Ad Mech         | 12    |
-| Orks            | 9     |
-| Votann          | 7     |
-| Nids            | 12    |
-| Aeldari         | 8     |
-| Drukhari        | 10    |
-| GSC             | 10    |
-| Tsons           | 10    |
-| Death Guard     | 10    |
-| CSM             | 11    |
-| World Eaters    | 10    |
-| Daemons         | 12    |
-| Chaos Knights   | 10    |
-| Imperial Knights| 8     |
+## Matrix (rows = our faction, columns = opponent faction)
 
-### Guard (Berni)
-| Opponent        | Score |
-|-----------------|-------|
-| Necrons         | 9     |
-| Tau             | 7     |
-| Custodes        | 10    |
-| SM (UM)         | 11    |
-| Guard           | 11    |
-| Sisters         | 10    |
-| Grey Knights    | 12    |
-| Blood Angels    | 12    |
-| Space Wolves    | 10    |
-| Ad Mech         | 10    |
-| Orks            | 10    |
-| Votann          | 7     |
-| Nids            | 10    |
-| Aeldari         | 10    |
-| Drukhari        | 10    |
-| GSC             | 10    |
-| Tsons           | 10    |
-| Death Guard     | 11    |
-| CSM             | 10    |
-| World Eaters    | 10    |
-| Daemons         | 10    |
-| Chaos Knights   | 10    |
-| Imperial Knights| 9     |
-
-### Daemons (Paddy)
-| Opponent        | Score |
-|-----------------|-------|
-| Necrons         | 13    |
-| Tau             | 9     |
-| Custodes        | 7     |
-| SM (UM)         | 11    |
-| Guard           | 8     |
-| Sisters         | 10    |
-| Grey Knights    | 11    |
-| Blood Angels    | 9     |
-| Space Wolves    | 11    |
-| Ad Mech         | 12    |
-| Orks            | 9     |
-| Votann          | 8     |
-| Nids            | 10    |
-| Aeldari         | 11    |
-| Drukhari        | 12    |
-| GSC             | 15    |
-| Tsons           | 10    |
-| Death Guard     | 10    |
-| CSM             | 10    |
-| World Eaters    | 11    |
-| Daemons         | 9     |
-| Chaos Knights   | 11    |
-| Imperial Knights| 8     |
-
-### Dark Angels (Daniel)
-| Opponent        | Score |
-|-----------------|-------|
-| Necrons         | 8     |
-| Tau             | 11    |
-| Custodes        | 9     |
-| SM (UM)         | 12    |
-| Guard           | 8     |
-| Sisters         | 10    |
-| Grey Knights    | 17    |
-| Blood Angels    | 11    |
-| Space Wolves    | 9     |
-| Ad Mech         | 11    |
-| Orks            | 11    |
-| Votann          | 8     |
-| Nids            | 10    |
-| Aeldari         | 11    |
-| Drukhari        | 10    |
-| GSC             | 7     |
-| Tsons           | 10    |
-| Death Guard     | 3     |
-| CSM             | 10    |
-| World Eaters    | 12    |
-| Daemons         | 9     |
-| Chaos Knights   | 10    |
-| Imperial Knights| 10    |
-
-### Imperial Knights (David)
-| Opponent        | Score |
-|-----------------|-------|
-| Necrons         | 10    |
-| Tau             | 13    |
-| Custodes        | 9     |
-| SM (UM)         | 9     |
-| Guard           | 11    |
-| Sisters         | 7     |
-| Grey Knights    | 9     |
-| Blood Angels    | 10    |
-| Space Wolves    | 8     |
-| Ad Mech         | 11    |
-| Orks            | 9     |
-| Votann          | 9     |
-| Nids            | 10    |
-| Aeldari         | 7     |
-| Drukhari        | 11    |
-| GSC             | 11    |
-| Tsons           | 10    |
-| Death Guard     | 11    |
-| CSM             | 10    |
-| World Eaters    | 7     |
-| Daemons         | 11    |
-| Chaos Knights   | 7     |
-| Imperial Knights| 5     |
+| Our \ Opp | Ad Mech | Aeldari | Astra Militarum | Black Templars | Blood Angels | Chaos Knights | CSM | Custodes | Daemons | Dark Angels | Death Guard | Deathwatch | Drukhari | Emperor's Children | Grey Knights | GSC | Imperial Agents | Imperial Knights | Necrons | Orks | Sisters | SM (UM) | Space Wolves | Tau | T'sons | Tyranids | Votann | World Eaters |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Custodes** | 10 | 11 | 8 | 14 | 9 | 10 | 8 | 10 | 9 | 9 | 10 | 10 | 10 | 7 | 9 | 9 | 10 | 9 | 10 | 13 | 12 | 12 | 12 | 10 | 8 | 10 | 11 | 10 |
+| **Astra Militarum** | 12 | 11 | 10 | 10 | 10 | 9 | 10 | 12 | 8 | 11 | 10 | 11 | 10 | 10 | 9 | 10 | 13 | 9 | 8 | 10 | 9 | 10 | 11 | 10 | 7 | 9 | 10 | 10 |
+| **Daemons** | 12 | 13 | 12 | 9 | 10 | 10 | 10 | 11 | 10 | 10 | 10 | 11 | 12 | 9 | 11 | 9 | 5 | 11 | 11 | 11 | 10 | 9 | 11 | 10 | 10 | 12 | 10 | 10 |
+| **Dark Angels** | 13 | 13 | 9 | 10 | 8 | 10 | 10 | 11 | 10 | 10 | 11 | 8 | 10 | 14 | 8 | 10 | 5 | 10 | 9 | 11 | 8 | 10 | 10 | 9 | 5 | 9 | 10 | 10 |
+| **Imperial Knights** | 13 | 10 | 11 | 10 | 9 | 12 | 10 | 11 | 9 | 10 | 9 | 6 | 10 | 7 | 10 | 7 | 13 | 10 | 11 | 10 | 10 | 10 | 10 | 9 | 8 | 11 | 9 | 10 |
+| **Emperor's Children** | 10 | 12 | 10 | 9 | 12 | 7 | 9 | 13 | 11 | 6 | 10 | 12 | 12 | 10 | 11 | 13 | 16 | 13 | 10 | 12 | 16 | 12 | 11 | 13 | 7 | 13 | 13 | 10 |
