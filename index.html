@@ -96,7 +96,28 @@
       text-transform: uppercase;
       color: var(--gold);
       margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.35rem;
     }
+    .badge-primary, .badge-fallback {
+      display: inline-block;
+      padding: 0.12rem 0.45rem;
+      border-radius: 3px;
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+    }
+    .badge-primary  { background: var(--gold); color: #0d0d0f; }
+    .badge-fallback { background: var(--border); color: var(--muted); }
+
+    .card.collapsible .card-title #btn-meta-toggle,
+    .card.collapsible .card-title .toggle-btn { cursor: pointer; }
+    .card.collapsed .matrix-wrap { display: none; }
+
+    .mx-muted { opacity: 0.35; text-decoration: line-through; }
+    .mx-muted input { pointer-events: none; }
 
     /* ── Section headings ───────────────────────────────────── */
     .screen-title { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3rem; }
@@ -832,6 +853,21 @@
 
 <main>
 
+  <!-- ══ Persistent Match Matrix — visible during all pairing screens ══ -->
+  <div class="card collapsible" id="pairing-matrix-card" style="display:none">
+    <div class="card-title" id="pairing-matrix-title">
+      Match Matrix
+      <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0;margin-left:0.4rem">— greyed rows/cols are already paired</span>
+      <span class="toggle-btn" id="pairing-matrix-toggle" style="margin-left:auto;font-size:0.85rem;cursor:pointer">⌃</span>
+    </div>
+    <div class="matrix-wrap">
+      <table class="matrix" id="pmx-tbl">
+        <thead><tr id="pmx-hdr"><th class="row-hdr">Player ↓ / Faction →</th></tr></thead>
+        <tbody id="pmx-body"></tbody>
+      </table>
+    </div>
+  </div>
+
   <!-- ══ SCREEN 0 — Tournament Setup ══ -->
   <div class="screen active" id="screen-pre-tournament">
     <div class="screen-title">Tournament Setup</div>
@@ -848,21 +884,25 @@
     </div>
 
     <div class="card">
-      <div class="card-title">Meta Matrix <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— our faction (row) vs opponent faction (col) · 10 = even · &gt;10 favours us · &lt;10 favours opponent</span></div>
-      <div class="matrix-wrap">
-        <table class="matrix" id="meta-tbl">
-          <thead><tr id="meta-hdr"><th class="row-hdr">Our Faction ↓ / Opp →</th></tr></thead>
-          <tbody id="meta-body"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Player Personal Scores <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— all factions · italic = meta fallback</span></div>
+      <div class="card-title"><span class="badge-primary">PRIMARY</span>Player Personal Scores <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— prefilled from meta · edit to lock in your real read · italic = still seeded from meta</span></div>
       <div class="matrix-wrap">
         <table class="matrix" id="personal-tbl">
           <thead><tr id="personal-hdr"><th class="row-hdr">Player ↓ / Faction →</th></tr></thead>
           <tbody id="personal-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card collapsible" id="meta-card">
+      <div class="card-title" id="meta-card-title">
+        <span class="badge-fallback">FALLBACK</span>Meta Matrix
+        <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0;margin-left:0.4rem">— backup only · used when a personal score is empty · 10 = even · &gt;10 favours us · &lt;10 favours opponent</span>
+        <button type="button" class="btn btn-outline" id="btn-meta-toggle" style="margin-left:auto;padding:0.25rem 0.6rem;font-size:0.7rem">Expand ⌄</button>
+      </div>
+      <div class="matrix-wrap" id="meta-wrap">
+        <table class="matrix" id="meta-tbl">
+          <thead><tr id="meta-hdr"><th class="row-hdr">Our Faction ↓ / Opp →</th></tr></thead>
+          <tbody id="meta-body"></tbody>
         </table>
       </div>
     </div>
@@ -1399,6 +1439,9 @@ function showScreen(id) {
   const backBtn = $('global-back');
   if (backBtn) {
     backBtn.style.display = BACK_TARGETS[id] ? 'inline-flex' : 'none';
+  }
+  if (typeof refreshPersistentMatrix === 'function') {
+    refreshPersistentMatrix(id);
   }
   ind.innerHTML = '';
   if (idx === 0) { ind.textContent = 'Setup'; return; }
@@ -2043,11 +2086,23 @@ function unfreezePanel(panelId) {
 
 let selectedFactions = new Set();
 
+/* Whether the Meta Matrix is showing only our 5 player factions (false)
+   or every row in META (true). User-toggled via the Expand button. */
+let metaExpanded = false;
+
 function buildMetaTable() {
   const allFactions = TEAM_DATA.factions;
   const ourFactions = [...new Set(S.playerFactions)];
   const otherMetaRows = Object.keys(META).filter(f => !ourFactions.includes(f));
-  const rows = [...ourFactions, ...otherMetaRows];
+  const rows = metaExpanded ? [...ourFactions, ...otherMetaRows] : ourFactions;
+
+  const toggleBtn = $('btn-meta-toggle');
+  if (toggleBtn) {
+    const hiddenCount = otherMetaRows.length;
+    toggleBtn.textContent = metaExpanded
+      ? 'Collapse ⌃'
+      : `Expand ⌄ (+${hiddenCount} rows)`;
+  }
 
   const hdr = $('meta-hdr');
   hdr.innerHTML = '<th class="row-hdr">Our Faction ↓ / Opp →</th>';
@@ -2093,6 +2148,34 @@ function buildMetaTable() {
   });
 }
 
+/* Personal-score cells that were auto-seeded from META on init.
+   Used to render them in italic until the user edits them.
+   Key format: `${player}|${faction}`. */
+const seededFromMeta = new Set();
+
+/* For every (player, faction) where the personal score is missing AND
+   a META value exists, copy META → TEAM_DATA.matrix and remember that
+   we did so. Never overwrites an explicit value (including 0). */
+function seedPersonalScoresFromMeta() {
+  const allFactions = TEAM_DATA.factions;
+  S.players.forEach((_, pi) => {
+    const playerName = TEAM_DATA.players[pi];
+    const ourFaction = S.playerFactions[pi] ?? null;
+    if (!ourFaction) return;
+    const row = META[ourFaction];
+    if (!row) return;
+    if (!TEAM_DATA.matrix[playerName]) TEAM_DATA.matrix[playerName] = {};
+    const cells = TEAM_DATA.matrix[playerName];
+    allFactions.forEach(faction => {
+      if (cells[faction] !== undefined && cells[faction] !== null) return;
+      const metaVal = row[faction];
+      if (metaVal === undefined || metaVal === null) return;
+      cells[faction] = metaVal;
+      seededFromMeta.add(`${playerName}|${faction}`);
+    });
+  });
+}
+
 function buildPersonalScoreTable() {
   const allFactions = TEAM_DATA.factions;
 
@@ -2114,17 +2197,19 @@ function buildPersonalScoreTable() {
       const td = document.createElement('td');
       const personal = TEAM_DATA.matrix[TEAM_DATA.players[pi]]?.[faction];
       const hasPersonal = personal !== undefined && personal !== null;
+      const isSeeded = seededFromMeta.has(`${TEAM_DATA.players[pi]}|${faction}`);
       const ourFaction = S.playerFactions[pi] ?? null;
       const metaVal = ourFaction ? (META[ourFaction]?.[faction] ?? null) : null;
       const displayVal = hasPersonal ? personal : '';
       const ph = metaVal !== null ? `~${metaVal}` : '?';
       const scNum = hasPersonal ? personal : metaVal;
       const scCls = scNum !== null ? scClass(scNum) : '';
+      const italic = !hasPersonal || isSeeded;
       td.innerHTML = `<input type="number" min="0" max="20"
         value="${displayVal}"
         placeholder="${ph}"
         class="${scCls}"
-        style="${!hasPersonal ? 'color:var(--muted);font-style:italic' : ''}"
+        style="${italic ? 'color:var(--muted);font-style:italic' : ''}"
         data-player="${player}" data-faction="${faction}" />`;
       tr.appendChild(td);
     });
@@ -2139,6 +2224,9 @@ function buildPersonalScoreTable() {
       if (!TEAM_DATA.matrix[player]) TEAM_DATA.matrix[player] = {};
       if (v === null) { delete TEAM_DATA.matrix[player][faction]; }
       else { TEAM_DATA.matrix[player][faction] = v; }
+      // First user edit clears the meta-seeded marker so the cell
+      // stops rendering as italic.
+      seededFromMeta.delete(`${player}|${faction}`);
       inp.className = v !== null ? scClass(v) : '';
       inp.style.color = !inp.value ? 'var(--muted)' : '';
       inp.style.fontStyle = !inp.value ? 'italic' : '';
@@ -2151,6 +2239,7 @@ function buildPersonalScoreTable() {
 function initPreTournament() {
   S.players = [...TEAM_DATA.players];
   S.playerFactions = TEAM_DATA.players.map(p => TEAM_DATA.playerFactions[p] ?? TEAM_DATA.factions[0]);
+  seedPersonalScoresFromMeta();
   S.ourAxis = S.playerFactions.map(factionAxisSeed);
   S.teamA   = TEAM_DATA.teamName;
   $('ta-name').value = S.teamA;
@@ -2519,6 +2608,75 @@ function buildMatrixTable() {
       S.matrix[pi][fi] = raw === '' ? null : Math.max(0, Math.min(20, parseInt(raw) || 0));
     });
   });
+}
+
+/* Which player indices and opponent-faction indices are already locked
+   into a committed game. Drives row/col muting in the persistent matrix. */
+function computeLockedForMatrix() {
+  const players = new Set();
+  const factions = new Set();
+  [S.s1?.game1, S.s1?.game2, S.s2?.game3, S.s2?.game4, S.s2?.game5].forEach(g => {
+    if (!g) return;
+    if (g.ourPlayer != null)    players.add(g.ourPlayer);
+    if (g.theirFaction != null) factions.add(g.theirFaction);
+  });
+  return { players, factions };
+}
+
+/* Read-only 5×5 match matrix shown above every pairing screen. Rows for
+   already-paired players and columns for already-paired opponent factions
+   are visually muted (50% opacity + strikethrough) so the captain sees
+   what's still in play at a glance. */
+function buildPersistentMatrixTable() {
+  if (!S.factions || S.factions.length === 0) return;
+  const active = S.factions;
+  const { players: lockedP, factions: lockedF } = computeLockedForMatrix();
+
+  const hdr  = $('pmx-hdr');
+  const body = $('pmx-body');
+  if (!hdr || !body) return;
+
+  hdr.innerHTML = '<th class="row-hdr">Player ↓ / Faction →</th>';
+  active.forEach((f, fi) => {
+    const th = document.createElement('th');
+    th.textContent = f;
+    if (lockedF.has(fi)) th.classList.add('mx-muted');
+    hdr.appendChild(th);
+  });
+
+  body.innerHTML = '';
+  S.players.forEach((p, pi) => {
+    const tr = document.createElement('tr');
+    if (lockedP.has(pi)) tr.classList.add('mx-muted');
+    tr.innerHTML = `<th class="row-hdr">${p}</th>`;
+    active.forEach((_, fi) => {
+      const td = document.createElement('td');
+      const { score, isMeta } = getScore(pi, fi);
+      const display = score !== null ? `${score}${isMeta ? '*' : ''}` : '?';
+      const scCls = score !== null ? scClass(score) : '';
+      const italic = isMeta ? 'font-style:italic;color:var(--muted)' : '';
+      const muted = lockedF.has(fi) ? ' mx-muted' : '';
+      td.className = `${scCls}${muted}`;
+      td.style.cssText = `text-align:center;padding:0.4rem 0.3rem;${italic}`;
+      td.textContent = display;
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+/* Screens that should display the persistent Match Matrix card on top. */
+const MATRIX_VISIBLE_SCREENS = new Set([
+  'screen-branch','screen-s1rolloff','screen-s1d','screen-s1a','screen-s1r','screen-s1t',
+  'screen-s2d','screen-s2a','screen-s2r','screen-results',
+]);
+
+function refreshPersistentMatrix(activeScreenId) {
+  const card = $('pairing-matrix-card');
+  if (!card) return;
+  const visible = MATRIX_VISIBLE_SCREENS.has(activeScreenId);
+  card.style.display = visible ? '' : 'none';
+  if (visible) buildPersistentMatrixTable();
 }
 
 function saveTournamentSetup() {
@@ -3548,6 +3706,12 @@ function refreshOverviewBar() {
       ${scoreSpan}
     </div>`;
   }).join('');
+
+  // Re-render the persistent match matrix so newly-locked rows/cols mute.
+  const card = $('pairing-matrix-card');
+  if (card && card.style.display !== 'none') {
+    buildPersistentMatrixTable();
+  }
 }
 
 function showOverviewBar(visible) {
@@ -3717,6 +3881,26 @@ $('btn-restart').addEventListener('click', () => {
 
 $('btn-save-tournament').addEventListener('click', () => saveTournamentSetup());
 
+$('btn-meta-toggle').addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  metaExpanded = !metaExpanded;
+  buildMetaTable();
+});
+
+/* Persistent match-matrix card: title acts as a collapse toggle. */
+(() => {
+  const card = $('pairing-matrix-card');
+  const toggle = $('pairing-matrix-toggle');
+  const title = $('pairing-matrix-title');
+  if (!card || !title) return;
+  const flip = () => {
+    card.classList.toggle('collapsed');
+    if (toggle) toggle.textContent = card.classList.contains('collapsed') ? '⌄' : '⌃';
+  };
+  title.addEventListener('click', flip);
+})();
+
 /* ═══════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════ */
@@ -3745,6 +3929,7 @@ $('player-inputs').addEventListener('change', e => {
       S.ourAxis[idx] = seeded;
       syncInlineSlider(idx, seeded);
       syncOverrideSlider(idx, seeded);
+      seedPersonalScoresFromMeta();
     }
     buildMetaTable();
     buildPersonalScoreTable();
