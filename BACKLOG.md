@@ -89,6 +89,63 @@ Quality-of-life issues noticed in recent sessions.
 
 ---
 
+## 4. Opponent UX & Clarity ✅ all done
+
+New items identified 2026-05-08.
+
+### 4a. Opponent panel — "leverage" view `S` ✅
+**What:** During the draft the captain stares at the opponent right-panel chips and suggestion list. Right now the `attackerSuggestOpponent` table shows "Their score (est) | Our score" — correct but not instantly actionable.
+**Why:** Under pairing stress you need to read "they will probably send X — our best answer is Y at score Z." The current layout forces the captain to do that translation in their head.
+**Acceptance:** The opponent attacker prediction panel gains a third column (or inline badge) showing the best player we can send against each predicted opponent army and the resulting score. Colour coding unambiguous from our perspective.
+
+---
+
+**Shipped:** `attackerSuggestOpponent` at index.html:1885 — col3 = "We exploit with", colour-coded via `scClass`.
+
+---
+
+### 4b. Terrain sensitivity badge on draft chips `S` ✅
+**What:** Add a visible marker to faction chips and suggestion rows for any faction whose terrain preference magnitude (`|dense| + |open| ≥ 3`) is high.
+**Why:** Table-sensitive armies (e.g. World Eaters `dense +3`, Tau `open +3`) are the ones opponents commit early to grab the right table. Seeing a badge during the draft primes the captain: "this faction will fight for a table — expect it in the first offer." The tool already has `FACTION_TABLE_PREFS` with all 28 factions but only shows the delta after pairings are locked on the table-pick screen.
+**Acceptance:** A small icon or label (e.g. `⛰+` or `table`) appears on any chip / suggestion row for terrain-sensitive factions. Visible during S1 Defender, S1 Attacker, S1 Refusal, and S2 draft phases.
+
+---
+
+**Shipped:** `buildFactionChips` calls `terrainBadge()` — visible on all S1/S2 draft phases and suggestion rows.
+
+---
+
+### 4c. Asset-aware strategy callout `M` ✅
+**What:** `computeStrategy` only fires on threshold crossings (red ≤5, pin ≥14, deliver <10). It never tells the captain: "here is your strongest asset right now and here is the target to use it on."
+**Why:** Under pairing stress the captain needs an affirmative action, not just a warning. The existing functions `rankFactionsOpponentPerspective()` and `rankPlayerAttackers()` already compute the expected opponent defender and our best counter — but this data is buried in suggestion sub-panels, not surfaced as a clear instruction.
+**Acceptance:** Every strategy callout (including "No Urgent Flags") gains a secondary **action line**: the top expected opponent defender, our best counter-player, and the score. Example: *"Expected: Tau (avg opp 13). Best answer: Player 3 — scores 13."* The action line fires even in "none" state so the captain always has a concrete read-out.
+
+---
+
+**Shipped:** `computeAssetLine()` at index.html:1965 — wired into all 5 strategy types including `none`.
+
+---
+
+### 4d. Global ⓘ collapse for verbose explainer text `S` ✅
+**What:** Add a small ⓘ toggle button next to verbose description text throughout the UI. Collapsed by default — headline always visible, paragraph/bullets expand on click.
+**Why:** Under pairing pressure, long explanatory text in strategy callouts, suggestion panel subtitles, and lookahead hint paragraphs adds noise. The information is valuable to study beforehand or explain to a new captain, but it competes with the signal during live pairings.
+**Scope:** (1) Strategy callout body + bullets (`renderStrategyCallout`, line 1981). (2) Suggestion table subtitles (`buildSuggestHTML`). (3) Lookahead hint paragraphs (`s1t-lookahead`, `s2t-lookahead`).
+**Acceptance:** ⓘ button present on all three panel types. Collapsed on first render each time. CSS `max-height` transition. No state persisted. Mobile layout unaffected.
+
+---
+
+**Shipped:** ⓘ toggle on `renderStrategyCallout` (line 2111), `buildSuggestHTML` title detail (line 1807), S1/S2 lookahead panels (lines 3238, 3320).
+
+---
+
+### 4e. Strategy callout copy tightening `S` ✅
+**What:** All bullet text in `computeStrategy` is verbose — written for a reader with time. Tighten to ≤8 words per bullet, imperative form. The body sentence format is good; keep it.
+**Why:** Goes hand-in-hand with 4d. Even in expanded state, bullets should be scannable in half a second. Strip re-explanation from bullets — they should extend the body, not repeat it.
+**Acceptance:** All five callout types (trash / avoid / pin / deliver / none) have bullets of ≤8 words each, imperative, no redundant qualifiers.
+**Shipped:** All bullets in `computeStrategy` rewritten to ≤8 words, imperative, 2026-05-09.
+
+---
+
 ## Session Notes
 
 | Session    | Items worked                                                                                                         |
@@ -97,4 +154,5 @@ Quality-of-life issues noticed in recent sessions.
 | 2026-05-05 | 1b (verified), 2a, 2b, 1c, 1d, 1a, 1e, 1f, 1g                                                                        |
 | 2026-05-06 | Out-of-backlog: global back-button navigation                                                                        |
 | 2026-05-07 | Out-of-backlog: setup-screen polish (PRIMARY/FALLBACK badges), persistent Match Matrix card during pairing, full META refresh from current dataslate, recalib card lifted on Results |
-| 2026-05-08 | Backlog housekeeping: marked 1a–1g + 2a/2b complete; reframed 3a as an intentional fallback canary                   |
+| 2026-05-08 | Backlog housekeeping: marked 1a–1g + 2a/2b complete; reframed 3a as intentional fallback canary; added section 4 (4a–4e) |
+| 2026-05-09 | 4a–4d confirmed already shipped; 4e: tightened all strategy bullet copy to ≤8 words imperative form |
