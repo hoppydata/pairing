@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Force Dispositions — Überblick (11. Edition)</title>
+<style>
+  :root{
+    --ink:#1a1c20; --muted:#5b6470; --line:#d7dce3; --bg:#ffffff;
+    --win:#2e7d32; --win-bg:#d7efd8; --win-bg-soft:#eaf6ea;
+    --loss:#b3261e; --loss-bg:#f7d9d6; --loss-bg-soft:#fbeae8;
+    --neutral:#6b7280; --neutral-bg:#eceff3;
+    --accent:#1f4e79;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:#f4f6f9;color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  .page{max-width:1000px;margin:0 auto;padding:28px 32px;background:var(--bg);}
+  h1{font-size:24px;margin:0 0 2px;letter-spacing:-.2px}
+  h2{font-size:15px;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);
+     margin:26px 0 10px;border-bottom:2px solid var(--line);padding-bottom:5px}
+  .sub{color:var(--muted);margin:0 0 4px;font-size:13px}
+  p{margin:0 0 9px}
+  .lead{font-size:14.5px}
+  .chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;font-size:13px}
+  .chain .box{background:var(--neutral-bg);border:1px solid var(--line);border-radius:6px;padding:5px 10px;font-weight:600}
+  .chain .arr{color:var(--accent);font-weight:700}
+  .caps{background:#fff8e6;border:1px solid #f0d98a;border-radius:6px;padding:8px 12px;font-size:13px;margin:8px 0}
+
+  table{border-collapse:collapse;width:100%;font-size:12.5px}
+  .disp th,.disp td{border:1px solid var(--line);padding:4px 9px;text-align:left;vertical-align:top}
+  .disp th{background:#f0f3f7}
+  .tier{display:inline-block;min-width:18px;text-align:center;font-weight:700;border-radius:4px;padding:1px 6px;color:#fff;font-size:12px}
+  .t-S{background:#16876b}.t-A{background:#2e7d32}.t-B{background:#b9921a}.t-C{background:#c2671c}.t-F{background:#b3261e}
+
+  /* matrix */
+  .mwrap{overflow-x:auto}
+  table.matrix{table-layout:fixed}
+  .matrix th,.matrix td{border:1px solid #fff;padding:3px 7px;text-align:center;vertical-align:middle}
+  .matrix thead th{background:#1f4e79;color:#fff;font-size:11.5px;line-height:1.25}
+  .matrix tbody th{background:#1f4e79;color:#fff;font-size:11.5px;text-align:right;width:118px;line-height:1.2}
+  .matrix td .m{font-weight:700;font-size:11.5px;display:block;margin-bottom:2px}
+  .matrix td .s{font-size:10.5px;color:#33373d;opacity:.85}
+  td.win{background:var(--win-bg)} td.win-s{background:var(--win-bg-soft)}
+  td.loss{background:var(--loss-bg)} td.loss-s{background:var(--loss-bg-soft)}
+  td.mirror{background:var(--neutral-bg)}
+  td.win .m,td.win-s .m{color:var(--win)} td.loss .m,td.loss-s .m{color:var(--loss)} td.mirror .m{color:#374151}
+  .corner{background:#15314d !important;color:#cbd6e3 !important;font-size:10px !important;text-align:center !important;width:118px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0 2px;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.12);display:inline-block}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  ul{margin:4px 0 0;padding-left:18px} li{margin:3px 0}
+  .sym{font-size:12.5px} .sym b{font-weight:700}
+  .foot{margin-top:12px;border-top:1px solid var(--line);padding-top:8px;color:var(--muted);font-size:11.5px}
+  .foot a{color:var(--accent)}
+
+  @media print{
+    html,body{background:#fff}
+    .page{max-width:none;padding:0 6mm;margin:0}
+    h2{margin-top:16px}
+    .avoid{break-inside:avoid;page-break-inside:avoid}
+    @page{size:A4;margin:10mm}
+  }
+  @media(max-width:680px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Force Dispositions — Überblick</h1>
+  <p class="sub">Warhammer 40K, 11. Edition (Release Juni 2026) · Grundlage fürs Missionplay &amp; die nächste Pairing-Tool-Generation</p>
+
+  <p class="lead">In der 11. Edition bestimmen <b>die Armeen</b> die Mission. Jedes Detachment trägt eine <b>Force Disposition</b>; beim Mustern wählt man eine. Die <b>Kombination beider Spieler-Dispositionen</b> legt die — meist <b>asymmetrischen</b> — Primärmissionen fest. 5 Dispositionen ergeben ein <b>5×5-Raster mit 25 Missionen</b>. Im Turnier ist die Disposition <b>bei Listenabgabe fix</b> — also ein planbarer, vom Gegner unabhängiger Listen-Parameter, genau wie die Fraktion.</p>
+
+  <div class="chain">
+    <span class="box">Detachment</span><span class="arr">→</span>
+    <span class="box">Force Disposition</span><span class="arr">→</span>
+    <span class="box">gepaart mit Gegner-Disposition</span><span class="arr">→</span>
+    <span class="box">asymmetrische Primärmission</span>
+  </div>
+  <div class="caps"><b>Scoring-Caps:</b> Primär max <b>45 VP/Spiel</b>, <b>15 VP/Runde</b> · Sekundär ebenfalls bis 45 VP/Spiel. Fast jede Primärmission belohnt ab Runde 2 das Halten der „Natural Expansion" (erstes Objektiv außerhalb der eigenen Zone).</div>
+
+  <h2>Die fünf Dispositionen &amp; ihr Tier-Ranking</h2>
+  <div class="avoid">
+  <table class="disp">
+    <thead><tr><th style="width:130px">Disposition</th><th>Belohnt vor allem</th><th style="width:150px">Gedrängter Armeetyp</th><th style="width:54px">Tier</th><th>Profil (Matchup / Floor / Ressourcen / Planbarkeit)</th></tr></thead>
+    <tbody>
+      <tr><td><b>Purge the Foe</b></td><td>Einheiten <b>töten</b> + Objektive halten</td><td>Lethale Kill-Armeen, v.a. Shooting</td><td><span class="tier t-S">1</span></td><td><b>Top.</b> Keine echte Schwäche; Gegner müssen ins Center → werden „gratis" gekillt. (A / C / <b>S</b> / <b>S</b>)</td></tr>
+      <tr><td><b>Disruption</b></td><td>Actions an Terrain, etwas Killing</td><td>Schnelle, kleine, lethale Einheiten</td><td><span class="tier t-A">2</span></td><td>Solider <b>Allrounder</b>, wenig Schwachstellen. (3 Wins / mid / mittel / B)</td></tr>
+      <tr><td><b>Reconnaissance</b></td><td>Tischviertel &amp; Deep-Actions</td><td>Schnelle „Komm-agier-geh"-Einheiten</td><td><span class="tier t-A">2</span></td><td>Inkonsistenter Plan, aber <b>höchster Score-Floor</b>. Einzige mit gutem Matchup in Purge. (B / <b>S</b> / mittel / C)</td></tr>
+      <tr><td><b>Take and Hold</b></td><td>Objektive halten (auch das Home)</td><td>Standard- / Durability-Armeen</td><td><span class="tier t-B">3</span></td><td>Sehr <b>planbar</b>, aber alle Gegner haben Kill-Boni dagegen. Nische: Durability-Skew. (C / B / B / <b>A</b>)</td></tr>
+      <tr><td><b>Priority Assets</b></td><td>Spezial-Actions an Schlüsselorten</td><td>Viele Action-Einheiten mit OC</td><td><span class="tier t-F">5</span></td><td><b>Letzter Platz.</b> Extrem ressourcenintensiv ohne Spitzen-Score. (1 Win / mittel / <b>~F</b> / B)</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2>Mission-Matrix — wer ist in welcher Paarung begünstigt?</h2>
+  <p class="sub" style="margin-bottom:8px">Zeile = <b>eigene</b> Disposition, Spalte = <b>Gegner</b>. Zelle = Missionsname + <i>Safe&nbsp;/&nbsp;Min</i>-Score-Schätzung. Farbe = Vorteil aus eigener Sicht. Diagonale (Spiegel) ist neutral.</p>
+  <div class="legend">
+    <span><i class="sw" style="background:var(--win-bg)"></i> Vorteil</span>
+    <span><i class="sw" style="background:var(--win-bg-soft)"></i> leichter Vorteil</span>
+    <span><i class="sw" style="background:var(--neutral-bg)"></i> Spiegel / neutral</span>
+    <span><i class="sw" style="background:var(--loss-bg-soft)"></i> leichter Nachteil</span>
+    <span><i class="sw" style="background:var(--loss-bg)"></i> Nachteil</span>
+  </div>
+  <div class="mwrap avoid">
+  <table class="matrix">
+    <thead><tr>
+      <th class="corner">eigene&nbsp;↓ / Gegner&nbsp;→</th>
+      <th>Take&nbsp;&amp;&nbsp;Hold</th><th>Purge&nbsp;the&nbsp;Foe</th><th>Disruption</th><th>Priority&nbsp;Assets</th><th>Reconnaissance</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <th>Take &amp; Hold</th>
+        <td class="mirror"><span class="m">Dominate Backfield</span><span class="s">45* / 18</span></td>
+        <td class="loss"><span class="m">A Movable Object</span><span class="s">40 / 11</span></td>
+        <td class="loss-s"><span class="m">Determined Takeover</span><span class="s">40 / 18</span></td>
+        <td class="loss"><span class="m">Hold-Three</span><span class="s">44 / 13</span></td>
+        <td class="win"><span class="m">Kill-by-Objective</span><span class="s">41 / 13</span></td>
+      </tr>
+      <tr>
+        <th>Purge the Foe</th>
+        <td class="win"><span class="m">Unstoppable Object</span><span class="s">42 / 13</span></td>
+        <td class="mirror"><span class="m">Meatgrinder</span><span class="s">30 / 7</span></td>
+        <td class="win"><span class="m">Doomed Units</span><span class="s">36 / 9</span></td>
+        <td class="win"><span class="m">Destroyer&rsquo;s Wrath</span><span class="s">42 / 7</span></td>
+        <td class="loss"><span class="m">Consecration</span><span class="s">33 / 16</span></td>
+      </tr>
+      <tr>
+        <th>Disruption</th>
+        <td class="win"><span class="m">Terrain Action</span><span class="s">39 / 25</span></td>
+        <td class="loss-s"><span class="m">Delaying Battle</span><span class="s">40 / 11</span></td>
+        <td class="mirror"><span class="m">Progressing (BR-ramp)</span><span class="s">42 / 13</span></td>
+        <td class="win"><span class="m">OP-Marker</span><span class="s">36 / 8</span></td>
+        <td class="win-s"><span class="m">Action outside DZ</span><span class="s">46 / 14</span></td>
+      </tr>
+      <tr>
+        <th>Priority Assets</th>
+        <td class="win"><span class="m">Secure Object</span><span class="s">46 / 18</span></td>
+        <td class="loss"><span class="m">Center-Action Ramp</span><span class="s">45 / 11</span></td>
+        <td class="loss"><span class="m">Extract Relic</span><span class="s">33 / 23</span></td>
+        <td class="mirror"><span class="m">Mirror Action</span><span class="s">≈56 / hoch</span></td>
+        <td class="loss"><span class="m">Vanguard Operation</span><span class="s">34 / 10</span></td>
+      </tr>
+      <tr>
+        <th>Reconnaissance</th>
+        <td class="loss"><span class="m">Engage + No Prisoners</span><span class="s">33 / 17</span></td>
+        <td class="win"><span class="m">Triangulation</span><span class="s">37 / 25</span></td>
+        <td class="loss-s"><span class="m">Enemy Observation</span><span class="s">40 / 24</span></td>
+        <td class="win"><span class="m">Hold-Middle / Kill</span><span class="s">41 / 12</span></td>
+        <td class="mirror"><span class="m">Gain Information</span><span class="s">36 / 17</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="sub" style="margin-top:6px">* Take-&amp;-Hold-Spiegel rechnet ~47, gedeckelt bei 45. Safe = beide „starren sich an" &amp; traden; Min = klar unterlegen, Worst Case. Farbe = Sonne/Mond-Indikator der Report-Cards (☀️ begünstigt / 🌙 benachteiligt). <b>Disruption ↔ Recon</b> ist umstritten (beide Karten ☀️) — im End-Tally Disruption-favorisiert.</p>
+
+  <table class="disp" style="margin-top:10px;max-width:600px">
+    <thead><tr><th>Ø über die 4 Nicht-Spiegel-Matchups</th><th style="width:80px">Safe&nbsp;Ø</th><th style="width:150px">Min&nbsp;Ø (Floor)</th></tr></thead>
+    <tbody>
+      <tr><td>Take &amp; Hold</td><td>41.25</td><td>13.75</td></tr>
+      <tr><td>Purge the Foe</td><td>38.25</td><td>11.25 — niedrigster Floor</td></tr>
+      <tr><td>Disruption</td><td>40.25</td><td>14.5</td></tr>
+      <tr><td>Priority Assets</td><td>39.5</td><td>15.5</td></tr>
+      <tr><td>Reconnaissance</td><td>37.75</td><td><b>19.5 — höchster Floor</b></td></tr>
+    </tbody>
+  </table>
+
+  <h2>Fürs Missionplay merken</h2>
+  <div class="cols avoid">
+    <div>
+      <p class="sym"><b>Die 4 Analyse-Symbole</b> (was eine Mission verlangt):</p>
+      <ul class="sym">
+        <li>🛢️ <b>Hold More</b> — Punkte über die Natural hinaus → Aufholen möglich.</li>
+        <li>⚔️ <b>Requires Killing</b> — Punkte brauchen Kills → hart gegen Durability-Skews.</li>
+        <li>➕ <b>Fast Trash</b> — Action/Position → braucht viele schnelle Einheiten.</li>
+        <li>⬛ <b>Forced to Touch Center</b> — Ressource muss aufs Center → exponiert; schenkt Kill-Armeen Punkte.</li>
+      </ul>
+    </div>
+    <div>
+      <p class="sym"><b>Strategische Leitplanken</b>:</p>
+      <ul class="sym">
+        <li><b>Jede</b> Primary verliert Punkte ohne gehaltene Natural → in schwachen Matchups gezielt die <b>gegnerische Natural verneinen</b>, nicht nur „über dem Center kitzeln".</li>
+        <li><b>Purge</b> ist generisch stark; <b>Priority Assets</b> generisch schwach; <b>Recon</b> = sicherer Punkte-Floor (Anker/Blunter im Team).</li>
+        <li><b>Take &amp; Hold</b> nur mit Durability-Skew sinnvoll — sonst füttert es Gegner-Kills.</li>
+        <li>Safe-Score-Delta einer Paarung ≈ Missions-Bias → künftig neben dem Fraktions-Score modellierbar.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Sekundärmissionen — alle 18 Karten</h2>
+  <p class="sub" style="margin-bottom:5px">Wähle <b>Fixed</b> (2 von 4, fest, je max 20 VP/Spiel) oder <b>Tactical</b> (18-Karten-Deck, 2/Runde, kein Hand-Limit, discard→CP). Cap: <b>15 VP/Runde · 45 VP/Spiel</b>. F+T = Fixed + Tactical. Trigger „GZ" = Gegnerzugende.</p>
+  <div class="avoid">
+  <table class="disp" style="font-size:11px">
+    <thead><tr><th style="width:118px">Karte</th><th style="width:44px">Modus</th><th>Scoring-Bedingung</th><th style="width:44px">VP</th><th style="width:44px">Cap/Rd</th></tr></thead>
+    <tbody>
+      <tr style="background:#eef2f7"><td colspan="5" style="font-weight:700;color:var(--accent);padding:3px 6px">Kill-Sekundäre</td></tr>
+      <tr><td><b>Assassination</b></td><td>F+T</td><td>Fixed: 3VP je feindl. CHARACTER zerstört +1VP/W4+. Tactical: 5VP wenn ≥1 CHARACTER zerstört od. alle vernichtet</td><td>unbegr.(F) / 5(T)</td><td>20(F)</td></tr>
+      <tr><td><b>Bring it Down</b></td><td>F+T</td><td>Je feindl. Modell mit W10+ zerstört (Redraw wenn keine vorhanden)</td><td>4(F) / 5(T)</td><td>20(F) / 5(T)</td></tr>
+      <tr><td><b>A Grievous Blow</b></td><td>F+T</td><td>Je feindl. Einheit mit Starting Strength 13+ zerstört (Redraw wenn keine vorhanden)</td><td>4(F) / 5(T)</td><td>20(F) / 5(T)</td></tr>
+      <tr><td><b>No Prisoners</b></td><td>Tact.</td><td>Je feindl. Einheit diesen Zug zerstört</td><td>2</td><td>5</td></tr>
+      <tr><td><b>Overwhelming Force</b></td><td>Tact.</td><td>Je feindl. Einheit, die in Obj-Reichweite stand und zerstört wurde</td><td>3</td><td>5</td></tr>
+      <tr style="background:#eef2f7"><td colspan="5" style="font-weight:700;color:var(--accent);padding:3px 6px">Objektiv-Sekundäre</td></tr>
+      <tr><td><b>Engage on All Fronts</b></td><td>F+T</td><td>Presence in 3 Vierteln: 2(F)/3(T) · Presence in 4 Vierteln: 4(F)/5(T). Presence = vollst. im Viertel &amp; &gt;6" vom Mittelpunkt</td><td>2–4(F) / 3–5(T)</td><td>5</td></tr>
+      <tr><td><b>A Tempting Target</b></td><td>Tact.</td><td>Kontrolle des tempting target (NML-Obj, vom <b>Gegner</b> gewählt beim Ziehen)</td><td>5</td><td>5</td></tr>
+      <tr><td><b>Secure No Man's Land</b></td><td>Tact.</td><td>≥2 NML-Objective kontrolliert (kein Home)</td><td>5</td><td>5</td></tr>
+      <tr><td><b>Forward Position</b></td><td>Tact.</td><td>Je kontrolliertem Feind-Home <b>und/oder</b> Expansion-Obj (stackt!). Optionaler Redraw BR1</td><td>5 je Obj</td><td>15*</td></tr>
+      <tr><td><b>Burden of Trust</b></td><td>Tact.</td><td>Je bewachtem Obj (GZ od. BR5-Ende). Guard-Einheit = in Reichweite + Obj kontrolliert. Setup jede Runde neu</td><td>2 je Obj</td><td>5</td></tr>
+      <tr><td><b>Defend Stronghold</b></td><td>Tact.</td><td>Home Obj kontrolliert: 3VP +2VP wenn kein Feind in eigener DZ (GZ od. BR5). Skippt BR1</td><td>5</td><td>5</td></tr>
+      <tr style="background:#eef2f7"><td colspan="5" style="font-weight:700;color:var(--accent);padding:3px 6px">Positions-/Midboard-Sekundäre</td></tr>
+      <tr><td><b>Centre Ground</b></td><td>Tact.</td><td>≥1 eigene Unit ≤3" Mittelpunkt + kein Feind ≤3": 3VP · kein Feind ≤6": 5VP</td><td>5</td><td>5</td></tr>
+      <tr><td><b>Display of Might</b></td><td>Tact.</td><td>Mehr eigene als feindl. Units in NML: 2VP (eig. Zug) <b>+</b> 5VP (GZ) — beide unabhängig scorebar</td><td>7</td><td>7</td></tr>
+      <tr><td><b>Outflank</b></td><td>Tact.</td><td>1 Unit ≤6" Tischkante, nicht eig. Territ.: 3VP · 2+ Units ≤6" <b>gegenüberl.</b> Kanten: 5VP</td><td>5</td><td>5</td></tr>
+      <tr><td><b>Behind Enemy Lines</b></td><td>Tact.</td><td>Je eigener Unit vollst. in Feind-DZ (kein AIRCRAFT/btl-shocked). Opt. Redraw BR1</td><td>3 je Unit</td><td>5</td></tr>
+      <tr><td><b>Beacon</b></td><td>Tact.</td><td>Beacon-Unit (einmalig designiert) außerh. DZ: 3VP · außerh. eigener Tischhälfte: 5VP (GZ od. BR5)</td><td>5</td><td>5</td></tr>
+      <tr style="background:#eef2f7"><td colspan="5" style="font-weight:700;color:var(--accent);padding:3px 6px">Action-Sekundäre</td></tr>
+      <tr><td><b>Cleanse</b></td><td>Tact.</td><td>Action auf Obj (nicht Home), complete = kontrolliert: 1 cleansed 2VP / ≥2 cleansed 5VP. Mutual redraw mit Plunder</td><td>5</td><td>5</td></tr>
+      <tr><td><b>Plunder</b></td><td>Tact.</td><td>Action auf Terrain Area in Feindterrit. (once/turn, completes sofort): 5VP. Mutual redraw mit Cleanse</td><td>5</td><td>5</td></tr>
+    </tbody>
+  </table>
+  <p class="sub" style="margin-top:4px">* Forward Position stackt (kein expliziter Round-Cap außer dem 15VP-Gesamt-Runden-Cap). F+T = beide Modi verfügbar, Fixed-Werte unbegrenzt bis 20VP/Spiel.</p>
+  </div>
+
+  <div class="foot">
+    <b>Quellen &amp; Status:</b> Konzept = Goonhammer-Intro; Matrix &amp; Scores = Video „11th Edition Primary Review" (Sam Pope, <a href="https://www.youtube.com/watch?v=QQlcrphmz4w">QQlcrphmz4w</a>) — Schätzungen, früher Stand.
+    Missionsnamen aus DE/FR-Leak-Übersetzungen, <b>vorläufig</b> (mit offiziellem Chapter-Approved-Release verifizieren).
+    Vollständige Details: <code>mission-matrix.md</code> · <code>force-dispositions.md</code> · <code>secondary-missions.md</code> · <code>design-notes.md</code> in diesem Ordner.
+  </div>
+
+</div>
+</body>
+</html>
