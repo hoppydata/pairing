@@ -378,6 +378,29 @@
       border-color: var(--border);
       color: var(--muted);
     }
+    .strategy-header {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
+    .strategy-header strong { flex: 1; }
+    .strategy-threat {
+      margin-top: 0.3rem;
+      font-size: 0.78rem;
+      opacity: 0.7;
+    }
+    .strategy-action {
+      margin-top: 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .strategy-detail {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.22s ease;
+    }
+    .strategy-detail.expanded { max-height: 20rem; }
     .strategy-bullets {
       margin: 0.45rem 0 0;
       padding-left: 1.1rem;
@@ -385,6 +408,35 @@
       list-style: disc;
     }
     .strategy-bullets li { margin-bottom: 0.15rem; }
+    .resolved-note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding: 0.3rem 0.7rem;
+      margin-bottom: 0.5rem;
+      border-left: 2px solid var(--border);
+    }
+
+    /* ── Info toggle button ─────────────────────────────────── */
+    .info-toggle {
+      background: none;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      width: 1.3rem;
+      height: 1.3rem;
+      font-size: 0.72rem;
+      line-height: 1;
+      cursor: pointer;
+      color: inherit;
+      opacity: 0.5;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.15s;
+      padding: 0;
+    }
+    .info-toggle:hover,
+    .info-toggle[aria-expanded="true"] { opacity: 1; }
 
     /* ── Player chips ───────────────────────────────────────── */
     .chip-list { display: flex; flex-direction: column; gap: 0.4rem; }
@@ -408,6 +460,17 @@
     .chip-score    { font-size: 0.8rem; font-weight: 700; min-width: 1.5rem; text-align: right; }
     .chip-score-meta { font-size: 0.7rem; font-weight: 600; opacity: 0.65; min-width: 1.5rem; text-align: right; }
     .chip-hint     { font-size: 0.63rem; color: var(--muted); margin-left: 0.18rem; }
+    .terrain-badge {
+      font-size: 0.6rem;
+      color: var(--amber);
+      background: rgba(180,120,40,0.12);
+      border: 1px solid rgba(180,120,40,0.3);
+      border-radius: 3px;
+      padding: 0.05rem 0.28rem;
+      margin-left: 0.25rem;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
+    }
 
     /* ── Suggestion panel ───────────────────────────────────── */
     .suggest-wrap {
@@ -418,7 +481,16 @@
       color: var(--muted);
       padding: 0.35rem 0 0.25rem;
       letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      flex-wrap: wrap;
     }
+    .suggest-title-detail {
+      display: none;
+      font-size: 0.66rem;
+    }
+    .suggest-title-detail.expanded { display: inline; }
 
     .suggest-body {
       display: block;
@@ -1029,6 +1101,7 @@
     <div class="screen-title">Stage 1 — Send Your Attackers</div>
     <div class="screen-sub">Pick 2 attackers to send against their defender. Then record both attackers the opponent sends.</div>
     <div class="info-box" id="info-s1a"></div>
+    <div id="resolved-s1a"></div>
     <div id="strategy-s1a"></div>
     <div class="captain-layout">
       <div class="team-panel" id="pan-s1a-a">
@@ -1130,6 +1203,7 @@
     <div class="screen-title">Stage 2 — Both Teams Send Attackers</div>
     <div class="screen-sub">Both remaining players attack automatically. Confirm our pair, then record the opponent's pair.</div>
     <div class="info-box" id="info-s2a"></div>
+    <div id="resolved-s2a"></div>
     <div id="strategy-s2a"></div>
     <div class="captain-layout">
       <div class="team-panel" id="pan-s2a-a">
@@ -1511,6 +1585,24 @@ function scoreLabel(pIdx, fIdx) {
   return isMeta ? score + '*' : String(score);
 }
 
+/* Return terrain sensitivity magnitude for a faction name (0 = neutral, 3 = max).
+   |dense| + |open| / 2 captures overall preference strength. */
+function factionTableSensitivity(factionName) {
+  const p = FACTION_TABLE_PREFS[factionName];
+  if (!p) return 0;
+  return Math.abs(p.dense) + Math.abs(p.open);
+}
+
+/* Return a short HTML badge string for terrain-sensitive factions (magnitude >= 3).
+   Empty string for neutral factions. */
+function terrainBadge(factionName) {
+  const mag = factionTableSensitivity(factionName);
+  if (mag < 3) return '';
+  const p = FACTION_TABLE_PREFS[factionName];
+  const arrow = p && p.dense > 0 ? '▲dense' : '▼open';
+  return `<span class="terrain-badge">${arrow}</span>`;
+}
+
 /* Convert a single dense↔open axis value to a directional pref for a table type.
    axis: -3 (strongly dense) to +3 (strongly open). */
 function axisToPref(axis, tableType) {
@@ -1706,22 +1798,31 @@ function rankFactionAttackersOpp(factionIdxs, ourDefIdx) {
  */
 function buildSuggestHTML(uid, title, rows, hdr1, hdr2, hdr3) {
   const hasCol3 = hdr3 != null;
-  const rowsHtml = rows.map((r, i) =>
-    `<tr class="${r.isBest ? 'best' : ''}">
-      <td><span class="rank">${i + 1}.</span> ${r.name}${r.isBest ? '<span class="star">★</span>' : ''}</td>
+  const rowsHtml = rows.map((r, i) => {
+    const badge = (typeof terrainBadge === 'function' && r.isFaction) ? terrainBadge(r.name) : '';
+    return `<tr class="${r.isBest ? 'best' : ''}">
+      <td><span class="rank">${i + 1}.</span> ${r.name}${badge}${r.isBest ? '<span class="star">★</span>' : ''}</td>
       <td class="${r.cls1 || ''}">${r.col1 ?? ''}</td>
       ${hdr2 != null ? `<td class="${r.cls2 || ''}">${r.col2 ?? ''}</td>` : ''}
       ${hasCol3 ? `<td class="${r.cls3 || ''}">${r.col3 ?? '—'}</td>` : ''}
-    </tr>`
-  ).join('');
+    </tr>`;
+  }).join('');
   const hdrCols = [
     `<th>Pick</th>`,
     `<th>${hdr1}</th>`,
     hdr2 != null ? `<th>${hdr2}</th>` : '',
     hasCol3 ? `<th>${hdr3}</th>` : '',
   ].join('');
+  // Split title into headline (before first <span>) and optional detail (<span>…)
+  const spanIdx = title.indexOf('<span');
+  const headline = spanIdx === -1 ? title : title.slice(0, spanIdx).trimEnd();
+  const detail   = spanIdx === -1 ? '' : title.slice(spanIdx);
+  const detailHtml = detail
+    ? `<button class="info-toggle" aria-expanded="false" aria-controls="${uid}-st" onclick="this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');document.getElementById('${uid}-st').classList.toggle('expanded')">ⓘ</button>
+       <span id="${uid}-st" class="suggest-title-detail">${detail}</span>`
+    : '';
   return `<div class="suggest-wrap">
-    <div class="suggest-title">${title}</div>
+    <div class="suggest-title">${headline}${detailHtml}</div>
     <div class="suggest-body">
       <table class="suggest-table">
         <thead><tr>${hdrCols}</tr></thead>
@@ -1766,7 +1867,8 @@ function defenderSuggestOpponent(containerEl, factionPool, playerPool) {
       col2: r.min,
       cls1: scClass(r.avg),
       cls2: scClass(r.min),
-      isBest: i === 0
+      isBest: i === 0,
+      isFaction: true
     };
   });
   const uid = 'db-' + containerEl.id;
@@ -1793,19 +1895,32 @@ function attackerSuggestOurs(containerEl, playerPool, oppDefIdx) {
 
 /* Attacker suggestions: predict what factions the opponent will send vs our defender.
    Ranked by THEIR expected score descending (a competent opponent picks what scores
-   best for them, not what we beat hardest). Show their score and our score. */
-function attackerSuggestOpponent(containerEl, factionPool, ourDefIdx) {
+   best for them, not what we beat hardest). Show their score, our score, and best counter. */
+function attackerSuggestOpponent(containerEl, factionPool, ourDefIdx, playerPool) {
   const ranked = rankFactionAttackersOpp(factionPool, ourDefIdx);
-  const rows = ranked.map((r, i) => ({
-    name: r.name,
-    col1: r.oppSc.toFixed(1),
-    col2: r.ourSc,
-    cls1: scClass(20 - r.oppSc),  // colour from our perspective: high opp score = bad for us
-    cls2: scClass(r.ourSc),
-    isBest: i === 0
-  }));
+  const rows = ranked.map((r, i) => {
+    let col3 = '—', cls3 = '';
+    if (playerPool && playerPool.length) {
+      const best = rankPlayerAttackers(playerPool, r.idx)[0];
+      if (best) {
+        col3 = `${best.name} (${best.score})`;
+        cls3 = scClass(best.score);
+      }
+    }
+    return {
+      name: r.name,
+      col1: r.oppSc.toFixed(1),
+      col2: r.ourSc,
+      col3,
+      cls1: scClass(20 - r.oppSc),
+      cls2: scClass(r.ourSc),
+      cls3,
+      isBest: i === 0,
+      isFaction: true
+    };
+  });
   const uid = 'ab-' + containerEl.id;
-  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends — <span style="color:var(--muted);font-weight:400">ranked by their expected score (top = most likely)</span>', rows, 'Their score (est)', 'Our score', null);
+  containerEl.innerHTML = buildSuggestHTML(uid, '💡 Opponent likely sends', rows, 'Their score', 'Our score', 'We exploit with');
 }
 
 /* Refusal suggestions — show which of opponent's attackers to refuse.
@@ -1825,7 +1940,8 @@ function refusalSuggestOurs(containerEl, factionPool, ourDefIdx) {
       col1,
       col2: null,
       cls1: scClass(r.score),
-      isBest: i === 0
+      isBest: i === 0,
+      isFaction: true
     };
   });
   const uid = 'ra-' + containerEl.id;
@@ -1853,14 +1969,92 @@ function refusalSuggestOpponent(containerEl, playerPool, oppDefIdx) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   STRATEGY CALLOUT
+   RESOLVED THREAT NOTE
 ═══════════════════════════════════════════════════════════ */
+
+/*
+ * When defenders are locked, check whether the opponent's locked defender
+ * was driving a trash or pin warning in the full pre-lock pool.
+ * If so, prepend a small "resolved" note above the strategy callout so the
+ * captain knows why the warning disappeared.
+ *
+ * fullPoolA: player pool before defender removal ([...S.poolA, defAIdx])
+ * fullPoolB: faction pool before defender removal ([...S.poolB, defBIdx])
+ * lockedDefB: the opponent faction index that was locked
+ */
+function renderResolvedNote(containerEl, fullPoolA, fullPoolB, lockedDefB) {
+  const RED = 5, PIN = 14;
+  const faction = S.factions[lockedDefB];
+
+  const reds = fullPoolA.filter(pi => { const sc = scoreNum(pi, lockedDefB); return sc !== null && sc <= RED; });
+  const pins = fullPoolA.filter(pi => { const sc = scoreNum(pi, lockedDefB); return sc !== null && sc >= PIN; });
+
+  let note = '';
+  if (reds.length >= 2) {
+    const names = reds.map(pi => S.players[pi]).join(' & ');
+    note = `✓ Trash resolved — <strong>${faction}</strong> locked as their defender. <strong>${names}</strong> won't face it.`;
+  } else if (pins.length >= 2) {
+    const names = pins.map(pi => S.players[pi]).join(' & ');
+    note = `✓ Pin resolved — <strong>${faction}</strong> locked as their defender. <strong>${names}</strong> freed up.`;
+  }
+
+  if (!note) { containerEl.innerHTML = ''; return; }
+  containerEl.innerHTML = `<div class="resolved-note">${note}</div>`;
+}
+
+/*
+ * Compute threat + action lines for the strategy callout.
+ *
+ * ctx (optional): { phase: 'attacker', ourDefIdx, oppDefIdx }
+ *   When present (attacker screens), lines are grounded in locked defenders
+ *   rather than speculating about the full pool.
+ *
+ * threatFactionIdx: the faction driving the structural threat (trash/avoid),
+ *   used on defender screens to cross-reference the expected opponent defender.
+ */
+function computeStrategyLines(poolA, poolB, threatFactionIdx, ctx) {
+  if (!poolA.length || !poolB.length) return { threatLine: '', actionLine: '' };
+
+  // ── Attacker screen: defenders are locked — give concrete send/receive reads ──
+  if (ctx && ctx.phase === 'attacker') {
+    // Threat line: best 2 of our attackers vs their locked defender
+    const ourAtks = rankPlayerAttackers(poolA, ctx.oppDefIdx).slice(0, 2);
+    const atkStr = ourAtks.map(a => `<strong>${a.name}</strong> <span class="${scClass(a.score)}">(${a.score})</span>`).join(', ');
+    const threatLine = `Best into <strong>${S.factions[ctx.oppDefIdx]}</strong>: ${atkStr}`;
+
+    // Action line: top 2 factions opponent will likely send into our locked defender
+    const oppAtks = rankFactionAttackersOpp(poolB, ctx.ourDefIdx).slice(0, 2);
+    const oppStr = oppAtks.map(f => {
+      const ourSc = scoreNum(ctx.ourDefIdx, f.idx) ?? 10;
+      return `<strong>${f.name}</strong> <span class="${scClass(ourSc)}">(${ourSc})</span>`;
+    }).join(', ');
+    const actionLine = `They'll likely send ${oppStr} into <strong>${S.players[ctx.ourDefIdx]}</strong>`;
+    return { threatLine, actionLine };
+  }
+
+  // ── Defender screen: speculate from full pool ──
+  const expectedDef = rankFactionsOpponentPerspective(poolB, poolA)[0];
+  if (!expectedDef) return { threatLine: '', actionLine: '' };
+  const bestCounter = rankPlayerAttackers(poolA, expectedDef.idx)[0];
+  if (!bestCounter) return { threatLine: '', actionLine: '' };
+  const cls = scClass(bestCounter.score);
+
+  // If the expected defender is the same faction driving the trash/avoid threat,
+  // make the action line explicitly tell the captain NOT to defend with the counter.
+  const sameAsThreat = threatFactionIdx != null && expectedDef.idx === threatFactionIdx;
+  const actionLine = sameAsThreat
+    ? `Don't defend with <strong>${bestCounter.name}</strong> — hold to attack <strong>${expectedDef.name}</strong> <span class="${cls}">(${bestCounter.score})</span>`
+    : `If <strong>${expectedDef.name}</strong> defends: send <strong>${bestCounter.name}</strong> <span class="${cls}">(${bestCounter.score})</span>`;
+
+  const threatLine = `Likely opponent defender: <strong>${expectedDef.name}</strong>`;
+  return { threatLine, actionLine };
+}
 
 /*
  * Analyse current pool state and return the highest-priority strategic flag.
  * Priority: trash > avoid-red > pin > deliver > none
  */
-function computeStrategy(poolA, poolB) {
+function computeStrategy(poolA, poolB, ctx) {
   const RED_THRESHOLD     = 5;
   const PIN_THRESHOLD     = 14;
   const DELIVER_CEILING   = 10; // "even" — no remaining win available
@@ -1874,16 +2068,18 @@ function computeStrategy(poolA, poolB) {
     if (redPlayers.length >= 2) {
       const names = redPlayers.map(pi => S.players[pi]).join(' & ');
       const faction = S.factions[fi];
+      const { threatLine, actionLine } = computeStrategyLines(poolA, poolB, fi, ctx);
       return {
         type: 'trash',
         title: 'Take Out the Trash',
-        body: `<strong>${names}</strong> are both red vs <strong>${faction}</strong>.`,
+        body: `<strong>${names}</strong> both red vs <strong>${faction}</strong>.`,
         bullets: [
-          `At least one must exit the pool before <strong>${faction}</strong> appears.`,
-          `Accept a slightly worse matchup now to protect the end-game matrix.`,
-          `If <strong>${faction}</strong> is defending: send one of the red players as an attacker — they'll be refused and removed.`,
-          `If <strong>${faction}</strong> is in the scrum pool: the other red player must defend or attack away from it.`,
-        ]
+          `Remove one red before <strong>${faction}</strong> appears.`,
+          `<strong>${faction}</strong> defends? Offer the red — get refused.`,
+          `<strong>${faction}</strong> attacks? Defend with someone else.`,
+        ],
+        threatLine,
+        actionLine
       };
     }
   }
@@ -1898,22 +2094,22 @@ function computeStrategy(poolA, poolB) {
         const faction = S.factions[fi];
         const bullets = isOdd
           ? [
-              `<strong>${player}</strong> must <strong>defend</strong> to guarantee never facing <strong>${faction}</strong>.`,
-              `As defender, <strong>${player}</strong> controls table pick — choose terrain that suits your army.`,
+              `Defend with <strong>${player}</strong> — blocks the collision.`,
+              `Defender controls table pick.`,
             ]
           : [
-              `<strong>Option A — Defend:</strong> guarantees <strong>${player}</strong> never faces <strong>${faction}</strong>.`,
-              `<strong>Option B — Scrum route:</strong> defend with someone else (not also red vs <strong>${faction}</strong>). ` +
-                `Attack into every defender except <strong>${faction}</strong>. ` +
-                `If <strong>${faction}</strong> defends → hold <strong>${player}</strong> for the forgotten slot. ` +
-                `If <strong>${faction}</strong> attacks your defender → accept (avoids the forgotten collision).`,
-              `Never attack directly into <strong>${faction}</strong>.`,
+              `A: defend with <strong>${player}</strong> — safest.`,
+              `B: hold <strong>${player}</strong> for the forgotten slot.`,
+              `Never send <strong>${player}</strong> into <strong>${faction}</strong>.`,
             ];
+        const { threatLine, actionLine } = computeStrategyLines(poolA, poolB, fi, ctx);
         return {
           type: 'avoid',
           title: 'Avoid Red Flag',
-          body: `<strong>${player}</strong> scores ${sc} vs <strong>${faction}</strong> — avoid at all costs.`,
-          bullets
+          body: `<strong>${player}</strong> scores ${sc} vs <strong>${faction}</strong>.`,
+          bullets,
+          threatLine,
+          actionLine
         };
       }
     }
@@ -1929,16 +2125,19 @@ function computeStrategy(poolA, poolB) {
       const faction = S.factions[fi];
       const scores = pinPlayers.map(pi => scoreNum(pi, fi));
       const isEven = poolA.length % 2 === 0;
+      const { threatLine: pinThreat, actionLine: pinAction } = computeStrategyLines(poolA, poolB, fi, ctx);
       return {
         type: 'pin',
         title: 'Pin Opportunity',
         body: `<strong>${pinPlayers.map(pi => S.players[pi]).join(' & ')}</strong> both crush <strong>${faction}</strong> (${scores.join(' / ')}).`,
         bullets: [
-          `Save them as the last two attackers — force <strong>${faction}</strong>'s defender into two losing choices.`,
-          `Don't burn a pin counter early; only commit once <strong>${faction}</strong> is on the board as defender.`,
-          `If the pin target attacks instead of defending → refuse it so it falls into the refused pair against one of your counters.`,
-          ...(isEven ? [`Even-player pool: you may need a third counter — <strong>${faction}</strong> could hide as the forgotten card.`] : []),
-        ]
+          `Hold both — two losing choices for them.`,
+          `Wait until <strong>${faction}</strong> is declared defender.`,
+          `Attack? Refuse onto your counter.`,
+          ...(isEven ? [`Even pool: <strong>${faction}</strong> may hide as forgotten.`] : []),
+        ],
+        threatLine: pinThreat,
+        actionLine: pinAction
       };
     }
   }
@@ -1951,42 +2150,61 @@ function computeStrategy(poolA, poolB) {
       if (sc !== null && sc > bestScore) bestScore = sc;
     }
     if (bestScore !== -Infinity && bestScore < DELIVER_CEILING) {
+      const { threatLine: delThreat, actionLine: delAction } = computeStrategyLines(poolA, poolB, null, ctx);
       return {
         type: 'deliver',
         title: 'Deliver, Don\'t Win',
-        body: `<strong>${S.players[pi]}</strong>'s best remaining matchup is ${bestScore} — no win available.`,
+        body: `<strong>${S.players[pi]}</strong>'s best matchup is ${bestScore} — no win available.`,
         bullets: [
-          `Forget the result. Job: deliver the smallest loss possible.`,
-          `Focus entirely on secondaries and mission scoring — score independently of the opponent's army.`,
-          `A 5–15 headed for a 2–18 is a team victory.`,
-          `Don't chase a Hail Mary; implosions cost the team more than a controlled defeat.`,
-        ]
+          `Take the smallest loss possible.`,
+          `Max secondaries — ignore the opponent.`,
+          `5–15 beats a 2–18 implosion.`,
+        ],
+        threatLine: delThreat,
+        actionLine: delAction
       };
     }
   }
 
+  const { threatLine: noneThreat, actionLine: noneAction } = computeStrategyLines(poolA, poolB, null, ctx);
   return {
     type: 'none',
     title: 'No Urgent Flags',
-    body: 'Pool looks balanced — standard principles apply.',
+    body: 'Pool balanced — standard principles apply.',
     bullets: [
-      `Defender: pick the most consistent list; resilient to the remaining meta bogeymen.`,
-      `Attacker offer: one clearly strong matchup + one that forces a different concession (not two equally good offers).`,
-      `Consider terrain sensitivity — a table-sensitive army with table-pick is a strong defender anchor.`,
-      `Model the opponent: if your matrix shows green, theirs shows red — they'll try to avoid it. Plan around that.`,
-    ]
+      `Defend with your most consistent list.`,
+      `Offer one win + one that forces a concession.`,
+      `Table-sensitive faction with pick = defender anchor.`,
+    ],
+    threatLine: noneThreat,
+    actionLine: noneAction
   };
 }
 
-function renderStrategyCallout(containerEl, poolA, poolB) {
+function renderStrategyCallout(containerEl, poolA, poolB, ctx) {
   if (!containerEl) return;
-  const { type, title, body, bullets = [] } = computeStrategy(poolA, poolB);
+  const { type, title, body, bullets = [], threatLine, actionLine } = computeStrategy(poolA, poolB, ctx);
   const icons = { trash: '⚠', avoid: '🚨', pin: '📌', deliver: '🎯', none: '✓' };
+  const uid = 'sc-' + containerEl.id;
   const bulletHtml = bullets.length
     ? `<ul class="strategy-bullets">${bullets.map(b => `<li>${b}</li>`).join('')}</ul>`
     : '';
+  const threatHtml = threatLine
+    ? `<div class="strategy-threat">${threatLine}</div>`
+    : '';
+  const actionHtml = actionLine
+    ? `<div class="strategy-action">→ ${actionLine}</div>`
+    : '';
   containerEl.innerHTML =
-    `<div class="strategy-callout ${type}"><strong>${icons[type]} ${title}:</strong> ${body}${bulletHtml}</div>`;
+    `<div class="strategy-callout ${type}">
+      <div class="strategy-header">
+        <strong>${icons[type]} ${title}:</strong> ${body}
+        <button class="info-toggle" aria-expanded="false" aria-controls="${uid}-detail" onclick="this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');document.getElementById('${uid}-detail').classList.toggle('expanded')">ⓘ</button>
+      </div>
+      ${threatHtml}
+      ${actionHtml}
+      <div id="${uid}-detail" class="strategy-detail">${bulletHtml}</div>
+    </div>`;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2012,7 +2230,7 @@ function buildPlayerChips(container, pool, selSet, maxSel, scoreFactionIdx, onch
         scoreHtml = `<span class="chip-scores"><span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">m</span>' : ''}</span></span>`;
       }
     }
-    chip.innerHTML = `<span>${S.players[pi]}<small style="display:block;font-size:0.68em;color:var(--muted);font-weight:400;line-height:1.2">${S.playerFactions[pi] ?? ''}</small></span>${scoreHtml}`;
+    chip.innerHTML = `<span>${S.players[pi]}<small style="display:block;font-size:0.68em;color:var(--muted);font-weight:400;line-height:1.2">${S.playerFactions[pi] ?? ''}</small>${terrainBadge(S.playerFactions[pi] ?? '')}</span>${scoreHtml}`;
     chip.addEventListener('click', () => {
       if (selSet.has(pi)) {
         selSet.delete(pi);
@@ -2048,7 +2266,7 @@ function buildFactionChips(container, pool, selSet, maxSel, scorePlayerIdx, onch
         scoreHtml = `<span class="chip-scores"><span class="chip-score ${cls}">${sc}${isMeta ? '<span class="chip-hint">m</span>' : ''}</span></span>`;
       }
     }
-    chip.innerHTML = `<span>${S.factions[fi]}</span>${scoreHtml}`;
+    chip.innerHTML = `<span>${S.factions[fi]}${terrainBadge(S.factions[fi])}</span>${scoreHtml}`;
     chip.addEventListener('click', () => {
       if (selSet.has(fi)) {
         selSet.delete(fi);
@@ -2214,6 +2432,7 @@ function initPreTournament() {
   S.teamA   = TEAM_DATA.teamName;
   $('ta-name').value = S.teamA;
   buildPlayerInputs();
+  syncFactionSelects();
   buildMetaTable();
   buildPersonalScoreTable();
 }
@@ -2877,9 +3096,10 @@ function enterS1Attackers() {
   $('info-s1a').innerHTML =
     `<strong>Defenders locked:</strong> ${S.teamA}: <strong>${S.players[S.s1.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s1.defB]}</strong>`;
 
-  renderStrategyCallout($('strategy-s1a'), S.poolA, S.poolB);
+  renderResolvedNote($('resolved-s1a'), [...S.poolA, S.s1.defA], [...S.poolB, S.s1.defB], S.s1.defB);
+  renderStrategyCallout($('strategy-s1a'), S.poolA, S.poolB, { phase: 'attacker', ourDefIdx: S.s1.defA, oppDefIdx: S.s1.defB });
   attackerSuggestOurs($('sug-s1a-a'), S.poolA, S.s1.defB);
-  attackerSuggestOpponent($('sug-s1a-b'), S.poolB, S.s1.defA);
+  attackerSuggestOpponent($('sug-s1a-b'), S.poolB, S.s1.defA, S.poolA);
 
   buildPlayerChips($('list-s1a-a'), S.poolA, s1a.selA, 2, S.s1.defB, s1aRefresh);
   buildFactionChips($('list-s1a-b'), S.poolB, s1a.selB, 2, S.s1.defA, s1aRefresh);
@@ -3107,11 +3327,13 @@ function renderS1Lookahead(pick1Game, pick2Game) {
   candidates.sort((a, b) => b.teamNet - a.teamNet);
   const best = candidates[0];
   el.innerHTML = `<div class="info-box">
-    <strong>ⓘ Lookahead — pick 2 vs pick 3 trade-off:</strong>
-    Greedy choice <strong>Table ${greedy.tid}</strong> scores ${greedy.score} locally,
-    but <strong>Table ${best.alt.tid}</strong> (scoring ${best.alt.score}) leaves a stronger
-    table open for our S2 defender (best future ${best.futureAlt.toFixed(1)} vs ${best.futureGreedy.toFixed(1)}).
-    Net team gain: <strong>+${best.teamNet.toFixed(1)} VP</strong>.
+    <div style="display:flex;align-items:baseline;gap:0.4rem;">
+      <span>⚡ Consider <strong>Table ${best.alt.tid}</strong> over Table ${greedy.tid} — net team gain: <strong>+${best.teamNet.toFixed(1)} VP</strong></span>
+      <button class="info-toggle" style="color:var(--gold);border-color:var(--gold-dim)" aria-expanded="false" aria-controls="la-s1-detail" onclick="this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');document.getElementById('la-s1-detail').classList.toggle('expanded')">ⓘ</button>
+    </div>
+    <div id="la-s1-detail" class="strategy-detail" style="color:var(--muted);font-size:0.78rem">
+      <div style="margin-top:0.35rem">Greedy Table ${greedy.tid} scores ${greedy.score} locally. Table ${best.alt.tid} scores ${best.alt.score} but leaves a stronger pick 3 (future best: ${best.futureAlt.toFixed(1)} vs ${best.futureGreedy.toFixed(1)}).</div>
+    </div>
   </div>`;
 }
 
@@ -3187,11 +3409,13 @@ function renderS2Lookahead(pick3Game, pick4Game, game5, availableIds, s1Taken) {
   candidates.sort((a, b) => b.teamNet - a.teamNet);
   const best = candidates[0];
   el.innerHTML = `<div class="info-box">
-    <strong>ⓘ Lookahead — pick 3 vs Game 5 trade-off:</strong>
-    Greedy choice <strong>Table ${greedy.tid}</strong> scores ${greedy.score} locally;
-    <strong>Table ${best.alt.tid}</strong> (scoring ${best.alt.score}) likely leaves
-    Table ${best.altGame5} for Game 5 (score ${best.altScore} vs ${best.greedyScore}).
-    Net team gain: <strong>+${best.teamNet.toFixed(1)} VP</strong>.
+    <div style="display:flex;align-items:baseline;gap:0.4rem;">
+      <span>⚡ Consider <strong>Table ${best.alt.tid}</strong> over Table ${greedy.tid} — net team gain: <strong>+${best.teamNet.toFixed(1)} VP</strong></span>
+      <button class="info-toggle" style="color:var(--gold);border-color:var(--gold-dim)" aria-expanded="false" aria-controls="la-s2-detail" onclick="this.setAttribute('aria-expanded',this.getAttribute('aria-expanded')==='true'?'false':'true');document.getElementById('la-s2-detail').classList.toggle('expanded')">ⓘ</button>
+    </div>
+    <div id="la-s2-detail" class="strategy-detail" style="color:var(--muted);font-size:0.78rem">
+      <div style="margin-top:0.35rem">Greedy Table ${greedy.tid} scores ${greedy.score} locally. Table ${best.alt.tid} scores ${best.alt.score} and likely leaves Table ${best.altGame5} for Game 5 (score ${best.altScore} vs ${best.greedyScore} for greedy path).</div>
+    </div>
   </div>`;
 }
 
@@ -3253,9 +3477,10 @@ function enterS2Attackers() {
   $('info-s2a').innerHTML =
     `<strong>Defenders locked:</strong> ${S.teamA}: <strong>${S.players[S.s2.defA]}</strong> &nbsp;|&nbsp; ${S.teamB}: <strong>${S.factions[S.s2.defB]}</strong>`;
 
-  renderStrategyCallout($('strategy-s2a'), S.poolA, S.poolB);
+  renderResolvedNote($('resolved-s2a'), [...S.poolA, S.s2.defA], [...S.poolB, S.s2.defB], S.s2.defB);
+  renderStrategyCallout($('strategy-s2a'), S.poolA, S.poolB, { phase: 'attacker', ourDefIdx: S.s2.defA, oppDefIdx: S.s2.defB });
   attackerSuggestOurs($('sug-s2a-a'), S.poolA, S.s2.defB);
-  attackerSuggestOpponent($('sug-s2a-b'), S.poolB, S.s2.defA);
+  attackerSuggestOpponent($('sug-s2a-b'), S.poolB, S.s2.defA, S.poolA);
 
   // Both remaining players attack — pre-select all
   S.poolA.forEach(i => s2a.selA.add(i));
@@ -3891,6 +4116,17 @@ $('player-inputs').addEventListener('focusout', e => {
     buildPersonalScoreTable();
   }
 });
+/* Disable already-chosen factions in every other player dropdown. */
+function syncFactionSelects() {
+  const selects = [...$('player-inputs').querySelectorAll('select')];
+  const chosen = new Set(selects.map(s => s.value));
+  selects.forEach(sel => {
+    sel.querySelectorAll('option').forEach(opt => {
+      opt.disabled = chosen.has(opt.value) && opt.value !== sel.value;
+    });
+  });
+}
+
 // Rebuild when faction changes
 $('player-inputs').addEventListener('change', e => {
   if (e.target.matches('select')) {
@@ -3902,6 +4138,7 @@ $('player-inputs').addEventListener('change', e => {
       syncInlineSlider(idx, seeded);
       syncOverrideSlider(idx, seeded);
     }
+    syncFactionSelects();
     buildMetaTable();
     buildPersonalScoreTable();
     buildMatrixTable();

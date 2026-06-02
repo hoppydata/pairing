@@ -15,6 +15,7 @@ This repository documents the pairing rules for 40K team match play — specific
 - [data/meta.md](data/meta.md) — Notes on the global meta matrix and its differential→0–20 conversion.
 - [data/pairing-strategy.md](data/pairing-strategy.md) — Pairing coach strategy guide: the matrix concept, team size variants (5/6/8 players, odd vs. even), roster roles, defender/attacker mental model, and the foundational strategies (take out the trash, avoiding a red, pin, deliver-don't-win).
 - [data/pairing-uktc-guide.md](data/pairing-uktc-guide.md) — UKTC ITT beginner walkthrough of the Defenders & Attackers draft. External community guide stored verbatim as reference.
+- [data/11th-edition/](data/11th-edition/) — 11th-edition reference material (release June 2026). Force Disposition mission system, the full 5×5 Disposition×Disposition mission matrix, secondary missions, verbatim core rules + sources, and design notes for making pairing two-dimensional. See [data/11th-edition/README.md](data/11th-edition/README.md). Reference only — does not touch the tool yet.
 
 ## Editing the Rules
 
