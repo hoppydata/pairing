@@ -1,0 +1,173 @@
+{
+  "_doc": "Disposition x Disposition mission bias for the 40K pairing tool (11th edition). Reference data only; the live tool does not consume this yet.",
+  "_derivation": "bias = stepped( safeUs - safeThem ), where safeUs/safeThem are Sam Pope's Safe-score estimates per paired mission (data/11th-edition/mission-matrix.md), and stepped() is the project's VP-delta->score conversion: bracket = abs(d)<=5 ? 0 : min(ceil((abs(d)-5)/5),10); sign follows d. Yields a small modifier (about -2..+2) that shifts the 0-20 matchup score like a table-pick delta. Antisymmetric: matrix[a][b].bias == -matrix[b][a].bias. Mirror diagonal nets 0 (both play the same mission). Sabotage mirror Safe capped at 45. Safe scores are early estimates, not official.",
+  "_dispositions": [
+    "Take and Hold",
+    "Purge the Foe",
+    "Disruption",
+    "Reconnaissance",
+    "Priority Assets"
+  ],
+  "matrix": {
+    "Take and Hold": {
+      "Take and Hold": {
+        "bias": 0,
+        "rawSafeDelta": 0,
+        "missionUs": "Schlachtfeld Beherrschen",
+        "missionThem": "Schlachtfeld Beherrschen"
+      },
+      "Purge the Foe": {
+        "bias": 0,
+        "rawSafeDelta": -2,
+        "missionUs": "Unbewegliches Objekt",
+        "missionThem": "Unaufhaltsame Gewalt"
+      },
+      "Disruption": {
+        "bias": 0,
+        "rawSafeDelta": 1,
+        "missionUs": "Entschlossene Übernahme",
+        "missionThem": "Todesfalle"
+      },
+      "Reconnaissance": {
+        "bias": 1,
+        "rawSafeDelta": 8,
+        "missionUs": "Säubern und Sichern",
+        "missionThem": "Aufklärungseinsatz"
+      },
+      "Priority Assets": {
+        "bias": 0,
+        "rawSafeDelta": -2,
+        "missionUs": "Unausweichliche Herrschaft",
+        "missionThem": "Objekt Sichern"
+      }
+    },
+    "Purge the Foe": {
+      "Take and Hold": {
+        "bias": 0,
+        "rawSafeDelta": 2,
+        "missionUs": "Unaufhaltsame Gewalt",
+        "missionThem": "Unbewegliches Objekt"
+      },
+      "Purge the Foe": {
+        "bias": 0,
+        "rawSafeDelta": 0,
+        "missionUs": "Fleischwolf",
+        "missionThem": "Fleischwolf"
+      },
+      "Disruption": {
+        "bias": 0,
+        "rawSafeDelta": -4,
+        "missionUs": "Strafe",
+        "missionThem": "Verzögerungsgefecht"
+      },
+      "Reconnaissance": {
+        "bias": 0,
+        "rawSafeDelta": -4,
+        "missionUs": "Weihen",
+        "missionThem": "Triangulation"
+      },
+      "Priority Assets": {
+        "bias": 0,
+        "rawSafeDelta": -3,
+        "missionUs": "Zorn des Zerstörers",
+        "missionThem": "Wichtige Verbindung"
+      }
+    },
+    "Disruption": {
+      "Take and Hold": {
+        "bias": 0,
+        "rawSafeDelta": -1,
+        "missionUs": "Todesfalle",
+        "missionThem": "Entschlossene Übernahme"
+      },
+      "Purge the Foe": {
+        "bias": 0,
+        "rawSafeDelta": 4,
+        "missionUs": "Verzögerungsgefecht",
+        "missionThem": "Strafe"
+      },
+      "Disruption": {
+        "bias": 0,
+        "rawSafeDelta": 0,
+        "missionUs": "Ausmanövrieren",
+        "missionThem": "Ausmanövrieren"
+      },
+      "Reconnaissance": {
+        "bias": 1,
+        "rawSafeDelta": 6,
+        "missionUs": "Rauch und Spiegel",
+        "missionThem": "Feind Beobachten"
+      },
+      "Priority Assets": {
+        "bias": 0,
+        "rawSafeDelta": 3,
+        "missionUs": "Finden und Verweigern",
+        "missionThem": "Relikt Bergen"
+      }
+    },
+    "Reconnaissance": {
+      "Take and Hold": {
+        "bias": -1,
+        "rawSafeDelta": -8,
+        "missionUs": "Aufklärungseinsatz",
+        "missionThem": "Säubern und Sichern"
+      },
+      "Purge the Foe": {
+        "bias": 0,
+        "rawSafeDelta": 4,
+        "missionUs": "Triangulation",
+        "missionThem": "Weihen"
+      },
+      "Disruption": {
+        "bias": -1,
+        "rawSafeDelta": -6,
+        "missionUs": "Feind Beobachten",
+        "missionThem": "Rauch und Spiegel"
+      },
+      "Reconnaissance": {
+        "bias": 0,
+        "rawSafeDelta": 0,
+        "missionUs": "Informationen Sammeln",
+        "missionThem": "Informationen Sammeln"
+      },
+      "Priority Assets": {
+        "bias": 1,
+        "rawSafeDelta": 7,
+        "missionUs": "Suchen und Auslöschen",
+        "missionThem": "Vorhutoperation"
+      }
+    },
+    "Priority Assets": {
+      "Take and Hold": {
+        "bias": 0,
+        "rawSafeDelta": 2,
+        "missionUs": "Objekt Sichern",
+        "missionThem": "Unausweichliche Herrschaft"
+      },
+      "Purge the Foe": {
+        "bias": 0,
+        "rawSafeDelta": 3,
+        "missionUs": "Wichtige Verbindung",
+        "missionThem": "Zorn des Zerstörers"
+      },
+      "Disruption": {
+        "bias": 0,
+        "rawSafeDelta": -3,
+        "missionUs": "Relikt Bergen",
+        "missionThem": "Finden und Verweigern"
+      },
+      "Reconnaissance": {
+        "bias": -1,
+        "rawSafeDelta": -7,
+        "missionUs": "Vorhutoperation",
+        "missionThem": "Suchen und Auslöschen"
+      },
+      "Priority Assets": {
+        "bias": 0,
+        "rawSafeDelta": 0,
+        "missionUs": "Sabotage",
+        "missionThem": "Sabotage"
+      }
+    }
+  }
+}
