@@ -16,6 +16,16 @@ This repository documents the pairing rules for 40K team match play — specific
 - [data/pairing-strategy.md](data/pairing-strategy.md) — Pairing coach strategy guide: the matrix concept, team size variants (5/6/8 players, odd vs. even), roster roles, defender/attacker mental model, and the foundational strategies (take out the trash, avoiding a red, pin, deliver-don't-win).
 - [data/pairing-uktc-guide.md](data/pairing-uktc-guide.md) — UKTC ITT beginner walkthrough of the Defenders & Attackers draft. External community guide stored verbatim as reference.
 - [data/11th-edition/](data/11th-edition/) — 11th-edition reference material (release June 2026). Force Disposition mission system, the full 5×5 Disposition×Disposition mission matrix, secondary missions, verbatim core rules + sources, and design notes for making pairing two-dimensional. See [data/11th-edition/README.md](data/11th-edition/README.md). Reference only — does not touch the tool yet.
+- [data/11th-edition/disposition-bias.json](data/11th-edition/disposition-bias.json) — machine-readable 25-cell Disposition×Disposition **mission bias** lookup. `matrix[ourDisp][oppDisp]` → `{bias, rawSafeDelta, missionUs, missionThem}`. `bias` is a small signed modifier (~±1–2, antisymmetric, mirror diagonal 0) that will shift the 0–20 matchup score like the table-pick delta. Derived from `mission-matrix.md` Safe-score deltas via the stepped VP→score formula below. Reference data — the live tool does not consume it yet (see BACKLOG.md §5).
+
+## 11th Edition (planned — see BACKLOG.md §5)
+
+11th edition (release ~June 2026) adds the **Force Disposition** layer. The plan is captured as backlog items 5a–5f, not yet built. Key facts for when this is implemented:
+
+- **Edition is a mode switch** (`S.edition`, default `'10th'`). All disposition code must be guarded by `S.edition === '11th'` so 10th play stays byte-identical.
+- **Disposition is a fixed per-player field** (like faction). Add `playerDispositions` (name → one of the 5: `Take and Hold`, `Purge the Foe`, `Disruption`, `Reconnaissance`, `Priority Assets`) to [data/team-data.json](data/team-data.json), mirror into inline `TEAM_DATA`. Each disposition may be used **only once per our team** (validate at setup).
+- **Mission bias is a third score modifier**, not a new scale. Source it from [data/11th-edition/disposition-bias.json](data/11th-edition/disposition-bias.json); compose it like the existing table-pick delta (additive, clamped 0–20). It is the weakest of the three factors (matchup matrix > table pick > mission bias) — never let it dominate the matchup score.
+- **To refresh the bias table:** edit the Safe scores in `data/11th-edition/mission-matrix.md`, then regenerate `disposition-bias.json` with `bias = stepped(safeUs − safeThem)` where `stepped()` is the project's VP→score conversion (`bracket = abs(d) <= 5 ? 0 : min(ceil((abs(d)−5)/5), 10)`, sign follows `d`).
 
 ## Editing the Rules
 

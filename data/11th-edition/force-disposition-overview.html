@@ -41,6 +41,7 @@
   .matrix tbody th{background:#1f4e79;color:#fff;font-size:11.5px;text-align:right;width:118px;line-height:1.2}
   .matrix td .m{font-weight:700;font-size:11.5px;display:block;margin-bottom:2px}
   .matrix td .s{font-size:10.5px;color:#33373d;opacity:.85}
+  .matrix td .sy{font-size:10px;color:var(--muted);display:block;margin-top:2px;letter-spacing:.3px}
   td.win{background:var(--win-bg)} td.win-s{background:var(--win-bg-soft)}
   td.loss{background:var(--loss-bg)} td.loss-s{background:var(--loss-bg-soft)}
   td.mirror{background:var(--neutral-bg)}
@@ -110,48 +111,48 @@
   <table class="matrix">
     <thead><tr>
       <th class="corner">eigene&nbsp;↓ / Gegner&nbsp;→</th>
-      <th>Take&nbsp;&amp;&nbsp;Hold</th><th>Purge&nbsp;the&nbsp;Foe</th><th>Disruption</th><th>Priority&nbsp;Assets</th><th>Reconnaissance</th>
+      <th>Take&nbsp;&amp;&nbsp;Hold</th><th>Purge&nbsp;the&nbsp;Foe</th><th>Disruption</th><th>Reconnaissance</th><th>Priority&nbsp;Assets</th>
     </tr></thead>
     <tbody>
       <tr>
         <th>Take &amp; Hold</th>
-        <td class="mirror"><span class="m">Dominate Backfield</span><span class="s">45* / 18</span></td>
-        <td class="loss"><span class="m">A Movable Object</span><span class="s">40 / 11</span></td>
-        <td class="loss-s"><span class="m">Determined Takeover</span><span class="s">40 / 18</span></td>
-        <td class="loss"><span class="m">Hold-Three</span><span class="s">44 / 13</span></td>
-        <td class="win"><span class="m">Kill-by-Objective</span><span class="s">41 / 13</span></td>
+        <td class="mirror"><span class="m">Schlachtfeld Beherrschen</span><span class="s">45* / 18</span><span class="sy">🛢️⬛</span></td>
+        <td class="loss"><span class="m">Unbewegliches Objekt</span><span class="s">40 / 11</span><span class="sy">🛢️⬛</span></td>
+        <td class="loss-s"><span class="m">Entschlossene Übernahme</span><span class="s">40 / 18</span><span class="sy">🛢️⬛</span></td>
+        <td class="win"><span class="m">Säubern und Sichern</span><span class="s">41 / 13</span><span class="sy">⚔️🛢️</span></td>
+        <td class="loss"><span class="m">Unausweichliche Herrschaft</span><span class="s">44 / 13</span><span class="sy">🛢️⬛</span></td>
       </tr>
       <tr>
         <th>Purge the Foe</th>
-        <td class="win"><span class="m">Unstoppable Object</span><span class="s">42 / 13</span></td>
-        <td class="mirror"><span class="m">Meatgrinder</span><span class="s">30 / 7</span></td>
-        <td class="win"><span class="m">Doomed Units</span><span class="s">36 / 9</span></td>
-        <td class="win"><span class="m">Destroyer&rsquo;s Wrath</span><span class="s">42 / 7</span></td>
-        <td class="loss"><span class="m">Consecration</span><span class="s">33 / 16</span></td>
+        <td class="win"><span class="m">Unaufhaltsame Gewalt</span><span class="s">42 / 13</span><span class="sy">⚔️🛢️⬛</span></td>
+        <td class="mirror"><span class="m">Fleischwolf</span><span class="s">30 / 7</span><span class="sy">⚔️</span></td>
+        <td class="win"><span class="m">Strafe</span><span class="s">36 / 9</span><span class="sy">⚔️🛢️</span></td>
+        <td class="loss"><span class="m">Weihen</span><span class="s">33 / 16</span><span class="sy">⚔️🛢️</span></td>
+        <td class="win"><span class="m">Zorn des Zerstörers</span><span class="s">42 / 7</span><span class="sy">⚔️🛢️</span></td>
       </tr>
       <tr>
         <th>Disruption</th>
-        <td class="win"><span class="m">Terrain Action</span><span class="s">39 / 25</span></td>
-        <td class="loss-s"><span class="m">Delaying Battle</span><span class="s">40 / 11</span></td>
-        <td class="mirror"><span class="m">Progressing (BR-ramp)</span><span class="s">42 / 13</span></td>
-        <td class="win"><span class="m">OP-Marker</span><span class="s">36 / 8</span></td>
-        <td class="win-s"><span class="m">Action outside DZ</span><span class="s">46 / 14</span></td>
+        <td class="win"><span class="m">Todesfalle</span><span class="s">39 / 25</span><span class="sy">⚔️➕</span></td>
+        <td class="loss-s"><span class="m">Verzögerungsgefecht</span><span class="s">40 / 11</span><span class="sy">⚔️⬛</span></td>
+        <td class="mirror"><span class="m">Ausmanövrieren</span><span class="s">42 / 13</span><span class="sy">🛢️⬛</span></td>
+        <td class="win-s"><span class="m">Rauch und Spiegel</span><span class="s">46 / 14</span><span class="sy">➕⬛</span></td>
+        <td class="win"><span class="m">Finden und Verweigern</span><span class="s">36 / 8</span><span class="sy">⚔️➕</span></td>
       </tr>
       <tr>
         <th>Priority Assets</th>
-        <td class="win"><span class="m">Secure Object</span><span class="s">46 / 18</span></td>
-        <td class="loss"><span class="m">Center-Action Ramp</span><span class="s">45 / 11</span></td>
-        <td class="loss"><span class="m">Extract Relic</span><span class="s">33 / 23</span></td>
-        <td class="mirror"><span class="m">Mirror Action</span><span class="s">≈56 / hoch</span></td>
-        <td class="loss"><span class="m">Vanguard Operation</span><span class="s">34 / 10</span></td>
+        <td class="win"><span class="m">Objekt Sichern</span><span class="s">46 / 18</span><span class="sy">⚔️🛢️</span></td>
+        <td class="loss"><span class="m">Wichtige Verbindung</span><span class="s">45 / 11</span><span class="sy">🛢️➕⬛</span></td>
+        <td class="loss"><span class="m">Relikt Bergen</span><span class="s">33 / 23</span><span class="sy">⚔️➕⬛</span></td>
+        <td class="loss"><span class="m">Vorhutoperation</span><span class="s">34 / 10</span><span class="sy">⚔️➕⬛</span></td>
+        <td class="mirror"><span class="m">Sabotage</span><span class="s">≈56 / hoch</span><span class="sy">➕⬛</span></td>
       </tr>
       <tr>
         <th>Reconnaissance</th>
-        <td class="loss"><span class="m">Engage + No Prisoners</span><span class="s">33 / 17</span></td>
-        <td class="win"><span class="m">Triangulation</span><span class="s">37 / 25</span></td>
-        <td class="loss-s"><span class="m">Enemy Observation</span><span class="s">40 / 24</span></td>
-        <td class="win"><span class="m">Hold-Middle / Kill</span><span class="s">41 / 12</span></td>
-        <td class="mirror"><span class="m">Gain Information</span><span class="s">36 / 17</span></td>
+        <td class="loss"><span class="m">Aufklärungseinsatz</span><span class="s">33 / 17</span><span class="sy">⚔️➕</span></td>
+        <td class="win"><span class="m">Triangulation</span><span class="s">37 / 25</span><span class="sy">⬛</span></td>
+        <td class="loss-s"><span class="m">Feind Beobachten</span><span class="s">40 / 24</span><span class="sy">➕🛢️</span></td>
+        <td class="mirror"><span class="m">Informationen Sammeln</span><span class="s">36 / 17</span><span class="sy">⬛</span></td>
+        <td class="win"><span class="m">Suchen und Auslöschen</span><span class="s">41 / 12</span><span class="sy">⚔️🛢️⬛</span></td>
       </tr>
     </tbody>
   </table>
@@ -225,8 +226,8 @@
   </div>
 
   <div class="foot">
-    <b>Quellen &amp; Status:</b> Konzept = Goonhammer-Intro; Matrix &amp; Scores = Video „11th Edition Primary Review" (Sam Pope, <a href="https://www.youtube.com/watch?v=QQlcrphmz4w">QQlcrphmz4w</a>) — Schätzungen, früher Stand.
-    Missionsnamen aus DE/FR-Leak-Übersetzungen, <b>vorläufig</b> (mit offiziellem Chapter-Approved-Release verifizieren).
+    <b>Quellen &amp; Status:</b> Konzept = Goonhammer-Intro; Safe/Min-Scores = Video „11th Edition Primary Review" (Sam Pope, <a href="https://www.youtube.com/watch?v=QQlcrphmz4w">QQlcrphmz4w</a>) — Schätzungen, früher Stand.
+    <b>Missionsnamen offiziell</b> — direkt aus <i>Chapter Approved 11th Edition (DE)</i> extrahiert. Klassifikations-Symbole per Report-Card-Screenshots verifiziert (Juni 2026).
     Vollständige Details: <code>mission-matrix.md</code> · <code>force-dispositions.md</code> · <code>secondary-missions.md</code> · <code>design-notes.md</code> in diesem Ordner.
   </div>
 

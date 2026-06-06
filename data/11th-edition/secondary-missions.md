@@ -2,7 +2,7 @@
 
 Zusätzlich zur (von der Force Disposition bestimmten) Primärmission scoren Spieler über **Sekundärmissionen**. Zu Spielbeginn wählt man zwischen **Fixed** und **Tactical**.
 
-> Quellen: [`sources/goonhammer-missions-intro.md`](sources/goonhammer-missions-intro.md) (Konzept) + offizielle Karten-Screenshots (5 von ~20, Stand Juni 2026). Primärseite: [`mission-matrix.md`](mission-matrix.md).
+> Quellen: [`sources/goonhammer-missions-intro.md`](sources/goonhammer-missions-intro.md) (Konzept; bestätigt **18** Tactical-Karten im Deck) + offizielle Karten-Screenshots (alle 18 dokumentiert, Stand Juni 2026). Primärseite: [`mission-matrix.md`](mission-matrix.md).
 
 ---
 
@@ -11,7 +11,7 @@ Zusätzlich zur (von der Force Disposition bestimmten) Primärmission scoren Spi
 | | Fixed | Tactical |
 |---|---|---|
 | Auswahl | 2 Missionen aus einer Liste von 4, **fest** für das ganze Spiel. | Jede Command Phase **2 Karten** aus dem Deck ziehen. |
-| Deckgröße | — (feste 4 Optionen) | ~18 Karten im Deck |
+| Deckgröße | — (feste 4 Optionen) | 18 Karten im Deck |
 | Cap je Fixed-Karte | **20 VP/Spiel** | — |
 | Cap Sekundär gesamt | **15 VP/Runde**, max **45 VP/Spiel** | 15 VP/Runde, max **45 VP/Spiel** |
 | Kein Hand-Limit | — | Karten können für spätere Runden gehalten werden |

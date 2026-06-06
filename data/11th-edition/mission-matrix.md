@@ -3,7 +3,8 @@
 Welche **Primärmission** ein Spieler spielt, ergibt sich aus seiner **eigenen** Disposition (Zeile) gepaart mit der **gegnerischen** (Spalte). Die Missionen sind **asymmetrisch** — beide Spieler einer Paarung spielen meist eine andere Mission. Nur die **Spiegel-Diagonale** (gleiche Disposition) gibt beiden dieselbe Mission.
 
 > **Quellen:** Offizielle DE-Missionsnamen aus *Chapter Approved 11th Edition (DE)* (Primärquelle). Safe/Min-Scores sind **Schätzungen** Sam Popes aus dem Video-Transkript ([`sources/video-transcript-sam-pope.md`](sources/video-transcript-sam-pope.md)) — früher Stand, keine offiziellen Werte. Scoring-Regeltext aus den Karten des Chapter Approved.
-> Symbol-Legende & Score-Definitionen: [`force-dispositions.md`](force-dispositions.md). 🛢️ Hold More · ⚔️ Requires Killing · ➕ Action-Pflicht · ⬛ Forced to Touch Center.
+> Symbol-Legende & Score-Definitionen: [`force-dispositions.md`](force-dispositions.md). 🛢️ Hold More · ⚔️ Requires Killing · ➕ Fast Trash (Action-/Positionsfokus) · ⬛ Forced to Touch Center.
+> **Symbole per Report-Card-Screenshots verifiziert** (Juni 2026, alle 25 Missionen): 13 Korrekturen in 4 Zeilen; T&H-Zeile war einwandfrei.
 > Notation je Zelle: **Missionsname (DE)** · Safe/Min.
 
 ---
@@ -47,7 +48,7 @@ Spaltenreihenfolge entspricht der offiziellen Kartenreihenfolge: Einnehmen & Hal
 
 Kompakte Lookup-Tabelle mit offiziellen Scoring-Regeln (aus Chapter Approved DE). Zeilen-Gruppe = eigene Disposition.
 
-> Symbole: 🛢️ Hold More · ⚔️ Requires Killing · ➕ Action-Pflicht · ⬛ Forced to Touch Center · ✦ Spiegel-Mission
+> Symbole: 🛢️ Hold More · ⚔️ Requires Killing · ➕ Fast Trash (Action-/Positionsfokus) · ⬛ Forced to Touch Center · ✦ Spiegel-Mission
 
 ### Einnehmen & Halten (eigene Disposition)
 
@@ -124,7 +125,7 @@ Stärkste Disposition (Matchup A, Resources S, Consistency S). Linie über fast 
   Kill = 3 SP; je Obj (außer Heim) = 4 SP; neues Obj = 3 SP. Spielende: mind. 1 zentrales Obj = 5 SP.
 - **vs Lösche den Feind aus — „Fleischwolf"** (Spiegel) · 30/7 · ⚔️
   Kill = 3 SP; mind. 1 Obj (außer Heim) = 4 SP; mehr Kills als Gegner letzten Zug = 5 SP; geg. Heimmissionsziel = 5 SP/Zug. Niedrig & swingy — der Gewinner geht mit klarem Vorsprung raus.
-- **vs Störangriff — „Strafe"** · 36/9 · ⚔️
+- **vs Störangriff — „Strafe"** · 36/9 · ⚔️🛢️
   Verdammen-Mechanik: zu Zugbeginn Feindeinheiten in Obj-Reichweite markieren. Verdammte Einheit verlässt Feld = 5 SP. Ab R2: Obj (außer Heim) = 4 SP; mehr Obj als Gegner = 5 SP. Spielende: geg. Heimmissionsziel = 8 SP. (Sam Pope: „Doomed Units" — Name war Leak-Übersetzung.)
 - **vs Auskundschaften — „Weihen"** · 33/16 · ⚔️🛢️
   Kill → weihende Einheit; Ende Zugs auf Obj (außer Heim, kein Op-Marker) → Obj **geweiht** (dauerhaft). 1–2 geweiht = 3 SP; 3+ = 6 SP. Obj (außer Heim) = 4 SP; mehr Obj = 4 SP. Spielende: geg. Heimmissionsziel geweiht = 5 SP. Min hoch, weil geweiht dauerhaft bleibt.
@@ -135,26 +136,26 @@ Stärkste Disposition (Matchup A, Resources S, Consistency S). Linie über fast 
 
 Solider Allrounder (3 Gewinn-Matchups). Mix aus Killing + Actions, kaum „Hold More". Spielt sicherer/leichter als die Safe-Scores vermuten lassen.
 
-- **vs E&H — „Todesfalle"** · 39/25 · ➕
+- **vs E&H — „Todesfalle"** · 39/25 · ⚔️➕
   Aktion VERNINEN (unbegrenzt, Beginn Fernkampfphase): Geländebereich verminen → Op-Marker platzieren. Je Minenfeld = 2 SP (+3 wenn Obj, KUMULATIV). Feind started in Minenfeld, zerstört = 3 SP. Ab R2: Obj (außer Heim) = 4 SP. Sehr guter Min-Score (25).
-- **vs Lösche den Feind aus — „Verzögerungsgefecht"** · 40/11 · ⚔️
+- **vs Lösche den Feind aus — „Verzögerungsgefecht"** · 40/11 · ⚔️⬛
   Je zerstörte Feindeinheit = 2 SP. Ab R2: Obj (außer Heim) = 4 SP; zentrales Obj + Expansionsmissionsziel gleichzeitig = 3 SP.
-- **vs Störangriff — „Ausmanövrieren"** (Spiegel) · 42/13 · ⬛
+- **vs Störangriff — „Ausmanövrieren"** (Spiegel) · 42/13 · 🛢️⬛
   Geg. Heimmissionsziel halten = 10 SP/Zug. R1: je Obj (außer Heim) = 4 SP; R2–R3 Befehlsphase: 5 SP; ab R4: 6 SP. (Sam Pope: „Progressing" — Name war Leak-Übersetzung.)
-- **vs Auskundschaften — „Rauch und Spiegel"** · 46/14 · ➕
+- **vs Auskundschaften — „Rauch und Spiegel"** · 46/14 · ➕⬛
   Aktion MIT KÖDERN VERSEHEN: Obj mit Ködern versehen + Op-Marker. Je Köder-Obj = 2 SP (+2 in Feindterr., KUMULATIV). Ab R2: Obj (außer Heim) = 4 SP. Spielende: 4+ Köder-Obj = 10 SP. **Höchster Safe-Score der Matrix.** (Sam Pope: „Action outside DZ".)
-- **vs Prioritätsziele — „Finden und Verweigern"** · 36/8 · ⚔️⬛
+- **vs Prioritätsziele — „Finden und Verweigern"** · 36/8 · ⚔️➕
   5 Op-Marker außerh. DZ platzieren; Aktion SENSORPEILUNG entfernt geg. Marker. Kill auf Obj-Nähe = 4 SP; eigener Op-Marker im Gelände ohne Feinde = 4 SP. Ab R2: Obj (außer Heim) = 4 SP. Spielende: Op-Marker-Kontrolle = 5 SP.
 
 ## Prioritätsziele (Zeile)
 
 Letzter Platz: extrem **ressourcenintensiv** (Resources ~F). Muss fast überall aufs Center, dort eine Action machen **und** den Gegner runterkillen. Belohnt das nicht mit Spitzen-Scores. Einziger guter Matchup: vs Einnehmen & Halten.
 
-- **vs E&H — „Objekt Sichern"** · 46/18 · ➕🛢️
+- **vs E&H — „Objekt Sichern"** · 46/18 · ⚔️🛢️
   Aktion OBJEKT SICHERN (einmal/Zug): Einheit sichert Obj → 4 SP. Kill nahe zentrales Obj = 2 SP. Ab R2: Obj (außer Heim) = 4 SP; mind. 3 Obj = 4 SP. Hier muss **nicht** viel Ressource investiert werden → einziges klares Gewinn-Matchup.
-- **vs Lösche den Feind aus — „Wichtige Verbindung"** · 45/11 · ➕⬛
+- **vs Lösche den Feind aus — „Wichtige Verbindung"** · 45/11 · 🛢️➕⬛
   Aktion KONTROLLE BEHALTEN (einmal/Zug, zentrales Obj): Op-Marker in Reichweite. Zentrales Obj = 2 SP; +1 SP je Op-Marker in Obj-Reichweite. Ab R2: Obj (außer Heim) = 4 SP + 4 SP wenn zentrales Obj dabei (KUMULATIV). Spielende: geg. Heimmissionsziel = 10 SP. Füttert den Purge-Gegner mit Center-Einheiten.
-- **vs Störangriff — „Relikt Bergen"** · 33/23 · ➕⬛
+- **vs Störangriff — „Relikt Bergen"** · 33/23 · ⚔️➕⬛
   Aktion SENSORPEILUNG entfernt geg. Op-Marker (nicht wenn nur 1). Sensorpeilung = 4 SP; Kill nahe Obj = 3 SP; nur 1 geg. Op-Marker + eigene Einheit im selben Gelände, kein Feind = 4 SP. Ab R2: Obj (außer Heim) = 4 SP. Spielende: Op-Marker-Bedingung = 5 SP.
 - **vs Auskundschaften — „Vorhutoperation"** · 34/10 · ➕⚔️⬛
   Aktion VORHUTOPERATION (einmal/Zug, Gelände in Feindterr., Ende Zugs ohne Feinde): = 4 SP. Kill = 2 SP. Ab R2: Obj (außer Heim) = 4 SP. Spielende: geg. Heimmissionsziel = 10 SP. Doppelte Anforderung (Action + Gegner clearing) macht es wackelig.
@@ -167,13 +168,13 @@ Inkonsistentester Game Plan (Consistency C, schwer zu listen), aber **höchster 
 
 - **vs E&H — „Aufklärungseinsatz"** · 33/17 · ⚔️➕
   3+ Einheiten in verschiedenen Schlachtfeldvierteln (außer 6" Zentrum) = 3 SP; 4+ in 4 Vierteln = 6 SP. Je Kill = 1 SP. Ab R2: Obj (außer Heim) = 3 SP. Schwer interagierbar → solider Floor.
-- **vs Lösche den Feind aus — „Triangulation"** · 37/25 · 🛢️
+- **vs Lösche den Feind aus — „Triangulation"** · 37/25 · ⬛
   Aktion TRIANGULIEREN (ab R2, einmal/Zug): Obj **trianguliert** + Op-Marker. Ab R2: Obj (außer Heim) = 4 SP; 1 trianguliert = 3 SP, 2 = 6 SP, 3+ = 10 SP. Spielende: 4+ Obj kontrolliert = 10 SP. **Höchster Min-Score (25)** der Matrix → Auskundschaften schlägt Purge.
-- **vs Störangriff — „Feind Beobachten"** · 40/24 · ➕
+- **vs Störangriff — „Feind Beobachten"** · 40/24 · ➕🛢️
   Aktion FEIND BEOBACHTEN: Feindeinheit beobachtet. Wenn beobachtet in Obj-Nähe = 4 SP. Bewegung in Obj-Nähe entfernt geg. Op-Marker. Ab R2: Obj (außer Heim) = 4 SP; mehr Obj = 4 SP; Ende Zugs keine geg. Op-Marker = 5 SP. Sehr hoher Floor (24).
-- **vs Prioritätsziele — „Suchen und Auslöschen"** · 41/12 · ⚔️🛢️
+- **vs Prioritätsziele — „Suchen und Auslöschen"** · 41/12 · ⚔️🛢️⬛
   Zentrales Obj = 3 SP; Feind started in Gelände, zerstört = 2 SP. Ab R2: je Obj (außer Heim) = 4 SP. Spielende: keine Feindeinheiten im eigenen Territorium = 5 SP.
-- **vs Auskundschaften — „Informationen Sammeln"** (Spiegel) · 36/17 · ➕
+- **vs Auskundschaften — „Informationen Sammeln"** (Spiegel) · 36/17 · ⬛
   R1: zentrales Obj = 6 SP. Ab R2: Obj (außer Heim) = 4 SP; Aktion DATEN SAMMELN abgeschlossen = 7 SP/Einheit. Spielende: 3+ eigene Op-Marker = 5 SP; Op-Marker in Reichweite geg. Heim = 5 SP.
 
 ---

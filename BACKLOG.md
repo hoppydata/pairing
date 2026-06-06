@@ -146,6 +146,102 @@ New items identified 2026-05-08.
 
 ---
 
+## 5. 11th Edition (Force Dispositions)
+
+> **Release ~June 2026.** 11th edition replaces the fixed mission deck with the **Force
+> Disposition** system: each list carries one of **5 dispositions**, fixed at list submission,
+> and the *combination* of the two players' dispositions determines which (asymmetric) primary
+> **mission** each side plays — and who it favours. This is a genuine second dimension on top of
+> the existing faction-vs-faction matchup.
+>
+> **The 0–20 scoring scale does not change.** What changes: each pairing now plays a *different
+> mission*, and that mission shifts the matchup *within* the 0–20 scale — a new modifier alongside
+> the table-pick delta. Matchup matrix stays the primary factor, table pick second, mission bias
+> the new (and weakest) third.
+>
+> **Invariant — 10th mode is the default fallback and must stay byte-identical.** Every disposition
+> code path is guarded by `S.edition === '11th'`; with the toggle off, the tool behaves exactly as
+> it does today. This is the primary regression risk for the whole section.
+>
+> **Reference data already shipped:** [data/11th-edition/](data/11th-edition/) — `force-dispositions.md`,
+> `mission-matrix.md` (full 5×5 with official DE names + Safe/Min scores + symbols), `secondary-missions.md`,
+> `design-notes.md`, and **`disposition-bias.json`** (the 25-cell bias lookup, derived below — reference
+> only, the live tool does not consume it yet).
+
+### 5a. Edition mode switch (10th ⇄ 11th) `M`
+**What:** A tournament-level toggle (default **10th**) stored on state `S.edition`. 10th = today's
+exact flow. 11th = enables the disposition layer (5b–5e). Persisted alongside other setup choices;
+surfaced as a clearly-labelled switch on `screen-pre-tournament`.
+**Why:** On release day captains may run either edition depending on the event. 10th must keep
+working byte-for-byte; the disposition code must be inert when `S.edition !== '11th'`.
+**Acceptance:** Toggle on tournament setup; in 10th no disposition UI appears anywhere and scoring
+is identical to current; in 11th, 5b–5e activate. Switching mid-setup is allowed.
+**Code anchors:** new `S.edition` in state init (index.html:1441); branch in `initPreTournament`
+(index.html:2428) and `initPreMatch` (index.html:2440); guard every disposition render behind
+`if (S.edition === '11th')`.
+
+### 5b. Disposition data model `S`
+**What:** Add a fixed `disposition` per our player to [data/team-data.json](data/team-data.json)
+(`playerDispositions` map, name → one of the 5), mirror into inline `TEAM_DATA` (index.html:1318),
+and add a `DISPOSITION_BIAS` lookup to index.html sourced from the already-written
+[data/11th-edition/disposition-bias.json](data/11th-edition/disposition-bias.json) (25 cells, signed
+from our perspective, each carrying both mission names).
+**Why:** Disposition is a list parameter like faction; the bias table is the data backbone for 5c–5e.
+Keeping a JSON sibling matches the existing `team-data.json` / `meta.md` split.
+**Acceptance:** All 5 of our players have a disposition; `DISPOSITION_BIAS[ourDisp][oppDisp]` returns
+`{bias, missionUs, missionThem}` for every cell. Names cross-checked against `mission-matrix.md` exactly.
+**Bias derivation (already applied in `disposition-bias.json`):** `bias = stepped(safeUs − safeThem)`,
+where Safe scores come from `mission-matrix.md` and `stepped()` is the project's VP-delta→score formula
+(`bracket = abs(d) <= 5 ? 0 : min(ceil((abs(d)−5)/5), 10)`, sign follows `d`). This lands the modifier
+at ~±1 to ±2 — comparable to a table-pick shift, weakest of the three factors, antisymmetric, mirror
+diagonal 0. Store the **converted** modifier, never the raw Safe-delta.
+
+### 5c. Mission bias in scoring + matrix `M`
+**What:** Extend the score composition to a third term. Add `dispositionBiasDelta(ourPlayerIdx,
+oppFactionIdx)` and thread it through `getScoreWithTable` (or a new `getScoreFull()`) returning
+`{score, isMeta, tableDelta, missionDelta, mission}`. Surface the mission bias in the persistent match
+matrix and advantage meter when in 11th mode.
+**Why:** This is the core of "missions as an additional variable." Composes with matchup + table
+exactly like the existing table delta — additive, clamped 0–20. **Do not fork the scoring path.**
+**Acceptance:** In 11th mode every score-bearing surface (matrix cells, advantage meter, suggestion
+tables) reflects matchup + table + mission bias; in 10th mode the mission term is 0. Cell tooltip/badge
+shows the mission name + signed bias.
+**Code anchors:** `getScore` (1551), `getScoreWithTable` (1624), `tableScoreDelta` (~1600),
+`computeExpected` (1675), `refreshAdvantageMeter` (1696), `buildPersistentMatrixTable` (2819).
+
+### 5d. Once-per-team disposition validation `S`
+**What:** On `screen-pre-tournament` / composition analysis, validate that no two of our players share
+a disposition; show a blocking-style warning row if violated (same style as the 1b estimation-integrity
+warning).
+**Why:** The 11th-ed team rule — each disposition may be chosen only once per team. Catching it at setup
+prevents an illegal roster entering a draft.
+**Acceptance:** Warning row appears when any disposition is duplicated across our 5 players, naming the
+offenders; clears when resolved. Opponent side is **not** constrained (we can't police their list) but
+each opponent still carries one disposition for the bias lookup, picked at match setup.
+**Code anchors:** composition analysis render (near `buildPersonalScoreTable` 2373 / the 1b row);
+opponent disposition pickers added to the faction picker (`buildFactionPicker` 2719).
+
+### 5e. Live mission surfacing in the draft `M`
+**What:** Once a pairing is locked (S1 games 1–2, S2 games 3–5), show the resulting **mission name** and
+who it favours on each game line — both dispositions are known, so a pairing reads like *"World Eaters
+Recon vs Blood Angels Purge the Foe → Triangulation (+1 us)"*. Feed the mission bias into `computeStrategy`
+(2057) so trash/avoid/pin/deliver reads account for the mission, and into `computeAssetLine` (1965) and the
+`rank*` suggestions (1734–1804).
+**Why:** You already know which mission each pairing produces and who gets the upside — make it explicit at
+the point of decision, not just inside the final score.
+**Acceptance:** Each locked game line in 11th mode shows `mission (±bias)`; strategy callout and
+attacker/defender suggestions incorporate the mission term; 10th mode unchanged.
+**Code anchors:** pairing line render (helpers ~3865–3921), `computeStrategy` (2057), `computeAssetLine`
+(1965), `rank*` (1734–1804), results breakdown (`enterResults` 3704).
+
+### 5f. Secondary-mission role tags `M` — later, noted only
+**What:** Model Kill/Action/Hold role tags from `secondary-missions.md` to refine the bias for
+kill-synergy dispositions (e.g. Purge the Foe) once the primary layer is proven.
+**Why:** Secondaries reward killing/midboard and amplify some primary anti-synergies, but this is a
+second-order refinement. **Out of scope for the first 11th-edition pass.**
+
+---
+
 ## Session Notes
 
 | Session    | Items worked                                                                                                         |
@@ -156,3 +252,4 @@ New items identified 2026-05-08.
 | 2026-05-07 | Out-of-backlog: setup-screen polish (PRIMARY/FALLBACK badges), persistent Match Matrix card during pairing, full META refresh from current dataslate, recalib card lifted on Results |
 | 2026-05-08 | Backlog housekeeping: marked 1a–1g + 2a/2b complete; reframed 3a as intentional fallback canary; added section 4 (4a–4e) |
 | 2026-05-09 | 4a–4d confirmed already shipped; 4e: tightened all strategy bullet copy to ≤8 words imperative form |
+| 2026-06-06 | Added section 5 (11th edition): 5a mode switch, 5b disposition data model, 5c mission bias in scoring, 5d once-per-team validation, 5e live mission surfacing, 5f secondaries (later). Wrote `data/11th-edition/disposition-bias.json` (25-cell bias lookup). |

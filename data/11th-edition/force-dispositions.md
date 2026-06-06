@@ -15,7 +15,7 @@ In der 11. Edition bestimmen **die Armeen** die Mission. Der Mechanismus heißt 
    - **Core Rules / Pickup:** Disposition wird **vor jedem Spiel** gewählt.
    - **Turnier (ITT/WTC):** Disposition wird **bei Listenabgabe fixiert** — sie ändert sich nicht mehr pro Runde. Sie ist damit ein **fester, vom Gegner unabhängiger Listen-Parameter**.
 3. Vor dem Spiel vergleichen beide Spieler ihre Dispositionen. Die **Kombination** der beiden bestimmt die (asymmetrischen) **Primärmissionen** — jeder Spieler spielt potenziell eine **andere** Mission.
-4. 5 Dispositionen → **25 Mission-Zellen** (≈21 unique; die Spiegel-Diagonale = beide spielen dieselbe Mission).
+4. 5 Dispositionen → **25 Mission-Zellen**, alle mit **eigenem Missionsnamen** (laut Chapter-Approved-Extraktion in [`mission-matrix.md`](mission-matrix.md); Pope schätzte vorab „~21 mit Duplikaten" — durch die offiziellen Karten überholt). Die Spiegel-Diagonale (5 Zellen) = beide Spieler spielen dieselbe Mission.
 
 **Scoring-Caps:** Primär max **45 VP/Spiel**, **15 VP/Runde**. Sekundär ebenfalls bis 45 VP/Spiel (siehe [`secondary-missions.md`](secondary-missions.md)). Fast jede Primärmission belohnt das Halten **mindestens eines Objektivs außerhalb der eigenen Deployment Zone** (die „Natural Expansion") ab Runde 2.
 
