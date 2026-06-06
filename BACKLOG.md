@@ -168,7 +168,7 @@ New items identified 2026-05-08.
 > `design-notes.md`, and **`disposition-bias.json`** (the 25-cell bias lookup, derived below — reference
 > only, the live tool does not consume it yet).
 
-### 5a. Edition mode switch (10th ⇄ 11th) `M`
+### 5a. Edition mode switch (10th �� 11th) `M` ✅
 **What:** A tournament-level toggle (default **10th**) stored on state `S.edition`. 10th = today's
 exact flow. 11th = enables the disposition layer (5b–5e). Persisted alongside other setup choices;
 surfaced as a clearly-labelled switch on `screen-pre-tournament`.
@@ -180,7 +180,7 @@ is identical to current; in 11th, 5b–5e activate. Switching mid-setup is allow
 (index.html:2428) and `initPreMatch` (index.html:2440); guard every disposition render behind
 `if (S.edition === '11th')`.
 
-### 5b. Disposition data model `S`
+### 5b. Disposition data model `S` ✅
 **What:** Add a fixed `disposition` per our player to [data/team-data.json](data/team-data.json)
 (`playerDispositions` map, name → one of the 5), mirror into inline `TEAM_DATA` (index.html:1318),
 and add a `DISPOSITION_BIAS` lookup to index.html sourced from the already-written
@@ -196,7 +196,7 @@ where Safe scores come from `mission-matrix.md` and `stepped()` is the project's
 at ~±1 to ±2 — comparable to a table-pick shift, weakest of the three factors, antisymmetric, mirror
 diagonal 0. Store the **converted** modifier, never the raw Safe-delta.
 
-### 5c. Mission bias in scoring + matrix `M`
+### 5c. Mission bias in scoring + matrix `M` ✅
 **What:** Extend the score composition to a third term. Add `dispositionBiasDelta(ourPlayerIdx,
 oppFactionIdx)` and thread it through `getScoreWithTable` (or a new `getScoreFull()`) returning
 `{score, isMeta, tableDelta, missionDelta, mission}`. Surface the mission bias in the persistent match
@@ -209,7 +209,7 @@ shows the mission name + signed bias.
 **Code anchors:** `getScore` (1551), `getScoreWithTable` (1624), `tableScoreDelta` (~1600),
 `computeExpected` (1675), `refreshAdvantageMeter` (1696), `buildPersistentMatrixTable` (2819).
 
-### 5d. Once-per-team disposition validation `S`
+### 5d. Once-per-team disposition validation `S` ✅
 **What:** On `screen-pre-tournament` / composition analysis, validate that no two of our players share
 a disposition; show a blocking-style warning row if violated (same style as the 1b estimation-integrity
 warning).
@@ -221,7 +221,7 @@ each opponent still carries one disposition for the bias lookup, picked at match
 **Code anchors:** composition analysis render (near `buildPersonalScoreTable` 2373 / the 1b row);
 opponent disposition pickers added to the faction picker (`buildFactionPicker` 2719).
 
-### 5e. Live mission surfacing in the draft `M`
+### 5e. Live mission surfacing in the draft `M` ✅
 **What:** Once a pairing is locked (S1 games 1–2, S2 games 3–5), show the resulting **mission name** and
 who it favours on each game line — both dispositions are known, so a pairing reads like *"World Eaters
 Recon vs Blood Angels Purge the Foe → Triangulation (+1 us)"*. Feed the mission bias into `computeStrategy`
@@ -253,3 +253,4 @@ second-order refinement. **Out of scope for the first 11th-edition pass.**
 | 2026-05-08 | Backlog housekeeping: marked 1a–1g + 2a/2b complete; reframed 3a as intentional fallback canary; added section 4 (4a–4e) |
 | 2026-05-09 | 4a–4d confirmed already shipped; 4e: tightened all strategy bullet copy to ≤8 words imperative form |
 | 2026-06-06 | Added section 5 (11th edition): 5a mode switch, 5b disposition data model, 5c mission bias in scoring, 5d once-per-team validation, 5e live mission surfacing, 5f secondaries (later). Wrote `data/11th-edition/disposition-bias.json` (25-cell bias lookup). |
+| 2026-06-06 | Implemented 5a–5e: edition toggle, DISPOSITION_BIAS const, dispositionBiasDelta/missionInfo in scoring, opponent disposition pickers, once-per-team validation, mission surfacing on all locked game lines + results breakdown. |

@@ -979,6 +979,15 @@
       </div>
     </div>
 
+    <div class="card" id="edition-card">
+      <div class="card-title">Edition</div>
+      <div style="display:flex;align-items:center;gap:1rem;padding:0.2rem 0">
+        <button type="button" id="btn-10th" class="btn btn-primary" style="min-width:5rem">10th</button>
+        <button type="button" id="btn-11th" class="btn btn-outline" style="min-width:5rem">11th</button>
+        <span id="edition-label" style="font-size:0.8rem;color:var(--muted)">10th edition pairing (current)</span>
+      </div>
+    </div>
+
     <button class="btn btn-primary btn-full" id="btn-save-tournament">Continue to Match Setup →</button>
   </div>
 
@@ -1017,6 +1026,11 @@
     <div id="setup-opp-prefs-wrap" class="card" style="display:none">
       <div class="card-title">Opponent Terrain Preference <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— guess their tendencies</span></div>
       <div id="setup-opp-prefs"></div>
+    </div>
+
+    <div id="setup-opp-dispositions-wrap" class="card" style="display:none">
+      <div class="card-title">Opponent Dispositions <span style="font-weight:400;font-size:0.68rem;color:var(--muted);letter-spacing:0">— 11th edition · one per opponent faction</span></div>
+      <div id="setup-opp-dispositions"></div>
     </div>
 
     <div id="composition-warnings" class="card">
@@ -1348,6 +1362,16 @@ const TEAM_DATA = {
     "Player 4": { dense: -3, balanced: 0, open: 3  },
     "Player 5": { dense: 0,  balanced: 0, open: 0  },
   },
+  // 11th edition: one of the 5 dispositions per player, fixed at list submission.
+  // Valid values: "Take and Hold" | "Purge the Foe" | "Disruption" | "Reconnaissance" | "Priority Assets"
+  // Each disposition may be used ONLY ONCE per team.
+  playerDispositions: {
+    "Player 1": "Purge the Foe",
+    "Player 2": "Disruption",
+    "Player 3": "Reconnaissance",
+    "Player 4": "Take and Hold",
+    "Player 5": "Priority Assets",
+  },
 };
 
 // Global meta fallback — row = our faction, col = opponent faction
@@ -1434,6 +1458,47 @@ const FACTION_TABLE_PREFS = {
   "World Eaters":      { dense: 3,  balanced: 0, open: -3 },
 };
 
+// 11th edition: Disposition × Disposition → mission + score bias.
+// bias = stepped(safeUs − safeThem); antisymmetric; mirror diagonal = 0.
+// Source: data/11th-edition/disposition-bias.json
+const DISPOSITION_BIAS = {
+  "Take and Hold": {
+    "Take and Hold":  { bias: 0,  missionUs: "Schlachtfeld Beherrschen",   missionThem: "Schlachtfeld Beherrschen"   },
+    "Purge the Foe":  { bias: 0,  missionUs: "Unbewegliches Objekt",       missionThem: "Unaufhaltsame Gewalt"       },
+    "Disruption":     { bias: 0,  missionUs: "Entschlossene Übernahme",    missionThem: "Todesfalle"                 },
+    "Reconnaissance": { bias: 1,  missionUs: "Säubern und Sichern",        missionThem: "Aufklärungseinsatz"         },
+    "Priority Assets":{ bias: 0,  missionUs: "Unausweichliche Herrschaft", missionThem: "Objekt Sichern"             },
+  },
+  "Purge the Foe": {
+    "Take and Hold":  { bias: 0,  missionUs: "Unaufhaltsame Gewalt",       missionThem: "Unbewegliches Objekt"       },
+    "Purge the Foe":  { bias: 0,  missionUs: "Fleischwolf",                missionThem: "Fleischwolf"                },
+    "Disruption":     { bias: 0,  missionUs: "Strafe",                     missionThem: "Verzögerungsgefecht"        },
+    "Reconnaissance": { bias: 0,  missionUs: "Weihen",                     missionThem: "Triangulation"              },
+    "Priority Assets":{ bias: 0,  missionUs: "Zorn des Zerstörers",        missionThem: "Wichtige Verbindung"        },
+  },
+  "Disruption": {
+    "Take and Hold":  { bias: 0,  missionUs: "Todesfalle",                 missionThem: "Entschlossene Übernahme"   },
+    "Purge the Foe":  { bias: 0,  missionUs: "Verzögerungsgefecht",        missionThem: "Strafe"                    },
+    "Disruption":     { bias: 0,  missionUs: "Ausmanövrieren",             missionThem: "Ausmanövrieren"            },
+    "Reconnaissance": { bias: 1,  missionUs: "Rauch und Spiegel",          missionThem: "Feind Beobachten"          },
+    "Priority Assets":{ bias: 0,  missionUs: "Finden und Verweigern",      missionThem: "Relikt Bergen"             },
+  },
+  "Reconnaissance": {
+    "Take and Hold":  { bias: -1, missionUs: "Aufklärungseinsatz",         missionThem: "Säubern und Sichern"       },
+    "Purge the Foe":  { bias: 0,  missionUs: "Triangulation",              missionThem: "Weihen"                    },
+    "Disruption":     { bias: -1, missionUs: "Feind Beobachten",           missionThem: "Rauch und Spiegel"         },
+    "Reconnaissance": { bias: 0,  missionUs: "Informationen Sammeln",      missionThem: "Informationen Sammeln"     },
+    "Priority Assets":{ bias: 1,  missionUs: "Suchen und Auslöschen",      missionThem: "Vorhutoperation"           },
+  },
+  "Priority Assets": {
+    "Take and Hold":  { bias: 0,  missionUs: "Objekt Sichern",             missionThem: "Unausweichliche Herrschaft"},
+    "Purge the Foe":  { bias: 0,  missionUs: "Wichtige Verbindung",        missionThem: "Zorn des Zerstörers"       },
+    "Disruption":     { bias: 0,  missionUs: "Relikt Bergen",              missionThem: "Finden und Verweigern"     },
+    "Reconnaissance": { bias: -1, missionUs: "Vorhutoperation",            missionThem: "Suchen und Auslöschen"     },
+    "Priority Assets":{ bias: 0,  missionUs: "Sabotage",                   missionThem: "Sabotage"                  },
+  },
+};
+
 /* ═══════════════════════════════════════════════════════════
    STATE
 ═══════════════════════════════════════════════════════════ */
@@ -1476,6 +1541,10 @@ const S = {
 
   // Pre-round branch plans: 2 slots with expected opp defender faction + our plan text
   branchPlans: [{ faction: '', plan: '' }, { faction: '', plan: '' }],
+
+  edition: '10th',           // '10th' | '11th' — default 10th; guards all disposition logic
+  playerDispositions: TEAM_DATA.players.map(p => TEAM_DATA.playerDispositions?.[p] ?? 'Purge the Foe'),
+  oppDispositions: [],     // [5] opponent disposition names, set at match setup (11th only)
 };
 
 const SCREENS = [
@@ -1620,12 +1689,35 @@ function tableScoreDelta(pIdx, fIdx, tableType) {
   return ourPref - oppPref;
 }
 
-/* Returns { score, isMeta, delta } with table modifier applied and clamped to [0,20]. */
+/* 11th edition: mission bias delta from Disposition × Disposition lookup.
+   Returns 0 in 10th mode or when either disposition is unknown.
+   Positive = mission favours us, negative = favours opponent. */
+function dispositionBiasDelta(pIdx, fIdx) {
+  if (S.edition !== '11th') return 0;
+  const ourDisp = S.playerDispositions?.[pIdx];
+  const oppDisp = S.oppDispositions?.[fIdx];
+  if (!ourDisp || !oppDisp) return 0;
+  return DISPOSITION_BIAS[ourDisp]?.[oppDisp]?.bias ?? 0;
+}
+
+/* 11th edition: return { missionUs, missionThem } for a pairing, or null in 10th mode. */
+function missionInfo(pIdx, fIdx) {
+  if (S.edition !== '11th') return null;
+  const ourDisp = S.playerDispositions?.[pIdx];
+  const oppDisp = S.oppDispositions?.[fIdx];
+  if (!ourDisp || !oppDisp) return null;
+  const cell = DISPOSITION_BIAS[ourDisp]?.[oppDisp];
+  return cell ? { missionUs: cell.missionUs, missionThem: cell.missionThem } : null;
+}
+
+/* Returns { score, isMeta, delta, missionDelta } with table + mission modifiers applied,
+   clamped to [0,20]. missionDelta is 0 in 10th mode. */
 function getScoreWithTable(pIdx, fIdx, tableType) {
   const { score, isMeta } = getScore(pIdx, fIdx);
-  if (score === null) return { score: null, isMeta, delta: 0 };
+  if (score === null) return { score: null, isMeta, delta: 0, missionDelta: 0 };
   const delta = tableScoreDelta(pIdx, fIdx, tableType);
-  return { score: Math.max(0, Math.min(20, score + delta)), isMeta, delta };
+  const missionDelta = dispositionBiasDelta(pIdx, fIdx);
+  return { score: Math.max(0, Math.min(20, score + delta + missionDelta)), isMeta, delta, missionDelta };
 }
 
 /* Returns the table type string for a given 1-based table ID, or null. */
@@ -2425,6 +2517,15 @@ function buildPersonalScoreTable() {
   });
 }
 
+function refreshEditionToggle() {
+  const is11 = S.edition === '11th';
+  $('btn-10th').className = is11 ? 'btn btn-outline' : 'btn btn-primary';
+  $('btn-11th').className = is11 ? 'btn btn-primary' : 'btn btn-outline';
+  $('edition-label').textContent = is11
+    ? '11th edition — Force Disposition missions active'
+    : '10th edition pairing (current)';
+}
+
 function initPreTournament() {
   S.players = [...TEAM_DATA.players];
   S.playerFactions = TEAM_DATA.players.map(p => TEAM_DATA.playerFactions[p] ?? TEAM_DATA.factions[0]);
@@ -2435,6 +2536,39 @@ function initPreTournament() {
   syncFactionSelects();
   buildMetaTable();
   buildPersonalScoreTable();
+  refreshEditionToggle();
+}
+
+const DISPOSITIONS = ['Take and Hold','Purge the Foe','Disruption','Reconnaissance','Priority Assets'];
+
+function buildOppDispositionsGrid() {
+  const wrap = $('setup-opp-dispositions-wrap');
+  const el   = $('setup-opp-dispositions');
+  if (!wrap || !el) return;
+  if (S.edition !== '11th' || S.factions.length < 5) { wrap.style.display = 'none'; return; }
+  wrap.style.display = '';
+
+  // Ensure oppDispositions array is sized for 5 factions
+  while (S.oppDispositions.length < 5) S.oppDispositions.push('Purge the Foe');
+
+  el.innerHTML = S.factions.map((fName, fi) => {
+    const sel = DISPOSITIONS.map(d =>
+      `<option value="${d}"${S.oppDispositions[fi] === d ? ' selected' : ''}>${d}</option>`
+    ).join('');
+    return `<div class="field" style="margin-bottom:0.4rem">
+      <label style="min-width:7rem;font-size:0.8rem">${fName}</label>
+      <select data-fi="${fi}" style="flex:1;font-size:0.8rem">${sel}</select>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('select').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const fi = Number(e.target.dataset.fi);
+      S.oppDispositions[fi] = e.target.value;
+      buildPersistentMatrixTable();
+      buildCompositionWarnings();
+    });
+  });
 }
 
 function initPreMatch() {
@@ -2444,6 +2578,7 @@ function initPreMatch() {
   buildMatrixTable();
   buildOurPrefsGrid();
   buildOppPrefsGrid();
+  buildOppDispositionsGrid();
   buildCompositionWarnings();
 }
 
@@ -2636,6 +2771,20 @@ function buildCompositionWarnings() {
     text: `Defender by elimination: <strong>${elimCandidate.name}</strong> — ${elimReason}.`
   });
 
+  // 11th edition: once-per-team disposition validation
+  if (S.edition === '11th') {
+    const dispCount = {};
+    S.players.forEach((_, pi) => {
+      const d = S.playerDispositions?.[pi];
+      if (d) dispCount[d] = (dispCount[d] || []).concat(S.players[pi]);
+    });
+    Object.entries(dispCount).forEach(([disp, names]) => {
+      if (names.length > 1) {
+        warnings.push({ type: 'overconf', text: `Duplicate disposition <strong>${disp}</strong>: ${names.join(', ')} — each disposition may only be used once per team.` });
+      }
+    });
+  }
+
   // Estimation integrity — personal scores systematically above meta (overconfidence check)
   S.players.forEach((name, pi) => {
     const personalEntries = S.factions
@@ -2740,6 +2889,7 @@ function buildFactionPicker() {
       count.textContent = `Selected: ${selectedFactions.size} / 5`;
       buildMatrixTable();
       buildOppPrefsGrid();
+      buildOppDispositionsGrid();
       buildCompositionWarnings();
     });
     grid.appendChild(chip);
@@ -2841,13 +2991,22 @@ function buildPersistentMatrixTable() {
     active.forEach((_, fi) => {
       const td = document.createElement('td');
       const { score, isMeta } = getScore(pi, fi);
+      const mDelta = dispositionBiasDelta(pi, fi);
       const display = score !== null ? `${score}${isMeta ? '*' : ''}` : '?';
       const scCls = score !== null ? scClass(score) : '';
       const italic = isMeta ? 'font-style:italic;color:var(--muted)' : '';
       const muted = lockedF.has(fi) ? ' mx-muted' : '';
       td.className = `${scCls}${muted}`;
       td.style.cssText = `text-align:center;padding:0.4rem 0.3rem;${italic}`;
-      td.textContent = display;
+      if (S.edition === '11th' && mDelta !== 0) {
+        const sign = mDelta > 0 ? '+' : '';
+        const mi = missionInfo(pi, fi);
+        const tip = mi ? `${mi.missionUs} (${sign}${mDelta})` : `${sign}${mDelta}`;
+        td.innerHTML = `${display}<br><span style="font-size:0.6rem;font-style:normal;color:${mDelta>0?'var(--green)':'var(--red)'}">${sign}${mDelta}</span>`;
+        td.title = tip;
+      } else {
+        td.textContent = display;
+      }
       tr.appendChild(td);
     });
     body.appendChild(tr);
@@ -3204,8 +3363,8 @@ function enterS1Tables() {
 
   const el = $('s1t-pairings');
   el.innerHTML = '<div class="card-title">Stage 1 Pairings</div>';
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 1', S.players[S.s1.game1.ourPlayer], S.playerFactions[S.s1.game1.ourPlayer], S.factions[S.s1.game1.theirFaction], ''));
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 2', S.players[S.s1.game2.ourPlayer], S.playerFactions[S.s1.game2.ourPlayer], S.factions[S.s1.game2.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 1', S.players[S.s1.game1.ourPlayer], S.playerFactions[S.s1.game1.ourPlayer], S.factions[S.s1.game1.theirFaction], '', S.s1.game1.ourPlayer, S.s1.game1.theirFaction));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 2', S.players[S.s1.game2.ourPlayer], S.playerFactions[S.s1.game2.ourPlayer], S.factions[S.s1.game2.theirFaction], '', S.s1.game2.ourPlayer, S.s1.game2.theirFaction));
 
   // Determine pick order based on rolloff
   // Winner (pick 1) gets to choose from all 5; they own picks 1,4,5 conceptually
@@ -3541,9 +3700,9 @@ function finishS2Refusal() {
 
   const el = $('s2t-pairings');
   el.innerHTML = '<div class="card-title">Stage 2 Pairings</div>';
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 3', S.players[S.s2.game3.ourPlayer], S.playerFactions[S.s2.game3.ourPlayer], S.factions[S.s2.game3.theirFaction], ''));
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 4', S.players[S.s2.game4.ourPlayer], S.playerFactions[S.s2.game4.ourPlayer], S.factions[S.s2.game4.theirFaction], ''));
-  el.insertAdjacentHTML('beforeend', pairingLine('Game 5 ★', S.players[S.s2.game5.ourPlayer], S.playerFactions[S.s2.game5.ourPlayer], S.factions[S.s2.game5.theirFaction], ''));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 3', S.players[S.s2.game3.ourPlayer], S.playerFactions[S.s2.game3.ourPlayer], S.factions[S.s2.game3.theirFaction], '', S.s2.game3.ourPlayer, S.s2.game3.theirFaction));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 4', S.players[S.s2.game4.ourPlayer], S.playerFactions[S.s2.game4.ourPlayer], S.factions[S.s2.game4.theirFaction], '', S.s2.game4.ourPlayer, S.s2.game4.theirFaction));
+  el.insertAdjacentHTML('beforeend', pairingLine('Game 5 ★', S.players[S.s2.game5.ourPlayer], S.playerFactions[S.s2.game5.ourPlayer], S.factions[S.s2.game5.theirFaction], '', S.s2.game5.ourPlayer, S.s2.game5.theirFaction));
 
   refreshOverviewBar();
   $('s2t-section').style.display = 'block';
@@ -3768,12 +3927,18 @@ function enterResults() {
           const ttBadge = g.table
             ? `<span style="margin-left:0.3rem">${g.table}</span>${ttLabel ? ` <span class="${ttCls}">${ttLabel}</span>` : ''}`
             : '';
-          const deltaBadge = delta !== 0
-            ? `<span class="sc-delta-${delta > 0 ? 'pos' : 'neg'}" style="margin-left:0.25rem">(${delta > 0 ? '+' : ''}${delta})</span>`
+          const { missionDelta } = getScoreWithTable(g.ourPlayer, g.theirFaction, tableType);
+          const totalDelta = delta; // already includes missionDelta via getScoreWithTable
+          const deltaBadge = totalDelta !== 0
+            ? `<span class="sc-delta-${totalDelta > 0 ? 'pos' : 'neg'}" style="margin-left:0.25rem">(${totalDelta > 0 ? '+' : ''}${totalDelta})</span>`
+            : '';
+          const mi = missionInfo(g.ourPlayer, g.theirFaction);
+          const missionBadge = mi && S.edition === '11th'
+            ? `<span class="table-tag" style="margin-left:0.3rem;color:var(--muted)">${mi.missionUs}</span>`
             : '';
           return `<tr>
             <td><span class="game-num" style="font-size:0.72rem">${label}</span></td>
-            <td><strong>${S.players[g.ourPlayer]}</strong><span class="player-faction"> (${S.playerFactions[g.ourPlayer]})</span><span class="gb-vs">vs</span>${S.factions[g.theirFaction]}${ttBadge}</td>
+            <td><strong>${S.players[g.ourPlayer]}</strong><span class="player-faction"> (${S.playerFactions[g.ourPlayer]})</span><span class="gb-vs">vs</span>${S.factions[g.theirFaction]}${ttBadge}${missionBadge}</td>
             <td><span class="${scClass(sc)}" style="font-weight:700">${sc}</span>${deltaBadge}</td>
             <td><span class="${scClass(20 - oppSc)}" style="font-weight:700">${oppSc}</span></td>
             <td><span class="${netCls}">${netStr}</span></td>
@@ -3866,14 +4031,23 @@ function enterResults() {
    HELPERS
 ═══════════════════════════════════════════════════════════ */
 
-function pairingLine(label, playerName, playerFaction, factionName, table) {
+function pairingLine(label, playerName, playerFaction, factionName, table, pIdx, fIdx) {
   const tag = table ? `<span class="table-tag">Table: ${table}</span>` : '';
+  let missionTag = '';
+  if (S.edition === '11th' && pIdx !== undefined && fIdx !== undefined) {
+    const mi = missionInfo(pIdx, fIdx);
+    const bias = dispositionBiasDelta(pIdx, fIdx);
+    if (mi) {
+      const biasStr = bias !== 0 ? ` <span style="color:${bias>0?'var(--green)':'var(--red)'};font-weight:700">${bias>0?'+':''}${bias}</span>` : '';
+      missionTag = `<span class="table-tag" style="color:var(--muted)">${mi.missionUs}${biasStr}</span>`;
+    }
+  }
   return `<div class="pairing-line">
     <span class="game-num">${label}</span>
     <span>${playerName}<span class="player-faction"> (${playerFaction})</span></span>
     <span class="vs">vs</span>
     <span>${factionName}</span>
-    ${tag}
+    ${tag}${missionTag}
   </div>`;
 }
 
@@ -4126,6 +4300,10 @@ function syncFactionSelects() {
     });
   });
 }
+
+// Edition toggle
+$('btn-10th').addEventListener('click', () => { S.edition = '10th'; refreshEditionToggle(); });
+$('btn-11th').addEventListener('click', () => { S.edition = '11th'; refreshEditionToggle(); });
 
 // Rebuild when faction changes
 $('player-inputs').addEventListener('change', e => {
